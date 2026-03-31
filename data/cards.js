@@ -323,6 +323,35 @@ DS.Cards = {
         target.bleed = (target.bleed || 0) + 3;
         DS.Combat.logMsg(target.name + ' is Bleeding!', 'damage');
       }
+    },
+    {
+      id: 'rogue_assassinate',
+      name: 'Assassinate',
+      cost: 2,
+      type: 'attack',
+      target: 'enemy',
+      prefPos: [1, 2],
+      desc: 'Deal 20 damage. Exhaust.',
+      value: 20,
+      effect: function(state, hero, target, card) {
+        DS.Combat.dealDamage(target, card.value);
+        card._exhaust = true;
+      }
+    },
+    {
+      id: 'rogue_caltrops',
+      name: 'Caltrops',
+      cost: 1,
+      type: 'utility',
+      target: 'all_enemies',
+      prefPos: [2, 3, 4],
+      desc: 'Apply 2 Poison to ALL enemies.',
+      value: 2,
+      effect: function(state, hero, target, card) {
+        DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
+          DS.Combat.applyPoison(e, card.value);
+        });
+      }
     }
   ],
 
@@ -474,6 +503,41 @@ DS.Cards = {
           DS.Combat.healTarget(h, card.value);
           h.weak = 0;
           DS.Combat.logMsg(h.name + ' is cleansed of Weakness!', 'heal');
+        });
+      }
+    },
+    {
+      id: 'cleric_martyrdom',
+      name: 'Martyrdom',
+      cost: 1,
+      type: 'heal',
+      target: 'none',
+      prefPos: [3, 4],
+      desc: 'Lose 5 HP. Heal all other allies 10 HP.',
+      value: 10,
+      effect: function(state, hero, target, card) {
+        hero.hp = Math.max(1, hero.hp - 5);
+        DS.Combat.floatText(hero, '-5', 'damage');
+        DS.State.run.heroes.filter(function(h) { return h.hp > 0 && h !== hero; }).forEach(function(h) {
+          DS.Combat.healTarget(h, card.value);
+        });
+      }
+    },
+    {
+      id: 'cleric_holy_nova',
+      name: 'Holy Nova',
+      cost: 2,
+      type: 'attack',
+      target: 'all_enemies',
+      prefPos: [3, 4],
+      desc: 'Deal 5 damage to all enemies. Heal all allies 3 HP.',
+      value: 5,
+      effect: function(state, hero, target, card) {
+        DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
+          DS.Combat.dealDamage(e, card.value);
+        });
+        DS.State.run.heroes.filter(function(h) { return h.hp > 0; }).forEach(function(h) {
+          DS.Combat.healTarget(h, 3);
         });
       }
     }
@@ -644,6 +708,38 @@ DS.Cards = {
         target.strength = (target.strength || 0) + card.value;
         DS.Combat.logMsg(target.name + ' is empowered!', 'heal');
         card._exhaust = true;
+      }
+    },
+    {
+      id: 'wizard_meteor',
+      name: 'Meteor',
+      cost: 3,
+      type: 'attack',
+      target: 'all_enemies',
+      prefPos: [4],
+      desc: 'Deal 15 damage to ALL enemies. Exhaust.',
+      value: 15,
+      effect: function(state, hero, target, card) {
+        DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
+          DS.Combat.dealDamage(e, card.value);
+        });
+        card._exhaust = true;
+      }
+    },
+    {
+      id: 'wizard_mirror_image',
+      name: 'Mirror Image',
+      cost: 1,
+      type: 'block',
+      target: 'all_allies',
+      prefPos: [3, 4],
+      desc: 'Give all allies 3 Block. Draw 1 card.',
+      value: 3,
+      effect: function(state, hero, target, card) {
+        DS.State.run.heroes.filter(function(h) { return h.hp > 0; }).forEach(function(h) {
+          DS.Combat.gainBlock(h, card.value);
+        });
+        DS.Combat.drawCard();
       }
     }
   ]

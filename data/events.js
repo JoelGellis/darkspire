@@ -402,6 +402,205 @@ DS.Events = [
         }
       }
     ]
+  },
+
+  // ============================================================
+  // 9. THE PIT
+  // ============================================================
+  {
+    id: 'the_pit',
+    name: 'The Pit',
+    text: 'A gaping hole in the stone floor. Warm air rises from below, carrying the smell of old metal and something alive. The edges are smooth — worn by hands, not tools.',
+    choices: [
+      {
+        label: 'Jump in',
+        desc: '50% chance: gain a relic. 50% chance: all heroes lose 20 HP.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          if (Math.random() < 0.5) {
+            // Good outcome: relic
+            state.run.relics = state.run.relics || [];
+            var ownedIds = state.run.relics.map(function(r) { return r.id; });
+            var relic = (DS.Relics && DS.Relics.pickRandom) ? DS.Relics.pickRandom(ownedIds) : null;
+            if (relic) {
+              state.run.relics.push(relic);
+              return 'You land hard but alive. Something glints in the dark — ' + relic.name + '. Worth the bruises.';
+            }
+            state.run.gold = (state.run.gold || 0) + 40;
+            return 'You land in a pile of old coins. 40 gold, and a long climb back up.';
+          } else {
+            // Bad outcome: damage
+            if (state.run.heroes) {
+              state.run.heroes.forEach(function(h) {
+                if (h && h.hp > 0) {
+                  h.hp = Math.max(0, h.hp - 20);
+                }
+              });
+            }
+            return 'The fall is worse than you expected. Bones crack. Darkness swallows the screams. (-20 HP to all)';
+          }
+        }
+      },
+      {
+        label: 'Throw a torch',
+        desc: 'Reveals 30 gold at the bottom.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          state.run.gold = (state.run.gold || 0) + 30;
+          return 'The torch tumbles, illuminating a shallow ledge littered with coins. You climb down carefully and collect 30 gold.';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return 'You step back from the edge. The pit breathes once, then goes still.';
+        }
+      }
+    ]
+  },
+
+  // ============================================================
+  // 10. WOUNDED SOLDIER
+  // ============================================================
+  {
+    id: 'wounded_soldier',
+    name: 'Wounded Soldier',
+    text: 'A soldier slumps against the wall, armor cracked, one hand pressed to a wound that has stopped bleeding only because there is so little blood left. His eyes find yours.',
+    choices: [
+      {
+        label: 'Heal him',
+        desc: 'He joins temporarily: +3 Block to all heroes in next combat.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          state.run._soldierBuff = true;
+          return '"I owe you my life." He rises, steadier than he should be. "I\'ll hold the line with you — one fight." He falls into step behind the party.';
+        }
+      },
+      {
+        label: 'Rob him',
+        desc: 'Gain 15 gold. A random hero loses 3 max HP.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          state.run.gold = (state.run.gold || 0) + 15;
+          if (state.run.heroes) {
+            var alive = state.run.heroes.filter(function(h) { return h && h.hp > 0; });
+            if (alive.length > 0) {
+              var victim = alive[Math.floor(Math.random() * alive.length)];
+              victim.maxHp = Math.max(1, (victim.maxHp || 1) - 3);
+              victim.hp = Math.min(victim.hp, victim.maxHp);
+              return 'You take what he has. He doesn\'t resist. ' + victim.name + ' can\'t meet his eyes. (-3 max HP). The guilt weighs more than the gold.';
+            }
+          }
+          return 'You take his coins. He watches in silence.';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return 'You leave him to his fate. His breathing follows you down the corridor, then stops.';
+        }
+      }
+    ]
+  },
+
+  // ============================================================
+  // 11. CURSED MIRROR
+  // ============================================================
+  {
+    id: 'cursed_mirror',
+    name: 'Cursed Mirror',
+    text: 'A tall mirror stands in an alcove, its frame carved with faces frozen mid-scream. Your reflection moves a half-second too slow. It smiles when you don\'t.',
+    choices: [
+      {
+        label: 'Look into it',
+        desc: 'A random hero gains +5 max HP. Another loses 5 max HP.',
+        effect: function(state) {
+          if (!state || !state.run || !state.run.heroes) return 'Nothing happens.';
+          var alive = state.run.heroes.filter(function(h) { return h && h.hp > 0; });
+          if (alive.length < 2) return 'The mirror shows only one face. It cracks and goes dark.';
+          // Shuffle and pick two
+          var shuffled = alive.slice().sort(function() { return Math.random() - 0.5; });
+          var winner = shuffled[0];
+          var loser = shuffled[1];
+          winner.maxHp = (winner.maxHp || 0) + 5;
+          winner.hp = (winner.hp || 0) + 5;
+          loser.maxHp = Math.max(1, (loser.maxHp || 1) - 5);
+          loser.hp = Math.min(loser.hp, loser.maxHp);
+          return winner.name + ' sees themselves grown vast and powerful. ' + loser.name + ' sees themselves withered and hollow. The mirror takes what it gives. (' + winner.name + ' +5 max HP, ' + loser.name + ' -5 max HP)';
+        }
+      },
+      {
+        label: 'Smash it',
+        desc: 'Gain 20 gold.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          state.run.gold = (state.run.gold || 0) + 20;
+          return 'Glass explodes. Behind the mirror: a small cache of gold, hidden by whoever hung it. 20 gold and seven years of bad luck.';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return 'You turn away. In the mirror, your reflection stays a moment longer, watching.';
+        }
+      }
+    ]
+  },
+
+  // ============================================================
+  // 12. THE GAMBLER
+  // ============================================================
+  {
+    id: 'the_gambler',
+    name: 'The Gambler',
+    text: 'A figure in a threadbare coat sits at a table that shouldn\'t exist down here. Cards, dice, and a single coin. "Everyone\'s luck runs out," he says. "Question is when."',
+    choices: [
+      {
+        label: 'Bet 30 gold',
+        desc: 'Coin flip: win 60 gold or lose your bet.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          if ((state.run.gold || 0) < 30) return '"Can\'t play if you can\'t pay." He spins the coin idly.';
+          state.run.gold -= 30;
+          if (Math.random() < 0.5) {
+            state.run.gold += 60;
+            return 'The coin rings against the table. Heads. He slides 60 gold across with a grin. "Lucky. For now."';
+          }
+          return 'Tails. He pockets your gold without a word. The coin vanishes. "Better luck next life."';
+        }
+      },
+      {
+        label: 'Bet 50 gold',
+        desc: 'Coin flip: win a relic or lose your bet.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          if ((state.run.gold || 0) < 50) return '"Big game needs big coin. Come back heavier."';
+          state.run.gold -= 50;
+          if (Math.random() < 0.5) {
+            state.run.relics = state.run.relics || [];
+            var ownedIds = state.run.relics.map(function(r) { return r.id; });
+            var relic = (DS.Relics && DS.Relics.pickRandom) ? DS.Relics.pickRandom(ownedIds) : null;
+            if (relic) {
+              state.run.relics.push(relic);
+              return 'The coin hangs in the air too long. Heads. He reaches under the table and produces ' + relic.name + '. "Been saving that for a winner."';
+            }
+            state.run.gold += 80;
+            return 'Heads. He has nothing to give but gold — 80 coins pushed across the table with a shrug.';
+          }
+          return 'Tails. Your gold disappears into his coat. "The house always eats." He shuffles cards that weren\'t there before.';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return '"Smart," he mutters. "Or cowardly. Hard to tell the difference down here." The table is gone when you look back.';
+        }
+      }
+    ]
   }
 
 ];
@@ -431,5 +630,7 @@ DS.Events.checkBeggarDebt = function(state) {
     state.run.relics.push(relic);
     return 'The beggar\'s voice echoes from nowhere: "A debt repaid." You find ' + relic.name + ' in your pack.';
   }
-  return null;
+  // Fallback: give gold if no relics available
+  state.run.gold = (state.run.gold || 0) + 30;
+  return 'The beggar\'s voice echoes from nowhere: "A debt repaid." You find 30 gold in your pack.';
 };

@@ -2,7 +2,7 @@ window.DS = window.DS || {};
 
 DS.Enemies = {
   normal: [
-    // Pool 1: Skeleton Patrol (the original fight)
+    // Pool 1: Skeleton Patrol
     [
       {
         name: 'Bone Soldier', icon: '\uD83D\uDC80', maxHp: 22, pos: 1,
@@ -104,52 +104,53 @@ DS.Enemies = {
       }
     ],
 
-    // Pool 5: Fungal Colony
+    // Pool 5: Mushroom Grove
     [
       {
-        name: 'Fungal Brute', icon: '\uD83C\uDF44', maxHp: 28, pos: 1,
+        name: 'Fungal Brute', icon: '\uD83C\uDF44', maxHp: 30, pos: 1,
         intents: [
           { name: 'Slam', type: 'attack', dmg: 9, desc: 'ATK 9', targeting: 'front' },
-          { name: 'Harden', type: 'defend', block: 7, desc: 'DEF 7' }
+          { name: 'Spore Cloud', type: 'poison', poison: 2, desc: 'PSN 2\u2192random', targeting: 'random' }
         ]
       },
       {
-        name: 'Spore Sprayer', icon: '\uD83D\uDCA8', maxHp: 18, pos: 2,
+        name: 'Spore Sprite', icon: '\u2728', maxHp: 10, pos: 2,
         intents: [
-          { name: 'Spore Cloud', type: 'poison', poison: 3, desc: 'PSN 3\u2192random', targeting: 'random' },
-          { name: 'Burst', type: 'attack_all', dmg: 3, desc: 'ATK 3 ALL', targeting: 'all' }
+          { name: 'Weaken', type: 'weaken', turns: 2, desc: 'WEAK 2', targeting: 'random' },
+          { name: 'Heal', type: 'heal_allies', heal: 4, desc: 'HEAL ALL 4' }
         ]
       },
       {
-        name: 'Mushroom Cap', icon: '\uD83C\uDF41', maxHp: 10, pos: 3,
+        name: 'Spore Sprite', icon: '\u2728', maxHp: 10, pos: 3,
         intents: [
-          { name: 'Regenerate', type: 'heal_allies', heal: 4, desc: 'HEAL ALL 4' },
-          { name: 'Toxic Bite', type: 'attack_poison', dmg: 4, poison: 2, desc: 'ATK 4 + PSN 2', targeting: 'front' }
+          { name: 'Prick', type: 'attack_poison', dmg: 2, poison: 2, desc: 'ATK 2 + PSN 2', targeting: 'random' },
+          { name: 'Defend', type: 'defend', block: 4, desc: 'DEF 4' }
         ]
       }
     ],
 
-    // Pool 6: Shadow Pack
+    // Pool 6: Wraith Haunt
     [
       {
-        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20, pos: 1,
+        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 18, pos: 1,
         intents: [
-          { name: 'Frenzy', type: 'attack_multi', dmg: 3, hits: 2, desc: 'ATK 3\u00D72', targeting: 'random' },
-          { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
+          { name: 'Life Drain', type: 'attack', dmg: 7, desc: 'ATK 7\u2192back', targeting: 'back' },
+          { name: 'Phase', type: 'defend', block: 6, desc: 'DEF 6' }
         ]
       },
       {
-        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20, pos: 2,
+        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 18, pos: 3,
         intents: [
-          { name: 'Lunge', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
-          { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
+          { name: 'Life Drain', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'random' },
+          { name: 'Curse', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' }
         ]
       },
       {
-        name: 'Shadow Alpha', icon: '\uD83D\uDC3A', maxHp: 30, pos: 3,
+        name: 'Phantom Knight', icon: '\u2694\uFE0F', maxHp: 24, pos: 2,
         intents: [
-          { name: 'Howl', type: 'buff', desc: 'BUFF +2', buffAmt: 2 },
-          { name: 'Shadow Strike', type: 'attack_all', dmg: 5, desc: 'ATK 5 ALL', targeting: 'all' }
+          { name: 'Phantom Strike', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' },
+          { name: 'Shield', type: 'defend', block: 7, desc: 'DEF 7' },
+          { name: 'Weaken', type: 'weaken', turns: 1, desc: 'WEAK 1', targeting: 'random' }
         ]
       }
     ]
@@ -200,28 +201,21 @@ DS.Enemies = {
       }
     ],
 
-    // Pool 3: Wraith Council
+    // Pool 3: Shadow Assassins
     [
       {
-        name: 'Wraith Lord', icon: '\uD83D\uDC7B', maxHp: 40, pos: 2,
+        name: 'Shadow Blade', icon: '\uD83D\uDDE1\uFE0F', maxHp: 32, pos: 1,
         intents: [
-          { name: 'Life Drain', type: 'attack', dmg: 10, desc: 'ATK 10\u2192back', targeting: 'back' },
-          { name: 'Shadow Veil', type: 'defend', block: 10, desc: 'DEF 10' },
-          { name: 'Soul Rend', type: 'attack_all', dmg: 5, desc: 'ATK 5 ALL', targeting: 'all' }
+          { name: 'Flurry', type: 'attack_multi', dmg: 4, hits: 3, desc: 'ATK 4\u00D73', targeting: 'random' },
+          { name: 'Vanish', type: 'defend', block: 10, desc: 'DEF 10' }
         ]
       },
       {
-        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 22, pos: 1,
+        name: 'Shadow Caster', icon: '\uD83D\uDD2E', maxHp: 28, pos: 3,
         intents: [
-          { name: 'Chilling Touch', type: 'attack_poison', dmg: 5, poison: 2, desc: 'ATK 5 + PSN 2', targeting: 'front' },
-          { name: 'Phase', type: 'defend', block: 6, desc: 'DEF 6' }
-        ]
-      },
-      {
-        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 22, pos: 3,
-        intents: [
-          { name: 'Chilling Touch', type: 'attack_poison', dmg: 5, poison: 2, desc: 'ATK 5 + PSN 2', targeting: 'random' },
-          { name: 'Wail', type: 'buff', desc: 'BUFF +3', buffAmt: 3 }
+          { name: 'Shadow Bolt', type: 'attack', dmg: 8, desc: 'ATK 8\u2192back', targeting: 'back' },
+          { name: 'Weaken All', type: 'weaken', turns: 1, desc: 'WEAK ALL 1', targeting: 'random' },
+          { name: 'Curse', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' }
         ]
       }
     ]
@@ -255,46 +249,44 @@ DS.Enemies = {
       }
     ],
 
-    // Boss 2: Ancient Dragon — single massive enemy, hits hard
+    // Boss 2: The Iron Golem
     [
       {
-        name: 'Ancient Dragon', icon: '\uD83D\uDC09', maxHp: 110, pos: 2, isBoss: true,
+        name: 'Iron Golem', icon: '\uD83E\uDD16', maxHp: 120, pos: 2, isBoss: true,
         intents: [
-          { name: 'Fire Breath', type: 'attack_all', dmg: 8, desc: 'ATK 8 ALL', targeting: 'all' },
-          { name: 'Tail Sweep', type: 'attack', dmg: 18, desc: 'ATK 18', targeting: 'front' },
-          { name: 'Dragon Scales', type: 'defend', block: 15, desc: 'DEF 15' },
-          { name: 'Inferno', type: 'attack_all', dmg: 12, desc: 'ATK 12 ALL', targeting: 'all' },
-          { name: 'Bite', type: 'attack', dmg: 14, desc: 'ATK 14\u2192random', targeting: 'random' }
+          { name: 'Smash', type: 'attack', dmg: 18, desc: 'ATK 18', targeting: 'front' },
+          { name: 'Iron Guard', type: 'defend', block: 15, desc: 'DEF 15' },
+          { name: 'Quake', type: 'attack_all', dmg: 8, desc: 'ATK 8 ALL', targeting: 'all' },
+          { name: 'Rust', type: 'weaken', turns: 2, desc: 'WEAK ALL 2', targeting: 'random' }
         ]
       }
     ],
 
-    // Boss 3: Plague Mother — poison-heavy with summons
+    // Boss 3: The Spider Queen
     [
       {
-        name: 'Plague Mother', icon: '\uD83E\uDDA0', maxHp: 75, pos: 2, isBoss: true,
+        name: 'Spider Queen', icon: '\uD83D\uDD77\uFE0F', maxHp: 90, pos: 2, isBoss: true,
         intents: [
-          { name: 'Plague Cloud', type: 'attack_poison', dmg: 5, poison: 3, desc: 'ATK 5 + PSN 3', targeting: 'front' },
-          { name: 'Devour', type: 'attack', dmg: 16, desc: 'ATK 16', targeting: 'front' },
-          { name: 'Absorb', type: 'defend', block: 12, desc: 'DEF 12' },
-          { name: 'Spawn', type: 'summon', summon: 'plague_spawn', count: 2, desc: 'SUMMON 2' },
-          { name: 'Toxic Eruption', type: 'attack_all', dmg: 6, desc: 'ATK 6 ALL', targeting: 'all' }
+          { name: 'Venomous Bite', type: 'attack_poison', dmg: 10, poison: 3, desc: 'ATK 10 + PSN 3', targeting: 'front' },
+          { name: 'Web Trap', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' },
+          { name: 'Fang Barrage', type: 'attack_multi', dmg: 4, hits: 4, desc: 'ATK 4\u00D74', targeting: 'random' },
+          { name: 'Cocoon', type: 'defend', block: 12, desc: 'DEF 12' }
         ]
       },
       {
-        name: 'Plague Spawn', icon: '\uD83D\uDCA7', maxHp: 12, pos: 1,
+        name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10, pos: 1,
         deathEffect: 'poison_random_2',
         intents: [
-          { name: 'Spit', type: 'attack_poison', dmg: 3, poison: 2, desc: 'ATK 3 + PSN 2', targeting: 'random' },
-          { name: 'Ooze', type: 'poison', poison: 2, desc: 'PSN 2\u2192random', targeting: 'random' }
+          { name: 'Bite', type: 'attack_poison', dmg: 3, poison: 1, desc: 'ATK 3 + PSN 1', targeting: 'random' },
+          { name: 'Spit', type: 'poison', poison: 2, desc: 'PSN 2', targeting: 'random' }
         ]
       },
       {
-        name: 'Plague Spawn', icon: '\uD83D\uDCA7', maxHp: 12, pos: 3,
+        name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10, pos: 3,
         deathEffect: 'poison_random_2',
         intents: [
-          { name: 'Spit', type: 'attack_poison', dmg: 3, poison: 2, desc: 'ATK 3 + PSN 2', targeting: 'front' },
-          { name: 'Ooze', type: 'poison', poison: 2, desc: 'PSN 2\u2192random', targeting: 'random' }
+          { name: 'Bite', type: 'attack_poison', dmg: 3, poison: 1, desc: 'ATK 3 + PSN 1', targeting: 'random' },
+          { name: 'Spit', type: 'poison', poison: 2, desc: 'PSN 2', targeting: 'random' }
         ]
       }
     ]
@@ -306,24 +298,4 @@ DS.Enemies.pickEncounter = function(tier) {
   var pools = DS.Enemies[tier];
   if (!pools || pools.length === 0) return DS.Enemies.normal[0];
   return pools[Math.floor(Math.random() * pools.length)];
-};
-
-// Scale enemy stats by floor
-DS.Enemies.scaleEncounter = function(pool, floor) {
-  if (floor <= 1) return pool;
-  var factor = 1 + (floor - 1) * 0.1;
-  return pool.map(function(def) {
-    var scaled = {};
-    for (var k in def) scaled[k] = def[k];
-    scaled.maxHp = Math.floor(def.maxHp * factor);
-    scaled.intents = def.intents.map(function(i) {
-      var si = {};
-      for (var j in i) si[j] = i[j];
-      if (si.dmg) si.dmg = Math.floor(si.dmg * factor);
-      if (si.block) si.block = Math.floor(si.block * factor);
-      if (si.heal) si.heal = Math.floor(si.heal * factor);
-      return si;
-    });
-    return scaled;
-  });
 };

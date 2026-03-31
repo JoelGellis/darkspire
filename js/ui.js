@@ -349,56 +349,33 @@ DS.UI = {
     var panel = document.getElementById('heroes-panel');
     var combat = DS.State.combat;
     var run = DS.State.run;
-    panel.innerHTML = '<div class="panel-label">HEROES</div>';
+    panel.innerHTML = '';
 
-    for (var pos = 1; pos <= 4; pos++) {
+    // Back to front: pos 4 is leftmost (back), pos 1 is rightmost (front, near enemies)
+    for (var pos = 4; pos >= 1; pos--) {
       var hero = run.heroes.find(function(h) { return h.pos === pos; });
+      if (!hero) continue;
 
-      if (!hero || hero.hp <= 0) {
-        var row = document.createElement('div');
-        if (hero && hero.hp <= 0) {
-          // Check if a Resurrect-type card is selected (ally_dead targeting)
-          var deadTargetable = false;
-          if (combat.selectedCard !== null) {
-            var selCard = combat.hand[combat.selectedCard];
-            if (selCard && selCard.target === 'ally_dead') deadTargetable = true;
-          }
-          row.className = 'combatant-row hero-row dead' + (deadTargetable ? ' targetable' : '');
-          row.id = hero.id;
-          if (deadTargetable) {
-            (function(hId) {
-              row.onclick = function() { DS.Combat.clickTarget(hId); };
-            })(hero.id);
-          }
-          row.innerHTML =
-            '<div class="combatant-pos">' + pos + '</div>' +
-            '<div class="combatant-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
-            '<div class="combatant-info">' +
-              '<div class="combatant-name ' + hero.cls + '">' + hero.name + '</div>' +
-              '<div class="combatant-hp" style="color:#ff4040">DEAD</div>' +
-              '<div class="hp-bar-outer"><div class="hp-bar-inner" style="width:0%"></div></div>' +
-            '</div>' +
-            '<div class="combatant-statuses"></div>';
-        } else {
-          row.className = 'combatant-row hero-row empty-slot';
-          row.innerHTML =
-            '<div class="combatant-pos">' + pos + '</div>' +
-            '<div class="combatant-sprite-wrap"><div class="sprite-empty"></div></div>' +
-            '<div class="combatant-info">' +
-              '<div class="combatant-name" style="color:var(--text-dim)">Empty</div>' +
-            '</div>' +
-            '<div class="combatant-statuses"></div>';
-        }
-        panel.appendChild(row);
-        continue;
-      }
-
-      var pct = Math.max(0, (hero.hp / hero.maxHp) * 100);
+      var dead = hero.hp <= 0;
+      var pct = dead ? 0 : Math.max(0, (hero.hp / hero.maxHp) * 100);
 
       var targetable = false;
       if (combat.selectedCard !== null) {
         var card = combat.hand[combat.selectedCard];
-        if (card && card.target === 'ally' && hero.hp > 0) targetable = true;
+        if (card && card.target === 'ally' && !dead) targetable = true;
+        if (card && card.target === 'ally_dead' && dead) targetable = true;
+      }
+
+      var el = document.createElement('div');
+      el.className = 'stage-entity stage-hero' +
+        (dead ? ' dead' : '') +
+        (targetable ? ' targetable' : '');
+      el.id = hero.id;
+
+      if (targetable) {
+        (function(hId) {
+          el.onclick = function() { DS.Combat.clickTarget(hId); };
+        })(hero.id);
       }
 
       var statusHtml = '';
@@ -408,27 +385,20 @@ DS.UI = {
       if (hero.vulnerable > 0) statusHtml += '<span class="status-badge status-vuln">VU ' + hero.vulnerable + '</span>';
       if (hero.strength > 0) statusHtml += '<span class="status-badge status-str">STR ' + hero.strength + '</span>';
       if (hero.bleed > 0) statusHtml += '<span class="status-badge status-bleed">BLD ' + hero.bleed + '</span>';
-      if (hero.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1 STUN</span>';
+      if (hero.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1</span>';
 
-      var row2 = document.createElement('div');
-      row2.className = 'combatant-row hero-row' + (targetable ? ' targetable' : '');
-      row2.id = hero.id;
-      if (targetable) {
-        (function(hId) {
-          row2.onclick = function() { DS.Combat.clickTarget(hId); };
-        })(hero.id);
-      }
+      el.innerHTML =
+        '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
+        '<div class="entity-info">' +
+          '<div class="entity-name ' + hero.cls + '">' + hero.name + '</div>' +
+          '<div class="entity-hp-wrap">' +
+            '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div>' +
+            '<span class="entity-hp-text">' + (dead ? 'DEAD' : hero.hp + '/' + hero.maxHp) + '</span>' +
+          '</div>' +
+          (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '') +
+        '</div>';
 
-      row2.innerHTML =
-        '<div class="combatant-pos">' + hero.pos + '</div>' +
-        '<div class="combatant-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
-        '<div class="combatant-info">' +
-          '<div class="combatant-name ' + hero.cls + '">' + hero.name + '</div>' +
-          '<div class="combatant-hp">' + hero.hp + '/' + hero.maxHp + ' HP</div>' +
-          '<div class="hp-bar-outer"><div class="hp-bar-inner hero-hp" style="width:' + pct + '%"></div></div>' +
-        '</div>' +
-        '<div class="combatant-statuses">' + statusHtml + '</div>';
-      panel.appendChild(row2);
+      panel.appendChild(el);
     }
   },
 
@@ -436,17 +406,48 @@ DS.UI = {
   renderEnemies: function() {
     var panel = document.getElementById('enemies-panel');
     var combat = DS.State.combat;
-    panel.innerHTML = '<div class="panel-label">ENEMIES</div>';
+    panel.innerHTML = '';
 
     var sorted = combat.enemies.slice().sort(function(a, b) { return a.pos - b.pos; });
     sorted.forEach(function(enemy) {
-      var pct = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
       var dead = enemy.hp <= 0;
+      var pct = dead ? 0 : Math.max(0, (enemy.hp / enemy.maxHp) * 100);
 
       var targetable = false;
       if (combat.selectedCard !== null) {
         var card = combat.hand[combat.selectedCard];
         if (card && (card.target === 'enemy' || card.target === 'enemy_any') && !dead) targetable = true;
+      }
+
+      // Intent display - floats above sprite STS-style
+      var intentHtml = '';
+      if (!dead && enemy.currentIntent) {
+        var intent = enemy.currentIntent;
+        var intentCls = 'entity-intent';
+        var intentIcon = '\u2753';
+        if (intent.type === 'attack' || intent.type === 'attack_multi' || intent.type === 'attack_all' || intent.type === 'attack_poison') {
+          intentCls += ' intent-attack'; intentIcon = '\u2694\uFE0F';
+        } else if (intent.type === 'defend') {
+          intentCls += ' intent-defend'; intentIcon = '\uD83D\uDEE1\uFE0F';
+        } else if (intent.type === 'buff') {
+          intentCls += ' intent-buff'; intentIcon = '\u2B06\uFE0F';
+        } else if (intent.type === 'heal_allies') {
+          intentCls += ' intent-buff'; intentIcon = '\uD83D\uDC9A';
+        } else if (intent.type === 'summon') {
+          intentCls += ' intent-buff'; intentIcon = '\uD83D\uDC80';
+        } else if (intent.type === 'poison') {
+          intentCls += ' intent-attack'; intentIcon = '\u2620\uFE0F';
+        }
+        var displayDmg = intent.dmg ? intent.dmg + (enemy.dmgBuff || 0) : null;
+        var desc = intent.desc;
+        if (intent.type === 'attack' && displayDmg) {
+          desc = intent.targeting === 'back' ? displayDmg + '\u2192' : '' + displayDmg;
+        } else if (intent.type === 'attack_multi' && displayDmg) {
+          desc = displayDmg + '\u00D7' + intent.hits;
+        } else if (intent.type === 'attack_all' && displayDmg) {
+          desc = displayDmg + ' ALL';
+        }
+        intentHtml = '<div class="' + intentCls + '"><span class="intent-icon">' + intentIcon + '</span> <span class="intent-value">' + desc + '</span></div>';
       }
 
       var statusHtml = '';
@@ -455,65 +456,35 @@ DS.UI = {
       if (enemy.weak > 0) statusHtml += '<span class="status-badge status-weak">WK ' + enemy.weak + '</span>';
       if (enemy.vulnerable > 0) statusHtml += '<span class="status-badge status-vuln">VU ' + enemy.vulnerable + '</span>';
       if (enemy.bleed > 0) statusHtml += '<span class="status-badge status-bleed">BLD ' + enemy.bleed + '</span>';
-      if (enemy.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1 STUN</span>';
+      if (enemy.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1</span>';
       if (enemy.dmgBuff > 0) statusHtml += '<span class="status-badge status-buff">\u2191+' + enemy.dmgBuff + '</span>';
 
-      // Intent display with icons
-      var intentHtml = '';
-      if (!dead && enemy.currentIntent) {
-        var intent = enemy.currentIntent;
-        var intentCls = 'enemy-intent';
-        var intentIcon = '\u2753'; // default ?
-        if (intent.type === 'attack' || intent.type === 'attack_multi' || intent.type === 'attack_all' || intent.type === 'attack_poison') {
-          intentCls += ' intent-attack';
-          intentIcon = '\u2694\uFE0F'; // swords
-        } else if (intent.type === 'defend') {
-          intentCls += ' intent-defend';
-          intentIcon = '\uD83D\uDEE1\uFE0F'; // shield
-        } else if (intent.type === 'buff') {
-          intentCls += ' intent-buff';
-          intentIcon = '\u2B06\uFE0F'; // up arrow
-        } else if (intent.type === 'heal_allies') {
-          intentCls += ' intent-buff';
-          intentIcon = '\uD83D\uDC9A'; // green heart
-        } else if (intent.type === 'summon') {
-          intentCls += ' intent-buff';
-          intentIcon = '\uD83D\uDC80'; // skull
-        } else if (intent.type === 'poison') {
-          intentCls += ' intent-attack';
-          intentIcon = '\u2620\uFE0F'; // poison
-        }
-        var displayDmg = intent.dmg ? intent.dmg + (enemy.dmgBuff || 0) : null;
-        var desc = intent.desc;
-        if (intent.type === 'attack' && displayDmg) {
-          desc = intent.targeting === 'back' ? 'ATK ' + displayDmg + '\u2192back' : 'ATK ' + displayDmg;
-        } else if (intent.type === 'attack_multi' && displayDmg) {
-          desc = 'ATK ' + displayDmg + '\u00D7' + intent.hits;
-        } else if (intent.type === 'attack_all' && displayDmg) {
-          desc = 'ATK ' + displayDmg + ' ALL';
-        }
-        intentHtml = '<div class="' + intentCls + '"><span class="intent-icon">' + intentIcon + '</span> ' + desc + '</div>';
-      }
+      var el = document.createElement('div');
+      el.className = 'stage-entity stage-enemy' +
+        (dead ? ' dead' : '') +
+        (targetable ? ' targetable' : '') +
+        (enemy.isBoss ? ' boss' : '');
+      el.id = enemy.id;
 
-      var row = document.createElement('div');
-      row.className = 'combatant-row enemy-row' + (dead ? ' dead' : '') + (targetable ? ' targetable' : '') + (enemy.isBoss ? ' boss-row' : '');
-      row.id = enemy.id;
       if (targetable) {
         (function(eId) {
-          row.onclick = function() { DS.Combat.clickTarget(eId); };
+          el.onclick = function() { DS.Combat.clickTarget(eId); };
         })(enemy.id);
       }
 
-      row.innerHTML =
-        '<div class="combatant-pos">' + enemy.pos + '</div>' +
-        '<div class="combatant-sprite-wrap">' + DS.UI.buildSprite(enemy, 'left').outerHTML + '</div>' +
-        '<div class="combatant-info">' +
-          '<div class="combatant-name">' + enemy.name + '</div>' +
-          '<div class="combatant-hp">' + (dead ? 'DEAD' : enemy.hp + '/' + enemy.maxHp + ' HP') + '</div>' +
-          '<div class="hp-bar-outer"><div class="hp-bar-inner enemy-hp" style="width:' + pct + '%"></div></div>' +
-        '</div>' +
-        '<div class="combatant-statuses">' + statusHtml + ' ' + intentHtml + '</div>';
-      panel.appendChild(row);
+      el.innerHTML =
+        intentHtml +
+        '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(enemy, 'left').outerHTML + '</div>' +
+        '<div class="entity-info">' +
+          '<div class="entity-name">' + enemy.name + '</div>' +
+          '<div class="entity-hp-wrap">' +
+            '<div class="entity-hp-bar"><div class="entity-hp-fill enemy-hp" style="width:' + pct + '%"></div></div>' +
+            '<span class="entity-hp-text">' + (dead ? 'DEAD' : enemy.hp + '/' + enemy.maxHp) + '</span>' +
+          '</div>' +
+          (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '') +
+        '</div>';
+
+      panel.appendChild(el);
     });
   },
 
