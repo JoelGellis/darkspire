@@ -1709,13 +1709,13 @@ body {
 .event-card {
   max-width: 600px;
   width: 90%;
-  background: var(--bg-panel);
+  background: linear-gradient(180deg, #1e1530, #161020);
   border: 1px solid var(--border-light);
   border-radius: 12px;
   padding: 40px 36px;
   position: relative;
   z-index: 1;
-  box-shadow: 0 10px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 60px rgba(0, 0, 0, 0.6), 0 0 80px rgba(80, 40, 120, 0.08);
   animation: event-card-in 0.5s ease-out;
 }
 
@@ -1736,12 +1736,16 @@ body {
 }
 
 .event-text {
-  font-size: 15px;
+  font-family: 'Crimson Text', 'Georgia', serif;
+  font-size: 16px;
   color: var(--text-dim);
-  line-height: 1.7;
+  line-height: 1.8;
   font-style: italic;
   margin-bottom: 28px;
   text-align: center;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .event-choices {
@@ -1809,8 +1813,10 @@ body {
   min-height: 100vh;
   padding: 40px 24px;
   background:
-    radial-gradient(ellipse at 50% 20%, rgba(60, 40, 20, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 30% 70%, rgba(40, 20, 60, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 15%, rgba(80, 60, 20, 0.25) 0%, transparent 45%),
+    radial-gradient(ellipse at 30% 70%, rgba(40, 20, 60, 0.15) 0%, transparent 40%),
+    radial-gradient(ellipse at 70% 50%, rgba(60, 30, 10, 0.1) 0%, transparent 30%),
+    linear-gradient(180deg, #0e0a06 0%, var(--bg-darkest) 30%),
     var(--bg-darkest);
 }
 
@@ -1862,7 +1868,7 @@ body {
 
 .shop-item {
   padding: 14px 16px;
-  background: var(--bg-panel);
+  background: linear-gradient(180deg, rgba(30, 22, 40, 0.9), rgba(20, 14, 28, 0.95));
   border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
@@ -1870,6 +1876,7 @@ body {
   position: relative;
   min-width: 140px;
   text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .shop-item:hover:not(.sold):not(.cant-afford) {
@@ -2019,9 +2026,16 @@ body {
   justify-content: center;
   align-items: center;
   background:
-    radial-gradient(circle at 50% 60%, rgba(200, 100, 20, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 50% 70%, rgba(200, 60, 20, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 50% 55%, rgba(220, 120, 30, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 50% 60%, rgba(200, 60, 20, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 65%, rgba(160, 40, 10, 0.08) 0%, transparent 60%),
     var(--bg-darkest);
+  animation: rest-warmth 4s ease-in-out infinite;
+}
+
+@keyframes rest-warmth {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(200, 100, 30, 0.02); }
 }
 
 .rest-panel {
@@ -2031,9 +2045,10 @@ body {
 }
 
 .rest-fire {
-  font-size: 64px;
+  font-size: 72px;
   animation: fire-flicker 1.5s ease-in-out infinite;
   margin-bottom: 10px;
+  filter: drop-shadow(0 0 20px rgba(240, 120, 30, 0.5)) drop-shadow(0 0 40px rgba(200, 60, 10, 0.2));
 }
 
 @keyframes fire-flicker {
@@ -2537,11 +2552,12 @@ body {
   top: 0;
   bottom: 0;
   width: 180px;
-  background: rgba(10, 6, 16, 0.88);
-  border-left: 1px solid var(--border);
+  background: linear-gradient(270deg, rgba(10, 6, 16, 0.92), rgba(10, 6, 16, 0.8));
+  border-left: 1px solid rgba(46, 31, 69, 0.5);
   padding: 6px 8px;
   overflow-y: auto;
   font-size: 11px;
+  font-family: 'Crimson Text', serif;
 }
 
 /* ===== COMBAT BOTTOM BAR ===== */
