@@ -2743,6 +2743,55 @@ body {
   }
 }
 
+/* ===== DYNAMIC TOOLTIP ===== */
+.ds-tooltip {
+  position: fixed;
+  z-index: 10000;
+  padding: 8px 14px;
+  background: linear-gradient(180deg, #1e1430, #140e20);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 8px rgba(80, 40, 120, 0.2);
+  pointer-events: none;
+  max-width: 260px;
+  animation: tooltip-in 0.15s ease-out;
+}
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ds-tooltip-below {
+  animation: tooltip-in-below 0.15s ease-out;
+}
+
+@keyframes tooltip-in-below {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ds-tooltip-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+
+.ds-tooltip-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.ds-tooltip-text {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-darkest); }
