@@ -1099,13 +1099,14 @@ body {
 /* ===== CARDS ===== */
 .card {
   width: 160px; min-height: 180px;
-  background: var(--bg-card);
+  background: linear-gradient(180deg, var(--bg-card) 0%, #1c1228 100%);
   border: 2px solid var(--border);
   border-radius: 8px; padding: 0;
   cursor: pointer; position: relative;
   transition: all 0.2s; user-select: none;
   display: flex; flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .card:hover:not(.unplayable):not(.wrong-pos):not(.hero-dead) {
@@ -1208,23 +1209,38 @@ body {
 
 /* Upgraded card gold shimmer */
 .card.upgraded {
-  border-image: linear-gradient(135deg, var(--gold-dim), var(--gold), #f0d878, var(--gold), var(--gold-dim)) 1;
-  animation: upgraded-shimmer 3s linear infinite;
+  border-color: var(--gold);
+  box-shadow: 0 0 6px rgba(212, 168, 67, 0.3), inset 0 0 12px rgba(212, 168, 67, 0.08);
+  position: relative;
+}
+
+.card.upgraded::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, transparent, rgba(240, 216, 120, 0.15), transparent, rgba(212, 168, 67, 0.2), transparent);
+  background-size: 200% 200%;
+  animation: upgraded-shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
 @keyframes upgraded-shimmer {
-  0% { border-image: linear-gradient(135deg, var(--gold-dim), var(--gold), #f0d878, var(--gold), var(--gold-dim)) 1; }
-  50% { border-image: linear-gradient(135deg, var(--gold), #f0d878, var(--gold), var(--gold-dim), var(--gold)) 1; }
-  100% { border-image: linear-gradient(135deg, var(--gold-dim), var(--gold), #f0d878, var(--gold), var(--gold-dim)) 1; }
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 /* Card art area */
 .card-art {
-  height: 40px;
+  height: 44px;
   border-radius: 6px 6px 0 0;
   margin: 0;
   position: relative;
   overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 -1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .card-art-attack {
@@ -1321,14 +1337,17 @@ body {
 }
 
 .card-cost {
-  background: rgba(160, 80, 220, 0.3);
-  color: #c090e0;
+  background: radial-gradient(circle at 35% 35%, #b070ff, #6030a0 60%, #3a1860);
+  color: #f0e0ff;
+  font-family: 'Cinzel', serif;
   font-size: 14px; font-weight: 900;
-  width: 24px; height: 24px;
+  width: 28px; height: 28px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(160, 80, 220, 0.4);
+  border: 2px solid #9060d0;
+  box-shadow: 0 0 8px rgba(140, 60, 220, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .card-effect {
@@ -1341,7 +1360,8 @@ body {
   margin-top: auto; padding: 6px 10px 8px;
   display: flex; justify-content: space-between; align-items: center;
   font-size: 9px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .card-class {
@@ -2297,8 +2317,18 @@ body {
   position: relative;
   padding: 24px 16px 8px;
   background:
+    radial-gradient(ellipse at 20% 40%, rgba(180, 100, 30, 0.06) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 40%, rgba(180, 100, 30, 0.06) 0%, transparent 40%),
     radial-gradient(ellipse at 50% 100%, rgba(40, 20, 60, 0.5) 0%, transparent 70%),
     var(--bg-darkest);
+  animation: torchlight-flicker 8s ease-in-out infinite;
+}
+
+@keyframes torchlight-flicker {
+  0%, 100% { background-color: transparent; }
+  25% { background-color: rgba(180, 100, 30, 0.015); }
+  50% { background-color: transparent; }
+  75% { background-color: rgba(180, 80, 20, 0.02); }
 }
 
 .stage-heroes, .stage-enemies {
@@ -2669,6 +2699,38 @@ body {
   .event-card { padding: 24px 16px; }
   .event-title { font-size: 22px; }
   .shop-header h2, .shop-title { font-size: 24px; letter-spacing: 6px; }
+  .hand-fan .card { width: 110px; min-height: 130px; }
+  .energy-orb { width: 42px; height: 42px; }
+  .combat-bottom { padding: 4px 8px; }
+}
+
+@media (max-width: 375px) {
+  .title-text { font-size: 28px; letter-spacing: 4px; }
+  .title-icon { font-size: 48px; }
+  .btn-new-run { padding: 12px 32px; font-size: 15px; }
+  .card { width: 110px; min-height: 130px; }
+  .card-name { font-size: 11px; }
+  .card-cost { width: 22px; height: 22px; font-size: 12px; }
+  .card-effect { font-size: 9px; padding: 3px 8px; }
+  .card-art { height: 32px; }
+  .combatant-row { min-width: 240px; padding: 6px 8px; gap: 6px; }
+  .combatant-sprite-wrap { width: 48px; height: 64px; }
+  .event-card { padding: 20px 12px; }
+  .event-title { font-size: 18px; letter-spacing: 2px; }
+  .event-text { font-size: 13px; }
+  .shop-header h2, .shop-title { font-size: 20px; letter-spacing: 4px; }
+  .shop-item { min-width: 100px; padding: 10px 12px; }
+  .rest-choices { gap: 10px; }
+  .btn-rest-heal, .btn-rest-train, .btn-rest-remove { min-width: 140px; padding: 14px 16px; }
+  .reward-title { font-size: 32px; letter-spacing: 4px; }
+  .gameover-text { font-size: 40px; letter-spacing: 6px; }
+  .hand-fan .card { width: 95px; min-height: 120px; }
+  .hand-fan { min-height: 130px; gap: 4px; }
+  .stage-entity { width: 64px; }
+  .entity-sprite-wrap { width: 40px; height: 52px; }
+  .pile-slot { width: 44px; }
+  .pile-stack { width: 28px; height: 38px; }
+  .pile-card-back { width: 24px; height: 34px; }
 }
 
 /* Touch-friendly targets */
