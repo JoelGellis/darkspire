@@ -20,15 +20,15 @@
   var FLOOR_PADDING_Y = 50; // top/bottom padding
   var SIDE_PADDING_X = 60;
 
-  // Node type colors
+  // Node type colors — richer, more distinct
   var TYPE_COLORS = {
-    start:  "#aaaaaa",
-    combat: "#cc4444",
-    elite:  "#ddaa33",
-    rest:   "#ee8833",
-    event:  "#aa66dd",
-    shop:   "#44aa55",
-    boss:   "#ff3333",
+    start:  "#c0b090",
+    combat: "#c83838",
+    elite:  "#e0a020",
+    rest:   "#e88030",
+    event:  "#b060e0",
+    shop:   "#40b050",
+    boss:   "#e82020",
   };
 
   // Path colors
@@ -412,8 +412,14 @@
 
   // ── Draw Routines ──────────────────────────────────────────────────────
 
+  // Type label names for display
+  var TYPE_LABELS = {
+    start: "Start", combat: "Combat", elite: "Elite",
+    rest: "Rest", event: "Event", shop: "Shop", boss: "Boss"
+  };
+
   function drawMap(ctx, mapData, currentNodeId, available, visitedEdges, time) {
-    // Background — dark parchment
+    // Background
     drawBackground(ctx);
 
     // Paths
@@ -428,25 +434,42 @@
         drawNode(ctx, node, isCurrent, isAvailable, time);
       }
     }
+
+    // Type labels under available nodes (drawn after nodes so they're on top)
+    ctx.textAlign = "center";
+    for (var f2 = 0; f2 < mapData.floors.length; f2++) {
+      for (var n2 = 0; n2 < mapData.floors[f2].length; n2++) {
+        var node2 = mapData.floors[f2][n2];
+        var isAvail2 = available.indexOf(node2.id) !== -1;
+        if (isAvail2 && node2.type !== "start") {
+          var pos2 = nodePixel(node2);
+          var r2 = node2.type === "boss" ? BOSS_RADIUS : NODE_RADIUS;
+          var label = TYPE_LABELS[node2.type] || "";
+          ctx.font = "bold 9px serif";
+          ctx.fillStyle = TYPE_COLORS[node2.type] || "#aaa";
+          ctx.globalAlpha = 0.8;
+          ctx.fillText(label, pos2.x, pos2.y + r2 + 14);
+          ctx.globalAlpha = 1.0;
+        }
+      }
+    }
   }
 
   function drawBackground(ctx) {
-    // Dark parchment gradient
+    // Deep dungeon gradient — dark at bottom (entrance), eerie at top (boss lair)
     var grad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-    grad.addColorStop(0, "#1a1208");
-    grad.addColorStop(0.3, "#1e1610");
-    grad.addColorStop(0.7, "#1a130c");
-    grad.addColorStop(1, "#110d08");
+    grad.addColorStop(0, "#1e0a0a");   // Boss end: blood-tinted
+    grad.addColorStop(0.3, "#18100e");
+    grad.addColorStop(0.6, "#14100a");
+    grad.addColorStop(1, "#0e0a06");   // Start: deep dungeon dark
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
     // Subtle noise texture via small random dots
-    ctx.globalAlpha = 0.03;
-    // Use a seeded pattern so it doesn't flicker
+    ctx.globalAlpha = 0.025;
     var step = 8;
     for (var y = 0; y < CANVAS_H; y += step) {
       for (var x = 0; x < CANVAS_W; x += step) {
-        // Pseudo-random from position
         var v = ((x * 7 + y * 13) % 255) / 255;
         ctx.fillStyle = v > 0.5 ? "#ffffff" : "#000000";
         ctx.fillRect(x, y, step, step);
@@ -454,29 +477,51 @@
     }
     ctx.globalAlpha = 1.0;
 
-    // Vignette
+    // Atmospheric fog — drifting horizontal bands
+    ctx.globalAlpha = 0.04;
+    for (var band = 0; band < 5; band++) {
+      var bandY = CANVAS_H * (0.15 + band * 0.18);
+      var fogGrad = ctx.createRadialGradient(
+        CANVAS_W * 0.5, bandY, 10,
+        CANVAS_W * 0.5, bandY, CANVAS_W * 0.45
+      );
+      fogGrad.addColorStop(0, "rgba(160, 140, 100, 0.6)");
+      fogGrad.addColorStop(1, "transparent");
+      ctx.fillStyle = fogGrad;
+      ctx.fillRect(0, bandY - 40, CANVAS_W, 80);
+    }
+    ctx.globalAlpha = 1.0;
+
+    // Stronger vignette — deeper darkness at edges
     var vg = ctx.createRadialGradient(
-      CANVAS_W / 2, CANVAS_H / 2, CANVAS_W * 0.25,
-      CANVAS_W / 2, CANVAS_H / 2, CANVAS_W * 0.75
+      CANVAS_W / 2, CANVAS_H / 2, CANVAS_W * 0.2,
+      CANVAS_W / 2, CANVAS_H / 2, CANVAS_W * 0.72
     );
     vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, "rgba(0,0,0,0.4)");
+    vg.addColorStop(0.7, "rgba(0,0,0,0.2)");
+    vg.addColorStop(1, "rgba(0,0,0,0.55)");
     ctx.fillStyle = vg;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-    // Floor labels (subtle)
-    ctx.font = "10px serif";
-    ctx.fillStyle = "rgba(120, 100, 70, 0.3)";
-    ctx.textAlign = "left";
+    // Floor depth labels (subtle, right side)
+    ctx.font = "9px serif";
+    ctx.textAlign = "right";
+    var floorNames = ["Entrance", "", "", "", "", "", "Boss Lair"];
     for (var f = 0; f < FLOORS; f++) {
       var usableH = CANVAS_H - FLOOR_PADDING_Y * 2;
       var py = CANVAS_H - FLOOR_PADDING_Y - (f / (FLOORS - 1)) * usableH;
-      ctx.fillText("F" + f, 8, py + 3);
+      ctx.fillStyle = "rgba(120, 100, 70, 0.25)";
+      ctx.fillText("F" + f, CANVAS_W - 8, py + 3);
+      if (floorNames[f]) {
+        ctx.font = "italic 9px serif";
+        ctx.fillStyle = "rgba(120, 100, 70, 0.18)";
+        ctx.fillText(floorNames[f], CANVAS_W - 8, py + 14);
+        ctx.font = "9px serif";
+      }
     }
   }
 
   function drawPaths(ctx, mapData, visitedEdges) {
-    ctx.lineWidth = 2;
     ctx.lineCap = "round";
 
     for (var i = 0; i < mapData.connections.length; i++) {
@@ -490,21 +535,31 @@
       var key = c.from + "->" + c.to;
       var isVisited = visitedEdges[key];
 
-      ctx.strokeStyle = isVisited ? PATH_VISITED : PATH_DEFAULT;
-      ctx.lineWidth = isVisited ? 2.5 : 1.5;
-
+      // Dotted line for unvisited, solid for visited
       if (isVisited) {
-        ctx.shadowColor = "rgba(210, 180, 100, 0.4)";
-        ctx.shadowBlur = 6;
+        ctx.strokeStyle = PATH_VISITED;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = "rgba(210, 180, 100, 0.5)";
+        ctx.shadowBlur = 8;
+        ctx.setLineDash([]);
+      } else {
+        ctx.strokeStyle = PATH_DEFAULT;
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.setLineDash([4, 4]);
       }
 
+      // Bezier curve for organic feel
+      var midY = (p1.y + p2.y) / 2;
       ctx.beginPath();
       ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
+      ctx.bezierCurveTo(p1.x, midY, p2.x, midY, p2.x, p2.y);
       ctx.stroke();
 
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
+      ctx.setLineDash([]);
     }
   }
 
@@ -517,49 +572,73 @@
 
     // Determine visibility/style
     if (node.completed) {
-      ctx.globalAlpha = 0.4;
+      ctx.globalAlpha = 0.35;
     } else if (!isCurrent && !isAvailable) {
-      ctx.globalAlpha = 0.2;
+      ctx.globalAlpha = 0.15;
     } else {
       ctx.globalAlpha = 1.0;
     }
 
     // Glow effects
     if (isCurrent) {
-      drawGlow(ctx, pos.x, pos.y, r + 12, GLOW_CURRENT, 12);
+      drawGlow(ctx, pos.x, pos.y, r + 14, GLOW_CURRENT, 14);
+      // Inner ring
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, r + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255, 215, 60, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
     if (isAvailable && !isCurrent) {
-      // Breathe animation
-      var breathe = 0.3 + 0.15 * Math.sin(time * 0.003);
-      drawGlow(ctx, pos.x, pos.y, r + 8, "rgba(200,200,150," + breathe + ")", 8);
+      // Breathe animation — type-colored
+      var breathe = 0.25 + 0.2 * Math.sin(time * 0.003);
+      drawGlow(ctx, pos.x, pos.y, r + 10, "rgba(200,200,150," + breathe + ")", 10);
     }
     if (node.type === "boss" && !node.completed) {
-      // Pulsing glow
-      var pulse = 0.4 + 0.3 * Math.sin(time * 0.004);
-      drawGlow(ctx, pos.x, pos.y, r + 16, "rgba(255,50,30," + pulse + ")", 16);
+      // Pulsing menacing glow
+      var pulse = 0.35 + 0.35 * Math.sin(time * 0.004);
+      drawGlow(ctx, pos.x, pos.y, r + 20, "rgba(255,30,20," + pulse + ")", 18);
+    }
+    if (node.type === "elite" && !node.completed && (isAvailable || isCurrent)) {
+      // Elite danger glow
+      var ePulse = 0.2 + 0.15 * Math.sin(time * 0.005);
+      drawGlow(ctx, pos.x, pos.y, r + 10, "rgba(224,160,32," + ePulse + ")", 8);
     }
 
-    // Node background circle
+    // Node background circle — darker, richer
+    var bgGrad = ctx.createRadialGradient(pos.x - 2, pos.y - 2, 0, pos.x, pos.y, r);
+    bgGrad.addColorStop(0, "rgba(30, 25, 18, 0.95)");
+    bgGrad.addColorStop(1, "rgba(12, 8, 4, 0.95)");
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(20, 15, 10, 0.85)";
+    ctx.fillStyle = bgGrad;
     ctx.fill();
+
+    // Outer border ring
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Inner subtle highlight ring
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, r - 2, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     // Draw icon
     drawIcon(ctx, node.type, pos.x, pos.y, r, color);
 
-    // Completed checkmark overlay
+    // Completed — dim X instead of checkmark (more dungeon-y)
     if (node.completed) {
-      ctx.globalAlpha = 0.6;
-      ctx.strokeStyle = "#66cc66";
-      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = "#88aa88";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(pos.x - 5, pos.y);
-      ctx.lineTo(pos.x - 1, pos.y + 5);
-      ctx.lineTo(pos.x + 6, pos.y - 5);
+      ctx.moveTo(pos.x - 5, pos.y - 5);
+      ctx.lineTo(pos.x + 5, pos.y + 5);
+      ctx.moveTo(pos.x + 5, pos.y - 5);
+      ctx.lineTo(pos.x - 5, pos.y + 5);
       ctx.stroke();
     }
 
