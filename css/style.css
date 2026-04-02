@@ -267,6 +267,7 @@ body {
 }
 
 .floor-indicator {
+  font-family: 'Cinzel', serif;
   font-size: 14px;
   color: var(--gold);
   padding: 3px 10px;
@@ -361,6 +362,7 @@ body {
 #enemies-panel { align-items: flex-end; }
 
 .panel-label {
+  font-family: 'Cinzel', serif;
   font-size: 11px;
   letter-spacing: 3px;
   color: var(--text-dim);
@@ -447,7 +449,7 @@ body {
 
 .combatant-info { flex: 1; }
 
-.combatant-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.combatant-name { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; margin-bottom: 2px; }
 
 .hero-row .combatant-name.fighter { color: var(--gold); }
 .hero-row .combatant-name.rogue { color: var(--crimson); }
@@ -1311,7 +1313,7 @@ body {
   padding: 8px 10px 4px;
 }
 
-.card-name { font-size: 13px; font-weight: 700; line-height: 1.2; }
+.card-name { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700; line-height: 1.2; }
 
 .card-upgraded {
   color: var(--gold);
@@ -1343,6 +1345,7 @@ body {
 }
 
 .card-class {
+  font-family: 'Cinzel', serif;
   color: var(--text-dim);
   text-transform: uppercase; letter-spacing: 1px;
 }
@@ -1358,6 +1361,7 @@ body {
 }
 
 .btn {
+  font-family: 'Cinzel', serif;
   padding: 10px 28px; font-size: 14px; font-weight: 700;
   letter-spacing: 2px; text-transform: uppercase;
   border: 2px solid var(--border-light); border-radius: 6px;
@@ -1446,6 +1450,7 @@ body {
 }
 
 .deck-viewer-header h2 {
+  font-family: 'Cinzel', serif;
   font-size: 18px;
   color: var(--text-bright);
   letter-spacing: 2px;
@@ -1684,6 +1689,7 @@ body {
 }
 
 .event-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 28px;
   font-weight: 900;
   letter-spacing: 4px;
@@ -1730,6 +1736,7 @@ body {
 }
 
 .event-choice-label {
+  font-family: 'Cinzel', serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--text-bright);
@@ -1778,6 +1785,7 @@ body {
 
 .shop-header h2,
 .shop-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 36px;
   font-weight: 900;
   letter-spacing: 10px;
@@ -1800,6 +1808,7 @@ body {
 }
 
 .shop-section-title {
+  font-family: 'Cinzel', serif;
   font-size: 14px;
   letter-spacing: 3px;
   color: var(--text-dim);
@@ -1871,6 +1880,7 @@ body {
 }
 
 .btn-leave-shop {
+  font-family: 'Cinzel', serif;
   margin-top: 20px;
   padding: 14px 40px;
   font-size: 16px;
@@ -1908,6 +1918,7 @@ body {
 }
 
 .reward-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 48px;
   font-weight: 900;
   letter-spacing: 8px;
@@ -1997,6 +2008,7 @@ body {
 }
 
 .rest-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 32px;
   font-weight: 900;
   letter-spacing: 6px;
@@ -2078,7 +2090,7 @@ body {
 }
 
 .rest-choice-icon { font-size: 32px; }
-.rest-choice-title { font-size: 16px; font-weight: 900; letter-spacing: 3px; color: var(--text-bright); }
+.rest-choice-title { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 900; letter-spacing: 3px; color: var(--text-bright); }
 .rest-choice-desc { font-size: 11px; color: var(--text-dim); }
 
 /* ===== TRAIN SCREEN ===== */
@@ -2120,6 +2132,7 @@ body {
 }
 
 .gameover-text {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 64px;
   font-weight: 900;
   letter-spacing: 10px;
@@ -2372,6 +2385,7 @@ body {
 }
 
 .entity-name {
+  font-family: 'Cinzel', serif;
   font-size: 10px;
   font-weight: 700;
   margin-top: 2px;
