@@ -1102,6 +1102,7 @@ body {
 }
 
 #hand-label {
+  font-family: 'Cinzel', serif;
   font-size: 11px; letter-spacing: 3px;
   color: var(--text-dim); text-transform: uppercase;
   margin-bottom: 10px;
@@ -1528,6 +1529,7 @@ body {
 }
 
 #log-label {
+  font-family: 'Cinzel', serif;
   font-size: 11px; letter-spacing: 3px;
   color: var(--text-dim); text-transform: uppercase;
   margin-bottom: 6px;
@@ -1536,6 +1538,7 @@ body {
 #log-entries { display: flex; flex-direction: column; gap: 2px; }
 
 .log-entry {
+  font-family: 'Crimson Text', serif;
   font-size: 12px; color: var(--text-dim);
   padding: 1px 0; animation: log-stagger-in 0.4s ease-out both;
 }
@@ -2327,6 +2330,7 @@ body {
 }
 
 .floor-tag {
+  font-family: 'Cinzel', serif;
   font-size: 11px;
   color: var(--gold);
   letter-spacing: 2px;
@@ -2610,6 +2614,7 @@ body {
 }
 
 .pile-label {
+  font-family: 'Cinzel', serif;
   font-size: 8px;
   letter-spacing: 2px;
   color: var(--text-dim);
@@ -2707,6 +2712,7 @@ body {
 }
 
 .end-turn-text {
+  font-family: 'Cinzel', serif;
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 2px;
