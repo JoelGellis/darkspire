@@ -3,13 +3,36 @@ window.DS = window.DS || {};
 DS.Game = {
   // ===== BOOT =====
   init: function() {
-    DS.State.screen = 'title';
+    if (DS.Meta && DS.Meta.hasSave()) {
+      DS.Meta.load();
+      DS.State.screen = 'town';
+    } else {
+      DS.State.screen = 'title';
+    }
     DS.UI.render();
   },
 
   // ===== NEW RUN =====
   startRun: function() {
-    DS.State.newRun();
+    // Build party from caravan selection if available
+    var party = null;
+    if (DS.State._selectedParty && DS.Meta) {
+      party = DS.State._selectedParty.map(function(p) {
+        var rh = DS.Meta.heroRoster[p.rosterIndex];
+        return {
+          heroClass: p.heroClass,
+          rosterIndex: p.rosterIndex,
+          runsSurvived: rh ? rh.runsSurvived : 0
+        };
+      });
+      // Build roster map for summary screen
+      DS.State._runRosterMap = {};
+      party.forEach(function(p, i) {
+        DS.State._runRosterMap[i] = p.rosterIndex;
+      });
+    }
+
+    DS.State.newRun(party);
     var run = DS.State.run;
     run.map = DS.Map.generate();
     run.floor = 0;
@@ -104,9 +127,9 @@ DS.Game = {
     // Check if boss was beaten (floor 6 = boss)
     var node = DS.Game._findNode(run.currentNode);
     if (node && node.type === 'boss') {
-      // Victory screen
+      // Victory — summary screen handles meta rewards
       DS.State.stats.floorsCleared = 7;
-      DS.State.screen = 'gameover';
+      DS.State.screen = 'summary';
       DS.UI.render();
       return;
     }
@@ -117,7 +140,7 @@ DS.Game = {
   },
 
   onCombatDefeat: function() {
-    DS.State.screen = 'gameover';
+    DS.State.screen = 'summary';
     DS.UI.render();
   },
 

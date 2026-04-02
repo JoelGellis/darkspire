@@ -746,11 +746,15 @@ DS.Cards = {
 };
 
 // Helper: build full starting deck (2 copies of each STARTER card per hero, indices 0-3 only)
-DS.Cards.buildStartingDeck = function() {
+// heroList: optional array of { cls: string, heroIdx: number } for this run's heroes
+DS.Cards.buildStartingDeck = function(heroList) {
   var deck = [];
-  var classes = ['fighter', 'rogue', 'cleric', 'wizard'];
-  classes.forEach(function(cls, heroIdx) {
-    var cards = DS.Cards[cls];
+  var entries = heroList || DS.Heroes.map(function(h, i) { return { cls: h.cls, heroIdx: i }; });
+  entries.forEach(function(entry, runIdx) {
+    var cards = DS.Cards[entry.cls];
+    if (!cards) return;
+    var heroDef = DS.Heroes.find(function(h) { return h.cls === entry.cls; });
+    var heroName = heroDef ? heroDef.name : entry.cls;
     // Only starter cards: indices 0 through 3
     for (var idx = 0; idx < 4; idx++) {
       var cardDef = cards[idx];
@@ -766,9 +770,9 @@ DS.Cards.buildStartingDeck = function() {
           desc: cardDef.desc,
           value: cardDef.value,
           effect: cardDef.effect,
-          heroIdx: heroIdx,
-          heroCls: cls,
-          heroName: DS.Heroes[heroIdx].name,
+          heroIdx: runIdx,
+          heroCls: entry.cls,
+          heroName: heroName,
           upgraded: false
         });
       }
@@ -777,9 +781,11 @@ DS.Cards.buildStartingDeck = function() {
   return deck;
 };
 
-// Helper: get a random card reward pool (3 cards from ALL classes, including reward-only cards)
-DS.Cards.getRewardPool = function(count) {
+// Helper: get a random card reward pool (cards from active classes, including reward-only cards)
+// activeClasses: optional array of class strings to filter by (e.g. ['fighter', 'ranger'])
+DS.Cards.getRewardPool = function(count, activeClasses) {
   count = count || 3;
+  var classes = activeClasses || DS.Heroes.map(function(h) { return h.cls; });
 
   // Collect owned card baseIds to deprioritize duplicates
   var ownedIds = {};
@@ -790,10 +796,13 @@ DS.Cards.getRewardPool = function(count) {
   }
 
   var allCards = [];
-  var classes = ['fighter', 'rogue', 'cleric', 'wizard'];
-  classes.forEach(function(cls, heroIdx) {
-    // Reward pool: indices 4+ (skip starters 0-3)
+  classes.forEach(function(cls) {
     var cards = DS.Cards[cls];
+    if (!cards) return;
+    var heroDef = DS.Heroes.find(function(h) { return h.cls === cls; });
+    var heroIdx = DS.Heroes.indexOf(heroDef);
+    var heroName = heroDef ? heroDef.name : cls;
+    // Reward pool: indices 4+ (skip starters 0-3)
     for (var idx = 4; idx < cards.length; idx++) {
       var cardDef = cards[idx];
       allCards.push({
@@ -809,7 +818,7 @@ DS.Cards.getRewardPool = function(count) {
         effect: cardDef.effect,
         heroIdx: heroIdx,
         heroCls: cls,
-        heroName: DS.Heroes[heroIdx].name,
+        heroName: heroName,
         upgraded: false
       });
     }
@@ -820,10 +829,14 @@ DS.Cards.getRewardPool = function(count) {
     return (ownedIds[card.baseId] || 0) < 2;
   });
 
-  // If pool too small after filtering, fall back to all reward cards
+  // If pool too small after filtering, fall back to all reward cards from active classes
   if (allCards.length < count) {
-    classes.forEach(function(cls, heroIdx) {
+    classes.forEach(function(cls) {
       var cards = DS.Cards[cls];
+      if (!cards) return;
+      var heroDef = DS.Heroes.find(function(h) { return h.cls === cls; });
+      var heroIdx = DS.Heroes.indexOf(heroDef);
+      var heroName = heroDef ? heroDef.name : cls;
       for (var idx = 4; idx < cards.length; idx++) {
         var cardDef = cards[idx];
         if (!allCards.some(function(c) { return c.baseId === cardDef.id; })) {
@@ -832,7 +845,7 @@ DS.Cards.getRewardPool = function(count) {
             cost: cardDef.cost, type: cardDef.type, target: cardDef.target,
             prefPos: cardDef.prefPos.slice(), desc: cardDef.desc, value: cardDef.value,
             effect: cardDef.effect, heroIdx: heroIdx, heroCls: cls,
-            heroName: DS.Heroes[heroIdx].name, upgraded: false
+            heroName: heroName, upgraded: false
           });
         }
       }

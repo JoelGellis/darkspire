@@ -11,7 +11,8 @@ DS.State = {
   },
 
   // Initialize a fresh run
-  newRun: function() {
+  // party: optional array of { heroClass, runsSurvived } from caravan
+  newRun: function(party) {
     DS.State.stats = { floorsCleared: 0, enemiesSlain: 0, cardsCollected: 0 };
     DS.State.run = {
       heroes: [],
@@ -23,14 +24,34 @@ DS.State = {
       map: null
     };
 
-    // Init heroes from definitions
-    DS.Heroes.forEach(function(def, i) {
+    // Build hero entries — from caravan party or default first 4
+    var entries = party || DS.Heroes.slice(0, 4).map(function(def) {
+      return { heroClass: def.cls, runsSurvived: 0 };
+    });
+
+    entries.forEach(function(entry, runIdx) {
+      // Find full hero definition by class
+      var def = null;
+      var defIdx = -1;
+      for (var i = 0; i < DS.Heroes.length; i++) {
+        if (DS.Heroes[i].cls === entry.heroClass) {
+          def = DS.Heroes[i];
+          defIdx = i;
+          break;
+        }
+      }
+      if (!def) return;
+
+      var veteranBonus = (entry.runsSurvived || 0) * 5;
+      var chapelBonus = (DS.Meta && DS.Meta.getChapelBonus) ? DS.Meta.getChapelBonus() : 0;
+      var maxHp = def.maxHp + veteranBonus + chapelBonus;
+
       DS.State.run.heroes.push({
-        id: 'hero_' + i,
+        id: 'hero_' + runIdx,
         name: def.name,
         cls: def.cls,
-        hp: def.maxHp,
-        maxHp: def.maxHp,
+        hp: maxHp,
+        maxHp: maxHp,
         pos: def.startPos,
         block: 0,
         poison: 0,
@@ -40,18 +61,21 @@ DS.State = {
         bleed: 0,
         stunned: false,
         isHero: true,
-        heroIdx: i
+        heroIdx: defIdx
       });
     });
 
-    // Build starting deck
-    DS.State.run.deck = DS.Cards.buildStartingDeck();
+    // Build starting deck from run heroes
+    var heroList = DS.State.run.heroes.map(function(h, i) {
+      return { cls: h.cls, heroIdx: i };
+    });
+    DS.State.run.deck = DS.Cards.buildStartingDeck(heroList);
   },
 
   // Set up combat state from run heroes + enemy pool
   startCombat: function(enemyPool) {
     // Reset hero block/poison/position for new combat
-    DS.State.run.heroes.forEach(function(h, i) {
+    DS.State.run.heroes.forEach(function(h) {
       h.block = 0;
       h.poison = 0;
       h.weak = 0;
@@ -59,7 +83,7 @@ DS.State = {
       h.strength = 0;
       h.bleed = 0;
       h.stunned = false;
-      h.pos = DS.Heroes[i].startPos;
+      h.pos = DS.Heroes[h.heroIdx].startPos;
     });
 
     // Build enemies from pool definition with floor scaling

@@ -22,6 +22,12 @@ DS.UI = {
       DS.UI.renderShop(root);
     } else if (screen === 'gameover') {
       DS.UI.renderGameOver(root);
+    } else if (screen === 'town') {
+      DS.UI.renderTown(root);
+    } else if (screen === 'caravan') {
+      DS.UI.renderCaravan(root);
+    } else if (screen === 'summary') {
+      DS.UI.renderSummary(root);
     }
   },
 
@@ -60,6 +66,7 @@ DS.UI = {
     root.innerHTML = '';
     var screen = document.createElement('div');
     screen.className = 'screen screen-title';
+    var hasSave = DS.Meta && DS.Meta.hasSave();
     screen.innerHTML =
       '<div class="title-bg">' +
         '<div class="title-particles"></div>' +
@@ -67,12 +74,22 @@ DS.UI = {
           '<div class="title-icon">\u2620\uFE0F</div>' +
           '<h1 class="title-text">DARKSPIRE</h1>' +
           '<div class="title-sub">Descend into darkness. Draw your cards. Survive.</div>' +
-          '<button class="btn btn-new-run" id="btn-new-run">NEW RUN</button>' +
+          (hasSave ? '<button class="btn btn-new-run" id="btn-continue">CONTINUE</button>' : '') +
+          '<button class="btn btn-new-run" id="btn-new-game">NEW GAME</button>' +
         '</div>' +
       '</div>';
     root.appendChild(screen);
-    document.getElementById('btn-new-run').onclick = function() {
-      DS.Game.startRun();
+    if (hasSave) {
+      document.getElementById('btn-continue').onclick = function() {
+        DS.Meta.load();
+        DS.State.screen = 'town';
+        DS.UI.render();
+      };
+    }
+    document.getElementById('btn-new-game').onclick = function() {
+      DS.Meta.newGame();
+      DS.State.screen = 'town';
+      DS.UI.render();
     };
   },
 
@@ -149,6 +166,7 @@ DS.UI = {
         '</div>' +
         '<div class="combat-stage">' +
           '<div class="stage-heroes" id="heroes-panel"></div>' +
+          '<div class="stage-divider"></div>' +
           '<div class="stage-enemies" id="enemies-panel"></div>' +
           '<div class="combat-log-overlay" id="log-area">' +
             '<div id="log-entries"></div>' +
@@ -354,7 +372,14 @@ DS.UI = {
     // Back to front: pos 4 is leftmost (back), pos 1 is rightmost (front, near enemies)
     for (var pos = 4; pos >= 1; pos--) {
       var hero = run.heroes.find(function(h) { return h.pos === pos; });
-      if (!hero) continue;
+      if (!hero) {
+        // Empty slot placeholder
+        var empty = document.createElement('div');
+        empty.className = 'stage-entity stage-hero empty-slot';
+        empty.innerHTML = '<div class="entity-pos">' + pos + '</div><div class="entity-sprite-wrap"><div class="sprite-empty"></div></div>';
+        panel.appendChild(empty);
+        continue;
+      }
 
       var dead = hero.hp <= 0;
       var pct = dead ? 0 : Math.max(0, (hero.hp / hero.maxHp) * 100);
@@ -388,15 +413,12 @@ DS.UI = {
       if (hero.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1</span>';
 
       el.innerHTML =
+        '<div class="entity-pos">' + hero.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
-        '<div class="entity-info">' +
-          '<div class="entity-name ' + hero.cls + '">' + hero.name + '</div>' +
-          '<div class="entity-hp-wrap">' +
-            '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div>' +
-            '<span class="entity-hp-text">' + (dead ? 'DEAD' : hero.hp + '/' + hero.maxHp) + '</span>' +
-          '</div>' +
-          (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '') +
-        '</div>';
+        '<div class="entity-name ' + hero.cls + '">' + hero.name + '</div>' +
+        '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div>' +
+        '<span class="entity-hp-text">' + (dead ? 'DEAD' : hero.hp + '/' + hero.maxHp) + '</span>' +
+        (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '');
 
       panel.appendChild(el);
     }
@@ -408,6 +430,7 @@ DS.UI = {
     var combat = DS.State.combat;
     panel.innerHTML = '';
 
+    // Front to back: pos 1 leftmost (near heroes), higher positions to the right
     var sorted = combat.enemies.slice().sort(function(a, b) { return a.pos - b.pos; });
     sorted.forEach(function(enemy) {
       var dead = enemy.hp <= 0;
@@ -419,7 +442,7 @@ DS.UI = {
         if (card && (card.target === 'enemy' || card.target === 'enemy_any') && !dead) targetable = true;
       }
 
-      // Intent display - floats above sprite STS-style
+      // Intent display - floats above sprite
       var intentHtml = '';
       if (!dead && enemy.currentIntent) {
         var intent = enemy.currentIntent;
@@ -474,15 +497,12 @@ DS.UI = {
 
       el.innerHTML =
         intentHtml +
+        '<div class="entity-pos">' + enemy.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(enemy, 'left').outerHTML + '</div>' +
-        '<div class="entity-info">' +
-          '<div class="entity-name">' + enemy.name + '</div>' +
-          '<div class="entity-hp-wrap">' +
-            '<div class="entity-hp-bar"><div class="entity-hp-fill enemy-hp" style="width:' + pct + '%"></div></div>' +
-            '<span class="entity-hp-text">' + (dead ? 'DEAD' : enemy.hp + '/' + enemy.maxHp) + '</span>' +
-          '</div>' +
-          (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '') +
-        '</div>';
+        '<div class="entity-name">' + enemy.name + '</div>' +
+        '<div class="entity-hp-bar"><div class="entity-hp-fill enemy-hp" style="width:' + pct + '%"></div></div>' +
+        '<span class="entity-hp-text">' + (dead ? 'DEAD' : enemy.hp + '/' + enemy.maxHp) + '</span>' +
+        (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '');
 
       panel.appendChild(el);
     });
@@ -494,6 +514,9 @@ DS.UI = {
     var combat = DS.State.combat;
     if (!container) return;
     container.innerHTML = '';
+
+    var total = combat.hand.length;
+    var maxAngle = Math.min(total * 5, 35);
 
     combat.hand.forEach(function(card, idx) {
       var hero = DS.State.run.heroes[card.heroIdx];
@@ -508,13 +531,20 @@ DS.UI = {
       }
 
       var posOk = hero.hp > 0 && (card.prefPos.includes(hero.pos) || (check.playable && check.usesBoots));
-
-      // Card type gradient
       var artClass = 'card-art-' + card.type;
+
+      // Fan arc math
+      var t = total > 1 ? (idx / (total - 1)) - 0.5 : 0;
+      var angle = t * maxAngle;
+      var yOffset = Math.abs(t) * 30;
 
       var el = document.createElement('div');
       el.className = 'card ' + card.heroCls + (isSelected ? ' selected' : '') + (extraClass ? ' ' + extraClass : '');
       el.setAttribute('data-hand-idx', idx);
+      if (!isSelected) {
+        el.style.transform = 'rotate(' + angle + 'deg) translateY(' + yOffset + 'px)';
+      }
+      el.style.zIndex = isSelected ? 100 : idx + 1;
       if (check.playable && !combat.animating && !combat.gameOver) {
         (function(i) {
           el.onclick = function() { DS.Combat.selectCard(i); };
@@ -1339,7 +1369,12 @@ DS.UI = {
     root.appendChild(screen);
 
     document.getElementById('btn-gameover-restart').onclick = function() {
-      DS.State.screen = 'title';
+      if (DS.Meta && DS.Meta.hasSave()) {
+        DS.Meta.load();
+        DS.State.screen = 'town';
+      } else {
+        DS.State.screen = 'title';
+      }
       DS.UI.render();
     };
   },

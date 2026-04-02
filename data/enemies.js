@@ -153,6 +153,56 @@ DS.Enemies = {
           { name: 'Weaken', type: 'weaken', turns: 1, desc: 'WEAK 1', targeting: 'random' }
         ]
       }
+    ],
+
+    // Pool 7: Fungal Colony
+    [
+      {
+        name: 'Fungal Brute', icon: '\uD83C\uDF44', maxHp: 28, pos: 1,
+        intents: [
+          { name: 'Slam', type: 'attack', dmg: 9, desc: 'ATK 9', targeting: 'front' },
+          { name: 'Harden', type: 'defend', block: 7, desc: 'DEF 7' }
+        ]
+      },
+      {
+        name: 'Spore Sprayer', icon: '\uD83D\uDCA8', maxHp: 18, pos: 2,
+        intents: [
+          { name: 'Spore Cloud', type: 'poison', poison: 3, desc: 'PSN 3\u2192random', targeting: 'random' },
+          { name: 'Burst', type: 'attack_all', dmg: 3, desc: 'ATK 3 ALL', targeting: 'all' }
+        ]
+      },
+      {
+        name: 'Mushroom Cap', icon: '\uD83C\uDF41', maxHp: 10, pos: 3,
+        intents: [
+          { name: 'Regenerate', type: 'heal_allies', heal: 4, desc: 'HEAL ALL 4' },
+          { name: 'Toxic Bite', type: 'attack_poison', dmg: 4, poison: 2, desc: 'ATK 4 + PSN 2', targeting: 'front' }
+        ]
+      }
+    ],
+
+    // Pool 8: Shadow Pack
+    [
+      {
+        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20, pos: 1,
+        intents: [
+          { name: 'Frenzy', type: 'attack_multi', dmg: 3, hits: 2, desc: 'ATK 3\u00D72', targeting: 'random' },
+          { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
+        ]
+      },
+      {
+        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20, pos: 2,
+        intents: [
+          { name: 'Lunge', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
+          { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
+        ]
+      },
+      {
+        name: 'Shadow Alpha', icon: '\uD83D\uDC3A', maxHp: 30, pos: 3,
+        intents: [
+          { name: 'Howl', type: 'buff', desc: 'BUFF +2', buffAmt: 2 },
+          { name: 'Shadow Strike', type: 'attack_all', dmg: 5, desc: 'ATK 5 ALL', targeting: 'all' }
+        ]
+      }
     ]
   ],
 
