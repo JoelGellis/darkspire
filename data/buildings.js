@@ -75,13 +75,34 @@ DS.Buildings = {
       if (currentLevel >= this.maxLevel) return null;
       return this.costs[currentLevel];
     }
+  },
+
+  graveyard: {
+    id: 'graveyard',
+    name: 'Graveyard',
+    desc: 'Memorialize fallen heroes. Each level grants +1 starting gold per fallen hero.',
+    icon: '\u26B0\uFE0F',
+    type: 'upgrade',
+    maxLevel: 3,
+    costs: [40, 80, 120],
+    goldPerHeroPerLevel: 1,
+
+    // Gold bonus = graveyard level * number of fallen heroes
+    getBonusAtLevel: function(level, graveyardCount) {
+      return level * this.goldPerHeroPerLevel * (graveyardCount || 0);
+    },
+
+    getUpgradeCost: function(currentLevel) {
+      if (currentLevel >= this.maxLevel) return null;
+      return this.costs[currentLevel];
+    }
   }
 
 };
 
 // Helper: list all buildings
 DS.Buildings.list = function() {
-  return [DS.Buildings.blacksmith, DS.Buildings.chapel, DS.Buildings.tavern];
+  return [DS.Buildings.blacksmith, DS.Buildings.chapel, DS.Buildings.tavern, DS.Buildings.graveyard];
 };
 
 // Helper: get building by id string

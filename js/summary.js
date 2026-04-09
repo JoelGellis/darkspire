@@ -7,6 +7,9 @@ window.DS = window.DS || {};
 DS.UI.renderSummary = function(root) {
   DS.UI._injectSummaryStyles();
 
+  // Run is ending — delete the mid-run save
+  DS.State.deleteRunSave();
+
   root.innerHTML = '';
   var screen = document.createElement('div');
   screen.className = 'screen summary-screen';
@@ -25,9 +28,28 @@ DS.UI.renderSummary = function(root) {
     });
   }
 
+  // Count relics
+  var relicCount = (run && run.relics) ? run.relics.length : 0;
+
+  // Time elapsed
+  var elapsed = '';
+  if (run && run.startTime) {
+    var ms = Date.now() - run.startTime;
+    var totalSec = Math.floor(ms / 1000);
+    var mins = Math.floor(totalSec / 60);
+    var secs = totalSec % 60;
+    elapsed = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  }
+
   // Gold calculations
   var runGold = (run && run.gold) || 0;
   var goldAwarded = isVictory ? runGold : Math.floor(runGold / 2);
+
+  // Calculate score
+  var score = DS.UI._summaryCalcScore(stats, runGold, relicCount, aliveCount, isVictory);
+
+  // Record high score
+  DS.UI._summaryRecordHighScore(stats, runGold, relicCount, score, isVictory);
 
   // ===== BANNER =====
   var bannerHtml =
@@ -46,7 +68,10 @@ DS.UI.renderSummary = function(root) {
       '<div class="summary-stat-row"><span class="summary-stat-label">Floors Cleared</span><span class="summary-stat-value">' + stats.floorsCleared + '/7</span></div>' +
       '<div class="summary-stat-row"><span class="summary-stat-label">Enemies Slain</span><span class="summary-stat-value">' + stats.enemiesSlain + '</span></div>' +
       '<div class="summary-stat-row"><span class="summary-stat-label">Cards Collected</span><span class="summary-stat-value">' + stats.cardsCollected + '</span></div>' +
+      '<div class="summary-stat-row"><span class="summary-stat-label">Relics Found</span><span class="summary-stat-value">' + relicCount + '</span></div>' +
       '<div class="summary-stat-row"><span class="summary-stat-label">Gold Earned</span><span class="summary-stat-value">' + runGold + '</span></div>' +
+      (elapsed ? '<div class="summary-stat-row"><span class="summary-stat-label">Time</span><span class="summary-stat-value">' + elapsed + '</span></div>' : '') +
+      '<div class="summary-stat-row summary-stat-score"><span class="summary-stat-label">SCORE</span><span class="summary-stat-value">' + score + '</span></div>' +
     '</div>';
 
   // ===== HEROES =====
@@ -95,10 +120,13 @@ DS.UI.renderSummary = function(root) {
   }
   rewardsHtml += '</div>';
 
+  // ===== HIGH SCORES =====
+  var highScoresHtml = DS.UI._summaryBuildHighScores();
+
   // ===== BUTTON =====
   var btnHtml = '<button class="btn summary-btn-return" id="btn-summary-return">RETURN TO TOWN</button>';
 
-  screen.innerHTML = bannerHtml + statsHtml + heroesHtml + rewardsHtml + btnHtml;
+  screen.innerHTML = bannerHtml + statsHtml + heroesHtml + rewardsHtml + highScoresHtml + btnHtml;
   root.appendChild(screen);
 
   // ===== WIRE UP RETURN =====
@@ -116,6 +144,8 @@ DS.UI._summaryApplyResults = function(isVictory, run, goldAwarded) {
     // applyVictoryRewards(goldEarned, runHeroRosterIndices, aliveFlags)
     var aliveFlags = run.heroes.map(function(h) { return h.hp > 0; });
     DS.Meta.applyVictoryRewards(goldAwarded, rosterIndices, aliveFlags);
+    // Check for new unlocks
+    DS.State._pendingUnlocks = DS.Meta.checkUnlocks();
   } else {
     // applyDefeatPenalty(runHeroRosterIndices)
     var validIndices = rosterIndices.filter(function(idx) { return idx !== -1; });
@@ -126,11 +156,12 @@ DS.UI._summaryApplyResults = function(isVictory, run, goldAwarded) {
     DS.Meta.save();
   }
 
-  // Clear run state
+  // Clear run state and run save
   DS.State.run = null;
   DS.State.combat = null;
   DS.State._selectedParty = null;
   DS.State._runRosterMap = null;
+  DS.State.deleteRunSave();
 
   // Go to town
   DS.State.screen = 'town';
@@ -171,6 +202,80 @@ DS.UI._summaryGetRosterMap = function(run) {
   return indices;
 };
 
+// ===== SCORING =====
+
+DS.UI._summaryCalcScore = function(stats, gold, relics, aliveCount, isVictory) {
+  var score = 0;
+  score += stats.floorsCleared * 100;       // 100 per floor
+  score += stats.enemiesSlain * 25;          // 25 per kill
+  score += stats.cardsCollected * 10;        // 10 per card picked up
+  score += relics * 50;                      // 50 per relic
+  score += gold;                             // 1 per gold
+  score += aliveCount * 75;                  // 75 per surviving hero
+  if (isVictory) score += 500;               // Victory bonus
+  return score;
+};
+
+// ===== HIGH SCORES (localStorage) =====
+
+DS.UI._summaryRecordHighScore = function(stats, gold, relics, score, isVictory) {
+  try {
+    var raw = localStorage.getItem('darkspire_highscores');
+    var scores = raw ? JSON.parse(raw) : [];
+
+    scores.push({
+      score: score,
+      floors: stats.floorsCleared,
+      kills: stats.enemiesSlain,
+      gold: gold,
+      relics: relics,
+      victory: isVictory,
+      date: new Date().toISOString().slice(0, 10)
+    });
+
+    // Sort descending, keep top 5
+    scores.sort(function(a, b) { return b.score - a.score; });
+    scores = scores.slice(0, 5);
+
+    localStorage.setItem('darkspire_highscores', JSON.stringify(scores));
+  } catch(e) {
+    console.warn('High score save failed:', e);
+  }
+};
+
+DS.UI._summaryGetHighScores = function() {
+  try {
+    var raw = localStorage.getItem('darkspire_highscores');
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) {
+    return [];
+  }
+};
+
+DS.UI._summaryBuildHighScores = function() {
+  var scores = DS.UI._summaryGetHighScores();
+  if (scores.length === 0) return '';
+
+  var html = '<div class="summary-highscores">' +
+    '<h3 class="summary-hs-title">HIGH SCORES</h3>' +
+    '<div class="summary-hs-list">';
+
+  scores.forEach(function(entry, i) {
+    var rank = i + 1;
+    var badge = entry.victory ? ' summary-hs-victory' : '';
+    html +=
+      '<div class="summary-hs-row' + badge + '">' +
+        '<span class="summary-hs-rank">#' + rank + '</span>' +
+        '<span class="summary-hs-score">' + entry.score + '</span>' +
+        '<span class="summary-hs-detail">F' + entry.floors + ' / ' + entry.kills + ' kills' + (entry.victory ? ' / WIN' : '') + '</span>' +
+        '<span class="summary-hs-date">' + entry.date + '</span>' +
+      '</div>';
+  });
+
+  html += '</div></div>';
+  return html;
+};
+
 // ===== INJECT SUMMARY STYLES =====
 
 DS.UI._injectSummaryStyles = function() {
@@ -194,6 +299,8 @@ DS.UI._injectSummaryStyles = function() {
     '.summary-stat-row:last-child { border-bottom:none; }',
     '.summary-stat-label { font-size:13px; color:var(--text-dim); letter-spacing:1px; }',
     '.summary-stat-value { font-size:13px; color:var(--text-bright); font-weight:700; }',
+    '.summary-stat-score .summary-stat-label { color:var(--gold); font-weight:700; }',
+    '.summary-stat-score .summary-stat-value { color:var(--gold); font-size:16px; }',
 
     // Hero cards
     '.summary-heroes { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }',
@@ -214,8 +321,100 @@ DS.UI._injectSummaryStyles = function() {
     '.summary-reward-gold { color:var(--gold); font-weight:700; font-size:16px; }',
     '.summary-reward-loss { color:var(--crimson-dim); }',
 
+    // High scores
+    '.summary-highscores { background:var(--bg-panel); border:2px solid var(--border); border-radius:8px; padding:16px 24px; min-width:300px; max-width:420px; width:100%; }',
+    '.summary-hs-title { font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:3px; margin:0 0 10px 0; text-align:center; }',
+    '.summary-hs-row { display:flex; align-items:center; gap:10px; padding:4px 0; font-size:12px; color:var(--text-dim); }',
+    '.summary-hs-victory { color:var(--gold); }',
+    '.summary-hs-rank { width:24px; font-weight:700; }',
+    '.summary-hs-score { width:60px; font-weight:700; color:var(--text-bright); }',
+    '.summary-hs-detail { flex:1; }',
+    '.summary-hs-date { font-size:11px; }',
+
     // Return button
     '.summary-btn-return { padding:14px 48px; font-size:16px; font-weight:700; letter-spacing:3px; margin-top:8px; cursor:pointer; }'
   ].join('\n');
   document.head.appendChild(style);
 };
+
+// ===== AUTO-SAVE HOOK =====
+// Wraps DS.UI.render to auto-save when transitioning to the map screen.
+// This file loads after ui.js so DS.UI.render exists.
+
+(function() {
+  var _originalRender = DS.UI.render;
+  DS.UI.render = function() {
+    _originalRender.call(DS.UI);
+    // Auto-save after rendering the map screen
+    if (DS.State.screen === 'map' && DS.State.run) {
+      DS.State.save();
+    }
+  };
+})();
+
+// ===== TITLE SCREEN HOOK =====
+// Wraps renderTitle to add "Resume Run" button when a run save exists,
+// and show high scores on the title screen.
+
+(function() {
+  var _originalRenderTitle = DS.UI.renderTitle;
+  DS.UI.renderTitle = function(root) {
+    _originalRenderTitle.call(DS.UI, root);
+
+    var hasRunSave = DS.State.hasRunSave();
+    var scores = DS.UI._summaryGetHighScores();
+
+    // Insert "Resume Run" button if applicable
+    if (hasRunSave) {
+      var content = root.querySelector('.title-content');
+      if (content) {
+        var resumeBtn = document.createElement('button');
+        resumeBtn.className = 'btn btn-new-run';
+        resumeBtn.id = 'btn-resume-run';
+        resumeBtn.textContent = 'RESUME RUN';
+        resumeBtn.style.background = '#2a6e2a';
+        resumeBtn.style.borderColor = '#3a8e3a';
+        // Insert before the first button
+        var firstBtn = content.querySelector('button');
+        if (firstBtn) {
+          content.insertBefore(resumeBtn, firstBtn);
+        } else {
+          content.appendChild(resumeBtn);
+        }
+        resumeBtn.onclick = function() {
+          // Load meta first
+          if (DS.Meta && DS.Meta.hasSave()) {
+            DS.Meta.load();
+          }
+          // Load the run save
+          if (DS.State.load()) {
+            DS.UI.render();
+          } else {
+            // Save was corrupt — fall through to town
+            DS.State.deleteRunSave();
+            if (DS.Meta && DS.Meta.hasSave()) {
+              DS.Meta.load();
+              DS.State.screen = 'town';
+            } else {
+              DS.State.screen = 'title';
+            }
+            DS.UI.render();
+          }
+        };
+      }
+    }
+
+    // Show high scores on title screen
+    if (scores.length > 0) {
+      DS.UI._injectSummaryStyles();
+      var hsHtml = DS.UI._summaryBuildHighScores();
+      var hsDiv = document.createElement('div');
+      hsDiv.style.marginTop = '20px';
+      hsDiv.style.maxWidth = '400px';
+      hsDiv.style.width = '100%';
+      hsDiv.innerHTML = hsHtml;
+      var content = root.querySelector('.title-content');
+      if (content) content.appendChild(hsDiv);
+    }
+  };
+})();

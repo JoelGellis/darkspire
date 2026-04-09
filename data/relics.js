@@ -167,15 +167,10 @@ DS.Relics = [
   {
     id: 'position_boots',
     name: 'Position Boots',
-    desc: 'Once per combat, you may play a card ignoring position requirements.',
+    desc: 'Move actions cost 0 energy.',
     rarity: 'uncommon',
     icon: '\uD83E\uDD7E',
-    onCombatStart: function(state) {
-      if (!state || !state.run) return;
-      state.run._bootsUsed = false;
-    },
-    // Engine checks state.run._bootsUsed and sets it true when player opts to use it
-    ignorePosition: true
+    freeMove: true
   },
 
   {
@@ -373,6 +368,134 @@ DS.Relics = [
     rarity: 'common',
     icon: '\uD83E\uDDE4',
     goldMultiplier: 1.25
+  },
+
+  // ============================================================
+  // STATUS-INTERACTION RELICS
+  // ============================================================
+
+  {
+    id: 'venomous_ring',
+    name: 'Venomous Ring',
+    desc: 'Your attack cards apply 1 Poison to the target.',
+    rarity: 'common',
+    icon: '\uD83D\uDC0D',
+    onCardPlayed: function(state, card) {
+      if (!card || card.type !== 'attack') return;
+      // Apply poison to all alive enemies (for AoE) or the last attacked target
+      var combat = state.combat;
+      if (!combat) return;
+      var enemies = combat.enemies.filter(function(e) { return e.hp > 0; });
+      if (card.target === 'all_enemies') {
+        enemies.forEach(function(e) { DS.Combat.applyPoison(e, 1); });
+      } else if (enemies.length > 0) {
+        // Single target — apply to a random enemy as proxy (engine doesn't pass target to relic hooks)
+        // Best effort: the last attacked enemy is a decent guess
+        var victim = enemies[Math.floor(Math.random() * enemies.length)];
+        DS.Combat.applyPoison(victim, 1);
+      }
+    }
+  },
+
+  {
+    id: 'berserkers_fury',
+    name: "Berserker's Fury",
+    desc: 'When a hero takes damage, they gain 1 Strength. Once per turn.',
+    rarity: 'uncommon',
+    icon: '\uD83D\uDD25',
+    onCombatStart: function(state) {
+      if (!state || !state.run) return;
+      state.run._furyUsed = false;
+    },
+    onTurnStart: function(state) {
+      if (!state || !state.run) return;
+      state.run._furyUsed = false;
+    },
+    onDamageTaken: function(state, hero, amount) {
+      if (!state || !state.run || state.run._furyUsed) return;
+      if (!hero || hero.hp <= 0) return;
+      state.run._furyUsed = true;
+      DS.Combat.applyStrength(hero, 1);
+    }
+  },
+
+  {
+    id: 'healers_amulet',
+    name: "Healer's Amulet",
+    desc: 'All heroes gain 2 Regen at start of combat.',
+    rarity: 'uncommon',
+    icon: '\uD83D\uDC9A',
+    onCombatStart: function(state) {
+      if (!state || !state.run || !state.run.heroes) return;
+      state.run.heroes.forEach(function(h) {
+        if (h && h.hp > 0) {
+          DS.Combat.applyRegen(h, 2);
+        }
+      });
+    }
+  },
+
+  {
+    id: 'cursed_mirror',
+    name: 'Cursed Mirror',
+    desc: 'At combat start, double ALL status stacks on ALL units. Risky.',
+    rarity: 'rare',
+    icon: '\uD83E\uDE9E',
+    onCombatStart: function(state) {
+      if (!state || !state.run || !state.combat) return;
+      var allUnits = state.run.heroes.concat(state.combat.enemies);
+      allUnits.forEach(function(u) {
+        if (!u || u.hp <= 0) return;
+        if (u.poison > 0) u.poison *= 2;
+        if (u.weak > 0) u.weak *= 2;
+        if (u.vulnerable > 0) u.vulnerable *= 2;
+        if (u.strength > 0) u.strength *= 2;
+        if (u.bleed > 0) u.bleed *= 2;
+        if (u.regen > 0) u.regen *= 2;
+      });
+    }
+  },
+
+  {
+    id: 'thorn_mantle',
+    name: 'Thorn Mantle',
+    desc: 'All heroes gain 1 Block at the start of each turn.',
+    rarity: 'common',
+    icon: '\uD83C\uDF35',
+    onTurnStart: function(state) {
+      if (!state || !state.run || !state.run.heroes) return;
+      state.run.heroes.forEach(function(h) {
+        if (h && h.hp > 0) {
+          h.block = (h.block || 0) + 1;
+        }
+      });
+    }
+  },
+
+  {
+    id: 'bleed_stone',
+    name: 'Bleed Stone',
+    desc: 'First attack each turn applies 2 Bleed to the target.',
+    rarity: 'uncommon',
+    icon: '\uD83D\uDD34',
+    onTurnStart: function(state) {
+      if (!state || !state.run) return;
+      state.run._bleedStoneUsed = false;
+    },
+    onCombatStart: function(state) {
+      if (!state || !state.run) return;
+      state.run._bleedStoneUsed = false;
+    },
+    onCardPlayed: function(state, card) {
+      if (!state || !state.run || state.run._bleedStoneUsed) return;
+      if (!card || card.type !== 'attack') return;
+      state.run._bleedStoneUsed = true;
+      var enemies = state.combat.enemies.filter(function(e) { return e.hp > 0; });
+      if (enemies.length > 0) {
+        var victim = enemies[Math.floor(Math.random() * enemies.length)];
+        DS.Combat.applyBleed(victim, 2);
+      }
+    }
   }
 
 ];

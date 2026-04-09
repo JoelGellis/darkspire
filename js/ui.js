@@ -147,6 +147,8 @@ DS.UI = {
     var run = DS.State.run;
     if (!combat || !run) return;
 
+    DS.UI._injectCombatStyles();
+
     if (!root.querySelector('.screen-combat')) {
       root.innerHTML = '';
       var screen = document.createElement('div');
@@ -159,6 +161,11 @@ DS.UI = {
           '<div class="top-bar-left">' +
             '<span class="floor-tag">FLOOR ' + run.floor + '</span>' +
             relicHtml +
+          '</div>' +
+          '<div class="top-bar-center">' +
+            '<span class="turn-phase-indicator" id="turn-phase">' +
+              (combat.animating ? 'ENEMY TURN' : 'YOUR TURN') +
+            '</span>' +
           '</div>' +
           '<div class="top-bar-right">' +
             '<span class="gold-tag">\uD83D\uDCB0 <span id="gold-count">' + run.gold + '</span></span>' +
@@ -220,6 +227,14 @@ DS.UI = {
     DS.UI.renderHand();
     DS.UI.renderDeckInfo();
     document.getElementById('turn-num').textContent = combat.turn;
+
+    // Update turn phase indicator
+    var phaseEl = document.getElementById('turn-phase');
+    if (phaseEl) {
+      var isEnemyTurn = combat.animating;
+      phaseEl.textContent = isEnemyTurn ? 'ENEMY TURN' : 'YOUR TURN';
+      phaseEl.className = 'turn-phase-indicator' + (isEnemyTurn ? ' enemy-phase' : ' player-phase');
+    }
   },
 
   renderEnergy: function() {
@@ -961,6 +976,52 @@ DS.UI = {
     };
   },
 
+  // ===== BOSS INTRO SPLASH =====
+  showBossIntro: function(boss, callback) {
+    var root = document.getElementById('game-root');
+    root.innerHTML = '';
+    var screen = document.createElement('div');
+    screen.className = 'screen screen-boss-intro';
+
+    var flavorText = {
+      'The Lich': 'The air dies. Candles extinguish themselves. From the throne of bones, dead eyes open.',
+      'Iron Golem': 'The ground shakes. Rivets scream. A mountain of iron unfolds from the darkness.',
+      'Spider Queen': 'Silk threads catch the torchlight. A clicking sound, everywhere at once. She descends.',
+      'Vampire Lord': 'The shadows bow. A figure of terrible beauty steps forward, mouth red, eyes ancient.'
+    };
+    var flavor = flavorText[boss.name] || 'A terrible presence fills the chamber. This is no ordinary foe.';
+
+    screen.innerHTML =
+      '<div class="boss-intro-panel">' +
+        '<div class="boss-intro-icon">' + boss.icon + '</div>' +
+        '<h1 class="boss-intro-name">' + boss.name + '</h1>' +
+        '<div class="boss-intro-flavor">' + flavor + '</div>' +
+        '<button class="btn btn-boss-fight" id="btn-boss-fight">FIGHT</button>' +
+      '</div>';
+    root.appendChild(screen);
+
+    // Inject boss intro styles if not already present
+    if (!document.getElementById('boss-intro-styles')) {
+      var style = document.createElement('style');
+      style.id = 'boss-intro-styles';
+      style.textContent =
+        '.screen-boss-intro { display:flex; align-items:center; justify-content:center; min-height:100vh; background:#0a0a0a; }' +
+        '.boss-intro-panel { text-align:center; animation: bossAppear 0.6s ease-out; }' +
+        '.boss-intro-icon { font-size:5rem; margin-bottom:0.5rem; animation: bossPulse 2s ease-in-out infinite; }' +
+        '.boss-intro-name { font-size:2.5rem; color:#ff4444; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.5rem; text-shadow: 0 0 20px #ff000066; }' +
+        '.boss-intro-flavor { color:#999; font-style:italic; max-width:400px; margin:0 auto 1.5rem; line-height:1.5; }' +
+        '.btn-boss-fight { font-size:1.2rem; padding:0.8rem 2.5rem; background:#cc2222; border:2px solid #ff4444; color:#fff; cursor:pointer; text-transform:uppercase; letter-spacing:0.1em; transition:all 0.2s; }' +
+        '.btn-boss-fight:hover { background:#ff3333; transform:scale(1.05); }' +
+        '@keyframes bossAppear { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }' +
+        '@keyframes bossPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }';
+      document.head.appendChild(style);
+    }
+
+    document.getElementById('btn-boss-fight').onclick = function() {
+      callback();
+    };
+  },
+
   // ===== SHOP SCREEN =====
   renderShop: function(root) {
     root.innerHTML = '';
@@ -1469,6 +1530,20 @@ DS.UI = {
       '.shop-remove-card-class { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; min-width:60px; }',
       '.shop-remove-card-desc { font-size:11px; color:var(--text-dim); flex:1; }',
       '.btn-shop-leave { padding:14px 40px; font-size:16px; font-weight:700; letter-spacing:3px; margin-top:12px; }',
+    ].join('\n');
+    document.head.appendChild(style);
+  },
+
+  _injectCombatStyles: function() {
+    if (DS.UI._stylesInjected.combat) return;
+    DS.UI._stylesInjected.combat = true;
+    var style = document.createElement('style');
+    style.textContent = [
+      '.top-bar-center { display:flex; align-items:center; justify-content:center; }',
+      '.turn-phase-indicator { font-size:13px; font-weight:900; letter-spacing:3px; text-transform:uppercase; padding:3px 14px; border-radius:4px; transition:all 0.3s; }',
+      '.turn-phase-indicator.player-phase { color:#44ff88; text-shadow:0 0 8px rgba(68,255,136,0.4); }',
+      '.turn-phase-indicator.enemy-phase { color:#ff4444; text-shadow:0 0 8px rgba(255,68,68,0.4); animation:enemyPhasePulse 0.8s ease-in-out infinite; }',
+      '@keyframes enemyPhasePulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }',
     ].join('\n');
     document.head.appendChild(style);
   }

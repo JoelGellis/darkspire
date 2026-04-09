@@ -394,7 +394,7 @@ DS.Cards.paladin = [
 DS.Heroes.push({
   name: 'Necromancer',
   cls: 'necromancer',
-  maxHp: 30,
+  maxHp: 32,
   startPos: 4,
   colors: { primary: '#8844aa', secondary: '#1a0a2a', accent: '#aa66cc' },
   sprite: {

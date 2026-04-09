@@ -103,10 +103,47 @@ DS.Game = {
     if (DS.Enemies.scaleEncounter && DS.State.run) {
       pool = DS.Enemies.scaleEncounter(pool, DS.State.run.floor);
     }
+
+    // Boss intro splash
+    if (tier === 'boss') {
+      var bossEnemy = null;
+      for (var i = 0; i < pool.length; i++) {
+        if (pool[i].isBoss) { bossEnemy = pool[i]; break; }
+      }
+      if (bossEnemy) {
+        DS.UI.showBossIntro(bossEnemy, function() {
+          DS.Combat.initCombat(pool);
+          DS.Game._applyCombatBuffs();
+          DS.State.screen = 'combat';
+          DS.UI.render();
+          DS.Combat.logMsg(bossEnemy.name + ' emerges from the darkness.', 'system');
+        });
+        return;
+      }
+    }
+
     DS.Combat.initCombat(pool);
+    DS.Game._applyCombatBuffs();
     DS.State.screen = 'combat';
     DS.UI.render();
     DS.Combat.logMsg('A new combat begins. Steel yourself.', 'system');
+  },
+
+  // Apply pre-combat buffs from events (soldier buff, etc.)
+  _applyCombatBuffs: function() {
+    var run = DS.State.run;
+    if (!run) return;
+
+    // Soldier/Prisoner buff: all heroes start with 3 Block
+    if (run._soldierBuff) {
+      run._soldierBuff = false;
+      run.heroes.forEach(function(h) {
+        if (h.hp > 0) {
+          h.block = (h.block || 0) + 3;
+        }
+      });
+      DS.Combat.logMsg('An ally stands with you. All heroes gain 3 Block.', 'block-log');
+    }
   },
 
   // ===== COMBAT OUTCOMES =====

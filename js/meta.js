@@ -4,14 +4,17 @@ DS.Meta = {
   // Current state (populated by load or newGame)
   gold: 60,
   runCount: 0,
+  victories: 0,
   heroRoster: [],
   buildings: {},
   graveyard: [],
+  unlocks: [],
 
   // Building config (not persisted — reference only)
   _buildingConfig: {
     chapel: { maxLevel: 3, costs: [50, 100, 150] },
-    tavern: { maxLevel: 2, costs: [60, 120] }
+    tavern: { maxLevel: 2, costs: [60, 120] },
+    graveyard: { maxLevel: 3, costs: [40, 80, 120] }
   },
 
   // ===== SAVE / LOAD =====
@@ -23,11 +26,14 @@ DS.Meta = {
       { heroClass: 'fighter', alive: true, runsSurvived: 0, upgradedCards: [] },
       { heroClass: 'cleric', alive: true, runsSurvived: 0, upgradedCards: [] }
     ];
+    DS.Meta.victories = 0;
     DS.Meta.buildings = {
       chapel: { level: 0 },
-      tavern: { level: 0 }
+      tavern: { level: 0 },
+      graveyard: { level: 0 }
     };
     DS.Meta.graveyard = [];
+    DS.Meta.unlocks = [];
     DS.Meta.save();
   },
 
@@ -36,9 +42,11 @@ DS.Meta = {
       var data = {
         gold: DS.Meta.gold,
         runCount: DS.Meta.runCount,
+        victories: DS.Meta.victories,
         heroRoster: DS.Meta.heroRoster,
         buildings: DS.Meta.buildings,
-        graveyard: DS.Meta.graveyard
+        graveyard: DS.Meta.graveyard,
+        unlocks: DS.Meta.unlocks
       };
       localStorage.setItem('darkspire_meta', JSON.stringify(data));
     } catch (e) {
@@ -57,13 +65,16 @@ DS.Meta = {
 
       DS.Meta.gold = data.gold;
       DS.Meta.runCount = data.runCount || 0;
+      DS.Meta.victories = data.victories || 0;
       DS.Meta.heroRoster = data.heroRoster;
-      DS.Meta.buildings = data.buildings || { chapel: { level: 0 }, tavern: { level: 0 } };
+      DS.Meta.buildings = data.buildings || { chapel: { level: 0 }, tavern: { level: 0 }, graveyard: { level: 0 } };
       DS.Meta.graveyard = data.graveyard || [];
+      DS.Meta.unlocks = data.unlocks || [];
 
       // Ensure building shape
       if (!DS.Meta.buildings.chapel) DS.Meta.buildings.chapel = { level: 0 };
       if (!DS.Meta.buildings.tavern) DS.Meta.buildings.tavern = { level: 0 };
+      if (!DS.Meta.buildings.graveyard) DS.Meta.buildings.graveyard = { level: 0 };
 
       return true;
     } catch (e) {
@@ -149,6 +160,11 @@ DS.Meta = {
     return 4 + DS.Meta.buildings.tavern.level;
   },
 
+  getGraveyardBonus: function() {
+    var level = DS.Meta.buildings.graveyard ? DS.Meta.buildings.graveyard.level : 0;
+    return level * DS.Meta.graveyard.length;
+  },
+
   getBuildingLevel: function(name) {
     var building = DS.Meta.buildings[name];
     return building ? building.level : 0;
@@ -216,6 +232,7 @@ DS.Meta = {
     });
 
     DS.Meta.runCount++;
+    DS.Meta.victories++;
     DS.Meta.save();
   },
 
@@ -223,5 +240,50 @@ DS.Meta = {
     if (DS.Meta.gold < 30 && DS.Meta.heroRoster.length < 4) {
       DS.Meta.gold = 30;
     }
+  },
+
+  // ===== UNLOCKS =====
+
+  // Unlock definitions — milestones and what they grant
+  _unlockDefs: [
+    { id: 'veteran',    name: 'Veteran',        desc: 'Unlocked Barbarian & Ranger hero classes.', victories: 1, classes: ['barbarian', 'ranger'] },
+    { id: 'darkarts',   name: 'Dark Arts',       desc: 'Unlocked Necromancer & Paladin hero classes.', victories: 2, classes: ['necromancer', 'paladin'] },
+    { id: 'rarerelics', name: 'Rare Artifacts',  desc: 'Rare relics now appear in shops and rewards.', victories: 3 },
+    { id: 'champion',   name: 'Champion',        desc: 'Start each run with +10 gold bonus.', victories: 5 }
+  ],
+
+  hasUnlock: function(unlockId) {
+    return DS.Meta.unlocks.indexOf(unlockId) !== -1;
+  },
+
+  // Check and award any newly earned unlocks after a victory
+  checkUnlocks: function() {
+    var newUnlocks = [];
+    DS.Meta._unlockDefs.forEach(function(def) {
+      if (DS.Meta.victories >= def.victories && DS.Meta.unlocks.indexOf(def.id) === -1) {
+        DS.Meta.unlocks.push(def.id);
+        newUnlocks.push(def);
+      }
+    });
+    if (newUnlocks.length > 0) DS.Meta.save();
+    return newUnlocks;
+  },
+
+  // Get hero classes that are unlocked (always includes base 4)
+  getUnlockedClasses: function() {
+    var base = ['fighter', 'rogue', 'cleric', 'wizard'];
+    DS.Meta._unlockDefs.forEach(function(def) {
+      if (def.classes && DS.Meta.hasUnlock(def.id)) {
+        def.classes.forEach(function(cls) {
+          if (base.indexOf(cls) === -1) base.push(cls);
+        });
+      }
+    });
+    return base;
+  },
+
+  // Bonus starting gold from champion unlock
+  getUnlockGoldBonus: function() {
+    return DS.Meta.hasUnlock('champion') ? 10 : 0;
   }
 };

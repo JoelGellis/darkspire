@@ -127,7 +127,41 @@ DS.UI.renderTown = function(root) {
         : '<div class="town-building-cost">MAX LEVEL</div>') +
     '</div>';
 
+  // Graveyard
+  var gy = DS.Buildings.graveyard;
+  var gyLvl = meta.buildings.graveyard ? meta.buildings.graveyard.level : 0;
+  var gyMax = gy.maxLevel;
+  var gyCost = gy.getUpgradeCost(gyLvl);
+  var gyBonus = gy.getBonusAtLevel(gyLvl, meta.graveyard.length);
+  buildingsHtml +=
+    '<div class="town-building" id="town-building-graveyard">' +
+      '<div class="town-building-icon">' + gy.icon + '</div>' +
+      '<div class="town-building-name">' + gy.name + '</div>' +
+      '<div class="town-building-desc">' + gy.desc + '</div>' +
+      '<div class="town-building-level">Level ' + gyLvl + '/' + gyMax + '</div>' +
+      '<div class="town-building-bonus">Current bonus: +' + gyBonus + ' starting gold</div>' +
+      (gyCost !== null
+        ? '<div class="town-building-cost">Upgrade: ' + gyCost + 'g</div>'
+        : '<div class="town-building-cost">MAX LEVEL</div>') +
+    '</div>';
+
   buildingsHtml += '</div></div>';
+
+  // ===== UNLOCKS =====
+  var unlocksHtml = '';
+  var showUnlocks = (meta.unlocks && meta.unlocks.length > 0) || meta.runCount > 0;
+  if (showUnlocks && DS.Meta._unlockDefs) {
+    unlocksHtml = '<div class="town-unlocks"><h2 class="town-section-title">UNLOCKS (' + (meta.victories || 0) + ' victories)</h2><div class="town-unlocks-list">';
+    DS.Meta._unlockDefs.forEach(function(def) {
+      var earned = meta.unlocks && meta.unlocks.indexOf(def.id) !== -1;
+      unlocksHtml +=
+        '<div class="town-unlock' + (earned ? ' town-unlock-earned' : ' town-unlock-locked') + '">' +
+          '<div class="town-unlock-name">' + (earned ? def.name : '???') + '</div>' +
+          '<div class="town-unlock-desc">' + (earned ? def.desc : def.victories + ' victor' + (def.victories === 1 ? 'y' : 'ies') + ' to unlock') + '</div>' +
+        '</div>';
+    });
+    unlocksHtml += '</div></div>';
+  }
 
   // ===== ACTION BUTTONS =====
   var actionsHtml =
@@ -136,7 +170,7 @@ DS.UI.renderTown = function(root) {
       '<button class="btn town-btn-newgame" id="btn-new-game">NEW GAME</button>' +
     '</div>';
 
-  screen.innerHTML = headerHtml + rosterHtml + buildingsHtml + actionsHtml;
+  screen.innerHTML = headerHtml + rosterHtml + buildingsHtml + unlocksHtml + actionsHtml;
   root.appendChild(screen);
 
   // ===== WIRE UP BUILDING CLICKS =====
@@ -168,6 +202,30 @@ DS.UI.renderTown = function(root) {
       DS.UI.renderTown(root);
     }
   };
+
+  document.getElementById('town-building-graveyard').onclick = function() {
+    if (gyCost === null) return;
+    if (meta.gold < gyCost) {
+      DS.UI._townFlash(root, 'Not enough gold! Need ' + gyCost + 'g.');
+      return;
+    }
+    if (DS.Meta.upgradeBuilding('graveyard')) {
+      var gyLevel = meta.buildings.graveyard ? meta.buildings.graveyard.level : 0;
+      var newBonus = gy.getBonusAtLevel(gyLevel, meta.graveyard.length);
+      DS.UI._townFlash(root, 'Graveyard upgraded! +' + newBonus + ' starting gold from fallen heroes.');
+      DS.UI.renderTown(root);
+    }
+  };
+
+  // ===== SHOW PENDING UNLOCK NOTIFICATIONS =====
+  if (DS.State._pendingUnlocks && DS.State._pendingUnlocks.length > 0) {
+    DS.State._pendingUnlocks.forEach(function(unlock, i) {
+      setTimeout(function() {
+        DS.UI._townFlash(root, 'UNLOCKED: ' + unlock.name + ' — ' + unlock.desc);
+      }, (i + 1) * 2200);
+    });
+    DS.State._pendingUnlocks = null;
+  }
 
   // ===== WIRE UP ACTION BUTTONS =====
 
@@ -526,6 +584,15 @@ DS.UI._injectTownStyles = function() {
     '.town-confirm-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }' +
     '.town-confirm-box { background: var(--bg-panel); border: 2px solid var(--border); border-radius: 10px; padding: 28px 36px; text-align: center; max-width: 400px; }' +
     '.town-confirm-msg { font-size: 1em; color: var(--text); margin-bottom: 20px; }' +
+
+    '.town-unlocks { margin-bottom: 28px; }' +
+    '.town-unlocks-list { display: flex; flex-wrap: wrap; gap: 10px; }' +
+    '.town-unlock { background: var(--bg-panel); border: 2px solid var(--border); border-radius: 8px; padding: 10px 14px; min-width: 160px; max-width: 200px; }' +
+    '.town-unlock-earned { border-color: var(--gold-dim); }' +
+    '.town-unlock-locked { opacity: 0.4; }' +
+    '.town-unlock-name { font-size: 0.95em; font-weight: 700; color: var(--gold); margin-bottom: 2px; }' +
+    '.town-unlock-locked .town-unlock-name { color: var(--text-dim); }' +
+    '.town-unlock-desc { font-size: 0.75em; color: var(--text-dim); line-height: 1.3; }' +
 
     '.town-flash { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); color: var(--gold); border: 1px solid var(--gold-dim); padding: 10px 24px; border-radius: 6px; font-weight: 700; z-index: 200; animation: fadeIn 0.2s; }' +
     '@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }';

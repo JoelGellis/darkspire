@@ -66,11 +66,28 @@ DS.Combat = {
         heroIdx: card.heroIdx,
         heroCls: card.heroCls,
         heroName: card.heroName,
-        upgraded: card.upgraded || false
+        upgraded: card.upgraded || false,
+        innate: card.innate || false,
+        ethereal: card.ethereal || false,
+        curse: card.curse || false,
+        drawEffect: card.drawEffect || null
       };
     });
 
     DS.Combat.shuffle(combat.drawPile);
+
+    // Move innate cards to end of draw pile (drawn first since pop() takes from end)
+    var innateCards = [];
+    combat.drawPile = combat.drawPile.filter(function(c) {
+      if (c.innate) { innateCards.push(c); return false; }
+      return true;
+    });
+    if (innateCards.length > 0) {
+      combat.drawPile = combat.drawPile.concat(innateCards);
+    }
+
+    // Initialize combo tracking
+    combat._turnCardsPlayed = [];
 
     // Pick initial enemy intents
     combat.enemies.forEach(function(e) {
@@ -126,19 +143,20 @@ DS.Combat = {
       return { playable: false, reason: 'dead' };
     }
     if (card.cost > combat.energy) return { playable: false, reason: 'energy' };
-    if (!card.prefPos.includes(hero.pos)) {
-      // Check for Position Boots relic — allows bypassing position once
-      if (DS.Combat.hasRelicFlag('ignorePosition') && !run._bootsUsed) {
-        return { playable: true, reason: null, usesBoots: true };
-      }
-      return { playable: false, reason: 'position' };
-    }
+    // Position is no longer a hard lock — cards are always playable.
+    // Preferred position grants a +2 value bonus (applied in playCard).
     // Resurrect-type cards need at least one dead hero to target
     if (card.target === 'ally_dead') {
       var hasDead = run.heroes.some(function(h) { return h.hp <= 0; });
       if (!hasDead) return { playable: false, reason: 'no_target' };
     }
     return { playable: true, reason: null };
+  },
+
+  // Check if a card gets the preferred-position bonus
+  isInPreferredPos: function(card) {
+    var hero = DS.State.run.heroes[card.heroIdx];
+    return hero && hero.hp > 0 && card.prefPos.includes(hero.pos);
   },
 
   // ===== CARD SELECTION =====
@@ -201,12 +219,6 @@ DS.Combat = {
     var check = DS.Combat.canPlayCard(card);
     if (!check.playable) return;
 
-    // If using Position Boots, mark them used
-    if (check.usesBoots) {
-      DS.State.run._bootsUsed = true;
-      DS.Combat.logMsg('Position Boots activate! Position ignored.', 'system');
-    }
-
     // Soul Jar: temporarily halve the card's value for this play
     var soulJarActive = check.soulJar || false;
     var originalValue = card.value;
@@ -216,6 +228,13 @@ DS.Combat = {
     }
 
     var hero = DS.State.run.heroes[card.heroIdx];
+
+    // Position bonus: +2 value when played from preferred position
+    var posBonus = 0;
+    if (card.value && DS.Combat.isInPreferredPos(card)) {
+      posBonus = 2;
+      card.value = card.value + posBonus;
+    }
 
     // Track last attacker for vampiric blade
     if (card.type === 'attack') {
@@ -257,10 +276,15 @@ DS.Combat = {
       }
     });
 
-    // Restore modified card value
+    // Restore modified card value (undo Soul Jar and position bonus)
     if (originalValue !== undefined) {
       card.value = originalValue;
     }
+
+    // Track for combo system
+    if (!combat._turnCardsPlayed) combat._turnCardsPlayed = [];
+    combat._turnCardsPlayed.push({ type: card.type, id: card.baseId || card.id, heroIdx: card.heroIdx });
+    DS.Combat.checkCombos(card, target);
 
     // Discard or exhaust
     combat.hand.splice(handIdx, 1);
@@ -282,8 +306,15 @@ DS.Combat = {
     combat.animating = true;
     combat.selectedCard = null;
 
-    // Discard remaining hand
-    combat.discardPile.push.apply(combat.discardPile, combat.hand);
+    // Discard remaining hand — ethereal cards are exhausted instead
+    combat.hand.forEach(function(c) {
+      if (c.ethereal) {
+        combat.exhaustPile.push(c);
+        DS.Combat.logMsg(c.name + ' fades away! (Ethereal)', 'system');
+      } else {
+        combat.discardPile.push(c);
+      }
+    });
     combat.hand = [];
     DS.UI.render();
 
@@ -301,6 +332,9 @@ DS.Combat = {
       DS.Combat.logMsg('--- Your Turn ---', 'system');
       combat.turn++;
       combat.energy = combat.maxEnergy;
+      // Reset combo tracking
+      combat._turnCardsPlayed = [];
+      DS.Combat.COMBOS.forEach(function(c) { c._triggered = false; });
       // Dragon's Heart: decay by 1 instead of full reset
       if (DS.Combat.hasRelicFlag('persistentBlock')) {
         DS.State.run.heroes.forEach(function(h) {
@@ -476,55 +510,11 @@ DS.Combat = {
       return;
     }
 
-    // === Poison ticks ===
-    var heroes = DS.State.run.heroes;
-    for (var hi = 0; hi < heroes.length; hi++) {
-      var h = heroes[hi];
-      if (h.hp > 0 && h.poison > 0) {
-        DS.Combat.logMsg(h.name + ' takes ' + h.poison + ' poison damage!', 'poison-log');
-        h.hp = Math.max(0, h.hp - h.poison);
-        DS.Combat.floatText(h, '-' + h.poison, 'poison');
-        h.poison = Math.max(0, h.poison - 1);
-        if (h.hp <= 0) {
-          DS.Combat.logMsg(h.name + ' succumbs to poison!', 'kill');
-          DS.Combat.checkGameOver();
-        }
-      }
-    }
-
-    for (var epi = 0; epi < combat.enemies.length; epi++) {
-      var ep = combat.enemies[epi];
-      if (ep.hp > 0 && ep.poison > 0) {
-        DS.Combat.logMsg(ep.name + ' takes ' + ep.poison + ' poison damage!', 'poison-log');
-        ep.hp = Math.max(0, ep.hp - ep.poison);
-        DS.Combat.floatText(ep, '-' + ep.poison, 'poison');
-        ep.poison = Math.max(0, ep.poison - 1);
-        if (ep.hp <= 0) {
-          DS.Combat.logMsg(ep.name + ' is slain by poison!', 'kill');
-          DS.Combat.handleDeath(ep);
-          DS.Combat.checkGameOver();
-        }
-      }
-    }
-
-    // === Status effect decay (Weak, Vulnerable, Bleed) ===
-    var allUnits = heroes.concat(combat.enemies);
-    for (var si = 0; si < allUnits.length; si++) {
-      var u = allUnits[si];
-      if (u.hp <= 0) continue;
-      if (u.weak > 0) u.weak--;
-      if (u.vulnerable > 0) u.vulnerable--;
-      if (u.bleed > 0) {
-        DS.Combat.logMsg(u.name + ' takes ' + u.bleed + ' Bleed damage!', 'damage');
-        u.hp = Math.max(0, u.hp - u.bleed);
-        DS.Combat.floatText(u, '-' + u.bleed, 'damage');
-        u.bleed = Math.max(0, u.bleed - 1);
-        if (u.hp <= 0) {
-          DS.Combat.logMsg(u.name + ' bleeds out!', 'kill');
-          if (!u.isHero) DS.Combat.handleDeath(u);
-          DS.Combat.checkGameOver();
-        }
-      }
+    // === Status effect ticks (all units — poison, bleed, regen, weak/vuln decay) ===
+    var tickUnits = DS.State.run.heroes.concat(combat.enemies);
+    for (var ti = 0; ti < tickUnits.length; ti++) {
+      if (combat.gameOver) break;
+      DS.Combat.tickStatuses(tickUnits[ti]);
     }
 
     if (combat.gameOver) {
@@ -537,6 +527,10 @@ DS.Combat = {
     DS.Combat.logMsg('--- Your Turn ---', 'system');
     combat.turn++;
     combat.energy = combat.maxEnergy;
+
+    // Reset combo tracking for new turn
+    combat._turnCardsPlayed = [];
+    DS.Combat.COMBOS.forEach(function(c) { c._triggered = false; });
 
     // Block decay — Dragon's Heart: decay by 1 instead of full reset
     if (DS.Combat.hasRelicFlag('persistentBlock')) {
@@ -671,6 +665,191 @@ DS.Combat = {
     DS.Combat.floatText(target, '+' + amount + ' BLD', 'damage');
   },
 
+  applyRegen: function(target, stacks) {
+    target.regen = (target.regen || 0) + stacks;
+    DS.Combat.logMsg(target.name + ' gains ' + stacks + ' Regen! (total: ' + target.regen + ')', 'heal');
+    DS.Combat.floatText(target, '+' + stacks + ' RGN', 'heal');
+  },
+
+  // ===== FORMALIZED STATUS API =====
+  applyStatus: function(target, type, stacks) {
+    switch (type) {
+      case 'poison': DS.Combat.applyPoison(target, stacks); break;
+      case 'weak': DS.Combat.applyWeak(target, stacks); break;
+      case 'vulnerable': DS.Combat.applyVulnerable(target, stacks); break;
+      case 'strength': DS.Combat.applyStrength(target, stacks); break;
+      case 'bleed': DS.Combat.applyBleed(target, stacks); break;
+      case 'regen': DS.Combat.applyRegen(target, stacks); break;
+      case 'stunned':
+        target.stunned = true;
+        DS.Combat.logMsg(target.name + ' is Stunned!', 'stun-log');
+        DS.Combat.floatText(target, 'STUN', 'damage');
+        break;
+      default:
+        target[type] = (target[type] || 0) + stacks;
+    }
+  },
+
+  getStatusStacks: function(target, type) {
+    if (type === 'stunned') return target.stunned ? 1 : 0;
+    return target[type] || 0;
+  },
+
+  removeStatus: function(target, type) {
+    if (type === 'stunned') { target.stunned = false; }
+    else { target[type] = 0; }
+  },
+
+  removeNegativeStatuses: function(target) {
+    var removed = [];
+    if (target.poison > 0) { removed.push('Poison'); target.poison = 0; }
+    if (target.weak > 0) { removed.push('Weak'); target.weak = 0; }
+    if (target.vulnerable > 0) { removed.push('Vulnerable'); target.vulnerable = 0; }
+    if (target.bleed > 0) { removed.push('Bleed'); target.bleed = 0; }
+    if (target.stunned) { removed.push('Stun'); target.stunned = false; }
+    if (removed.length > 0) {
+      DS.Combat.logMsg(target.name + ' cleansed of ' + removed.join(', ') + '!', 'heal');
+      DS.Combat.floatText(target, 'CLEANSED', 'heal');
+    }
+    return removed;
+  },
+
+  getAllStatuses: function(target) {
+    var statuses = [];
+    if (target.poison > 0) statuses.push({ type: 'poison', stacks: target.poison });
+    if (target.weak > 0) statuses.push({ type: 'weak', stacks: target.weak });
+    if (target.vulnerable > 0) statuses.push({ type: 'vulnerable', stacks: target.vulnerable });
+    if (target.strength > 0) statuses.push({ type: 'strength', stacks: target.strength });
+    if (target.bleed > 0) statuses.push({ type: 'bleed', stacks: target.bleed });
+    if (target.regen > 0) statuses.push({ type: 'regen', stacks: target.regen });
+    if (target.stunned) statuses.push({ type: 'stunned', stacks: 1 });
+    return statuses;
+  },
+
+  tickStatuses: function(target) {
+    if (!target || target.hp <= 0) return;
+
+    // Poison: damage equal to stacks, then -1
+    if (target.poison > 0) {
+      DS.Combat.logMsg(target.name + ' takes ' + target.poison + ' Poison damage!', 'poison-log');
+      target.hp = Math.max(0, target.hp - target.poison);
+      DS.Combat.floatText(target, '-' + target.poison, 'poison');
+      target.poison = Math.max(0, target.poison - 1);
+      if (target.hp <= 0) {
+        DS.Combat.logMsg(target.name + (target.isHero ? ' succumbs to poison!' : ' is slain by poison!'), 'kill');
+        if (!target.isHero) DS.Combat.handleDeath(target);
+        DS.Combat.checkGameOver();
+        return;
+      }
+    }
+
+    // Bleed: damage equal to stacks, then -1
+    if (target.bleed > 0) {
+      DS.Combat.logMsg(target.name + ' takes ' + target.bleed + ' Bleed damage!', 'damage');
+      target.hp = Math.max(0, target.hp - target.bleed);
+      DS.Combat.floatText(target, '-' + target.bleed, 'damage');
+      target.bleed = Math.max(0, target.bleed - 1);
+      if (target.hp <= 0) {
+        DS.Combat.logMsg(target.name + ' bleeds out!', 'kill');
+        if (!target.isHero) DS.Combat.handleDeath(target);
+        DS.Combat.checkGameOver();
+        return;
+      }
+    }
+
+    // Regen: heal equal to stacks, then -1
+    if (target.regen > 0) {
+      DS.Combat.healTarget(target, target.regen);
+      target.regen = Math.max(0, target.regen - 1);
+    }
+
+    // Weak and Vulnerable: decay by 1
+    if (target.weak > 0) target.weak--;
+    if (target.vulnerable > 0) target.vulnerable--;
+  },
+
+  // ===== COMBO SYSTEM =====
+  COMBOS: [
+    {
+      id: 'flurry',
+      name: 'Flurry',
+      _triggered: false,
+      check: function(history) {
+        return history.length >= 2 &&
+               history[history.length - 1].type === 'attack' &&
+               history[history.length - 2].type === 'attack';
+      },
+      effect: function(state, card, target) {
+        var enemies = DS.Combat.aliveEnemies();
+        if (enemies.length > 0) {
+          var victim = target && !target.isHero && target.hp > 0 ? target :
+                       enemies[Math.floor(Math.random() * enemies.length)];
+          DS.Combat.logMsg('COMBO: Flurry! +3 bonus damage!', 'damage');
+          DS.Combat.dealDamage(victim, 3);
+        }
+      }
+    },
+    {
+      id: 'bulwark',
+      name: 'Bulwark',
+      _triggered: false,
+      check: function(history) {
+        return history.length >= 2 &&
+               history[history.length - 1].type === 'block' &&
+               history[history.length - 2].type === 'block';
+      },
+      effect: function(state, card, target) {
+        var hero = state.run.heroes[card.heroIdx];
+        if (hero && hero.hp > 0) {
+          DS.Combat.logMsg('COMBO: Bulwark! +3 bonus Block!', 'block-log');
+          DS.Combat.gainBlock(hero, 3);
+        }
+      }
+    },
+    {
+      id: 'tempo',
+      name: 'Tempo',
+      _triggered: false,
+      check: function(history) {
+        return history.length >= 2 &&
+               history[history.length - 1].type === 'block' &&
+               history[history.length - 2].type === 'attack';
+      },
+      effect: function(state, card, target) {
+        DS.Combat.logMsg('COMBO: Tempo! Draw 1 card!', 'system');
+        DS.Combat.drawCard();
+      }
+    },
+    {
+      id: 'finisher',
+      name: 'Finisher',
+      _triggered: false,
+      check: function(history) {
+        return history.length === 4;
+      },
+      effect: function(state, card, target) {
+        var enemies = DS.Combat.aliveEnemies();
+        if (enemies.length > 0) {
+          var victim = enemies[Math.floor(Math.random() * enemies.length)];
+          DS.Combat.logMsg('COMBO: Finisher! 5 damage to ' + victim.name + '!', 'damage');
+          DS.Combat.dealDamage(victim, 5);
+        }
+      }
+    }
+  ],
+
+  checkCombos: function(card, target) {
+    var combat = DS.State.combat;
+    if (!combat._turnCardsPlayed) return;
+    DS.Combat.COMBOS.forEach(function(combo) {
+      if (combo._triggered) return;
+      if (combo.check(combat._turnCardsPlayed)) {
+        combo._triggered = true;
+        combo.effect(DS.State, card, target);
+      }
+    });
+  },
+
   moveForward: function(hero) {
     if (hero.pos <= 1) {
       DS.Combat.logMsg(hero.name + ' is already at the front.', '');
@@ -689,6 +868,48 @@ DS.Combat = {
     }
   },
 
+  moveBackward: function(hero) {
+    var maxPos = DS.State.run.heroes.length;
+    if (hero.pos >= maxPos) {
+      DS.Combat.logMsg(hero.name + ' is already at the back.', '');
+      return;
+    }
+    var heroes = DS.State.run.heroes;
+    var behind = heroes.find(function(h) { return h.hp > 0 && h.pos === hero.pos + 1; });
+    if (behind) {
+      var oldPos = hero.pos;
+      hero.pos = behind.pos;
+      behind.pos = oldPos;
+      DS.Combat.logMsg(hero.name + ' falls back! ' + behind.name + ' shifts to pos ' + behind.pos + '.', '');
+    } else {
+      hero.pos++;
+      DS.Combat.logMsg(hero.name + ' falls back to position ' + hero.pos + '.', '');
+    }
+  },
+
+  // Built-in Move action — costs 1 energy (0 with Position Boots)
+  moveHeroAction: function(heroIdx, direction) {
+    var combat = DS.State.combat;
+    if (combat.gameOver || combat.animating) return;
+    var hero = DS.State.run.heroes[heroIdx];
+    if (!hero || hero.hp <= 0) return;
+
+    var moveCost = DS.Combat.hasRelicFlag('freeMove') ? 0 : 1;
+    if (combat.energy < moveCost) return;
+
+    var maxPos = DS.State.run.heroes.length;
+    if (direction === 'forward' && hero.pos <= 1) return;
+    if (direction === 'back' && hero.pos >= maxPos) return;
+
+    combat.energy -= moveCost;
+    if (direction === 'forward') {
+      DS.Combat.moveForward(hero);
+    } else {
+      DS.Combat.moveBackward(hero);
+    }
+    DS.UI.render();
+  },
+
   drawCard: function() {
     var combat = DS.State.combat;
     if (combat.drawPile.length === 0) {
@@ -698,7 +919,14 @@ DS.Combat = {
       DS.Combat.logMsg('Deck reshuffled from discard.', 'system');
     }
     var card = combat.drawPile.pop();
-    if (card) combat.hand.push(card);
+    if (card) {
+      combat.hand.push(card);
+      // Curse cards trigger their effect on draw
+      if (card.curse && card.drawEffect) {
+        DS.Combat.logMsg('A curse manifests!', 'damage');
+        card.drawEffect(DS.State, card);
+      }
+    }
   },
 
   handleDeath: function(target) {

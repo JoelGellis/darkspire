@@ -601,6 +601,211 @@ DS.Events = [
         }
       }
     ]
+  },
+
+  // ============================================================
+  // 13. THE PRISONER
+  // ============================================================
+  {
+    id: 'the_prisoner',
+    name: 'The Prisoner',
+    text: 'Iron bars line a narrow cell. Behind them, a gaunt figure raises their head. Chains rattle. "Please," they whisper. "I can fight. Let me fight."',
+    choices: [
+      {
+        label: 'Free the prisoner',
+        desc: 'All heroes gain +2 max HP. Next combat: all heroes start with 3 Block.',
+        effect: function(state) {
+          if (!state || !state.run || !state.run.heroes) return 'Nothing happens.';
+          state.run.heroes.forEach(function(h) {
+            if (h && h.hp > 0) {
+              h.maxHp += 2;
+              h.hp += 2;
+            }
+          });
+          state.run._soldierBuff = true;
+          return 'The lock breaks. The prisoner stretches, cracks their knuckles. "I remember how to kill." They fall in behind the party. (+2 max HP to all, +3 Block next combat)';
+        }
+      },
+      {
+        label: 'Loot the cell',
+        desc: 'Gain 40 gold. Leave the prisoner.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          state.run.gold = (state.run.gold || 0) + 40;
+          return 'You take the coins scattered around the cell — payment for a ransom never collected. The prisoner watches in silence. 40 gold heavier, and something lighter.';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return 'You leave the prisoner to their darkness. Their whisper follows you: "You\'ll be back. They always come back."';
+        }
+      }
+    ]
+  },
+
+  // ============================================================
+  // 14. CURSED FOUNTAIN
+  // ============================================================
+  {
+    id: 'cursed_fountain',
+    name: 'Cursed Fountain',
+    text: 'Black water pours from a cracked stone face into a basin that never overflows. The water glows faintly purple. It smells like rain and rust and something sweet underneath.',
+    choices: [
+      {
+        label: 'Drink deeply',
+        desc: 'All heroes heal to full. But one random hero loses 8 max HP permanently.',
+        effect: function(state) {
+          if (!state || !state.run || !state.run.heroes) return 'Nothing happens.';
+          var alive = state.run.heroes.filter(function(h) { return h && h.hp > 0; });
+          if (alive.length === 0) return 'No one drinks.';
+          // Heal all to full
+          state.run.heroes.forEach(function(h) {
+            if (h && h.hp > 0 && h.maxHp) {
+              h.hp = h.maxHp;
+            }
+          });
+          // Curse one
+          var victim = alive[Math.floor(Math.random() * alive.length)];
+          victim.maxHp = Math.max(1, victim.maxHp - 8);
+          victim.hp = Math.min(victim.hp, victim.maxHp);
+          return 'The water is ice cold and tastes of forgotten things. Wounds close. Strength returns. But ' + victim.name + ' gasps — something taken that won\'t come back. (-8 max HP to ' + victim.name + ')';
+        }
+      },
+      {
+        label: 'Splash your face',
+        desc: 'All heroes heal 8 HP. Safe.',
+        effect: function(state) {
+          if (!state || !state.run || !state.run.heroes) return 'Nothing happens.';
+          state.run.heroes.forEach(function(h) {
+            if (h && h.hp > 0 && h.maxHp) {
+              h.hp = Math.min(h.hp + 8, h.maxHp);
+            }
+          });
+          return 'A cautious handful. The water tingles but doesn\'t burn. Everyone feels a little better. (+8 HP to all)';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return 'You leave the fountain undisturbed. The stone face watches you go with empty eyes.';
+        }
+      }
+    ]
+  },
+
+  // ============================================================
+  // 15. MERCENARY CAMP
+  // ============================================================
+  {
+    id: 'mercenary_camp',
+    name: 'Mercenary Camp',
+    text: 'A rough camp set between fallen pillars. Scarred warriors sit around a low fire, sharpening blades. Their leader looks up. "Gold talks. What do you need?"',
+    choices: [
+      {
+        label: 'Hire a trainer (40 gold)',
+        desc: 'All heroes gain +3 max HP.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          if ((state.run.gold || 0) < 40) return '"Can\'t train what you can\'t pay for." He turns back to the fire.';
+          state.run.gold -= 40;
+          state.run.heroes.forEach(function(h) {
+            if (h && h.hp > 0) {
+              h.maxHp += 3;
+              h.hp += 3;
+            }
+          });
+          return 'The mercenaries drill your party without mercy. Bruises heal into calluses. Everyone stands taller. (+3 max HP to all)';
+        }
+      },
+      {
+        label: 'Buy a trinket (60 gold)',
+        desc: 'Gain a random relic.',
+        effect: function(state) {
+          if (!state || !state.run) return 'Nothing happens.';
+          if ((state.run.gold || 0) < 60) return '"Can\'t afford it." He holds the trinket just out of reach.';
+          state.run.gold -= 60;
+          state.run.relics = state.run.relics || [];
+          var ownedIds = state.run.relics.map(function(r) { return r.id; });
+          var relic = (DS.Relics && DS.Relics.pickRandom) ? DS.Relics.pickRandom(ownedIds) : null;
+          if (relic) {
+            state.run.relics.push(relic);
+            return '"Found this three floors down." He slides ' + relic.name + ' across the dirt. "It\'s yours now."';
+          }
+          state.run.gold += 60;
+          return '"I got nothing for you today." He waves you off.';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return 'The mercenaries watch you leave. One laughs. You pretend not to hear.';
+        }
+      }
+    ]
+  },
+
+  // ============================================================
+  // 16. THE ORACLE
+  // ============================================================
+  {
+    id: 'the_oracle',
+    name: 'The Oracle',
+    text: 'A blind woman sits on a throne of skulls. Her white eyes see everything and nothing. "I know why you\'re here," she says. "The question is whether you can afford the answer."',
+    choices: [
+      {
+        label: 'Ask for strength',
+        desc: 'A random hero gains +5 max HP. Lose 15 gold.',
+        effect: function(state) {
+          if (!state || !state.run || !state.run.heroes) return 'Nothing happens.';
+          if ((state.run.gold || 0) < 15) return '"Even wisdom has a price you cannot pay." She closes her eyes.';
+          state.run.gold -= 15;
+          var alive = state.run.heroes.filter(function(h) { return h && h.hp > 0; });
+          if (alive.length === 0) return 'No one is left to receive her gift.';
+          var hero = alive[Math.floor(Math.random() * alive.length)];
+          hero.maxHp += 5;
+          hero.hp += 5;
+          return 'She touches ' + hero.name + '\'s forehead. Light flares. When it fades, they feel invincible. The feeling will pass. The strength won\'t. (+5 max HP)';
+        }
+      },
+      {
+        label: 'Ask for knowledge',
+        desc: 'A random hero loses 5 HP. Upgrade 2 random cards (+3 value each).',
+        effect: function(state) {
+          if (!state || !state.run || !state.run.deck || !state.run.heroes) return 'Nothing happens.';
+          var alive = state.run.heroes.filter(function(h) { return h && h.hp > 0; });
+          if (alive.length > 0) {
+            var victim = alive[Math.floor(Math.random() * alive.length)];
+            victim.hp = Math.max(1, victim.hp - 5);
+          }
+          var upgradeable = state.run.deck.filter(function(c) { return c && !c.upgraded && typeof c.value === 'number'; });
+          if (upgradeable.length === 0) return '"You already know everything your cards can teach." She smiles.';
+          // Upgrade up to 2
+          var count = Math.min(2, upgradeable.length);
+          var upgraded = [];
+          for (var i = 0; i < count; i++) {
+            var idx = Math.floor(Math.random() * upgradeable.length);
+            var card = upgradeable.splice(idx, 1)[0];
+            card.value += 3;
+            card.upgraded = true;
+            card.name = card.name + '+';
+            card.desc = card.desc.replace(/\d+/, String(card.value));
+            upgraded.push(card.name);
+          }
+          return '"Knowledge is power." Her whisper burns through flesh and mind. (-5 HP) ' + upgraded.join(' and ') + ' upgraded.';
+        }
+      },
+      {
+        label: 'Walk away',
+        desc: 'Nothing happens.',
+        effect: function(state) {
+          return '"You\'ll wish you hadn\'t," she calls after you. "They all do." The skulls seem to nod.';
+        }
+      }
+    ]
   }
 
 ];

@@ -14,14 +14,18 @@ DS.State = {
   // party: optional array of { heroClass, runsSurvived } from caravan
   newRun: function(party) {
     DS.State.stats = { floorsCleared: 0, enemiesSlain: 0, cardsCollected: 0 };
+    var graveyardGold = (DS.Meta && DS.Meta.getGraveyardBonus) ? DS.Meta.getGraveyardBonus() : 0;
+    var unlockGold = (DS.Meta && DS.Meta.getUnlockGoldBonus) ? DS.Meta.getUnlockGoldBonus() : 0;
+    graveyardGold += unlockGold;
     DS.State.run = {
       heroes: [],
       deck: [],
       relics: [],
-      gold: 0,
+      gold: graveyardGold,
       floor: 0,
       currentNode: null,
-      map: null
+      map: null,
+      startTime: Date.now()
     };
 
     // Build hero entries — from caravan party or default first 4
@@ -52,7 +56,7 @@ DS.State = {
         cls: def.cls,
         hp: maxHp,
         maxHp: maxHp,
-        pos: def.startPos,
+        pos: runIdx + 1, // Sequential positions (1-4) based on party order
         block: 0,
         poison: 0,
         weak: 0,
@@ -70,11 +74,46 @@ DS.State = {
       return { cls: h.cls, heroIdx: i };
     });
     DS.State.run.deck = DS.Cards.buildStartingDeck(heroList);
+
+    // Apply blacksmith upgrades from roster
+    if (DS.Meta && DS.Meta.heroRoster) {
+      entries.forEach(function(entry, runIdx) {
+        var rosterHero = null;
+        if (entry.rosterIndex !== undefined && entry.rosterIndex !== null) {
+          rosterHero = DS.Meta.heroRoster[entry.rosterIndex];
+        } else {
+          // Fallback: match by class
+          for (var r = 0; r < DS.Meta.heroRoster.length; r++) {
+            if (DS.Meta.heroRoster[r].heroClass === entry.heroClass) {
+              rosterHero = DS.Meta.heroRoster[r];
+              break;
+            }
+          }
+        }
+        if (!rosterHero || !rosterHero.upgradedCards || !rosterHero.upgradedCards.length) return;
+
+        DS.State.run.deck.forEach(function(card) {
+          if (card.heroIdx === runIdx && rosterHero.upgradedCards.indexOf(card.baseId) !== -1 && !card.upgraded) {
+            card.upgraded = true;
+            card.name = card.name + '+';
+            if (card.value) {
+              var oldVal = card.value;
+              card.value = Math.ceil(oldVal * 1.5);
+              card.desc = card.desc.replace(String(oldVal), String(card.value));
+              // Rebind effect with upgraded value
+              if (DS.UI && DS.UI.rebindCardEffect) {
+                DS.UI.rebindCardEffect(card, card.value);
+              }
+            }
+          }
+        });
+      });
+    }
   },
 
   // Set up combat state from run heroes + enemy pool
   startCombat: function(enemyPool) {
-    // Reset hero block/poison/position for new combat
+    // Reset hero statuses for new combat — position persists across the run
     DS.State.run.heroes.forEach(function(h) {
       h.block = 0;
       h.poison = 0;
@@ -83,7 +122,7 @@ DS.State = {
       h.strength = 0;
       h.bleed = 0;
       h.stunned = false;
-      h.pos = DS.Heroes[h.heroIdx].startPos;
+      // Position is NOT reset — it persists throughout the run
     });
 
     // Build enemies from pool definition with floor scaling
@@ -179,16 +218,36 @@ DS.State = {
   save: function() {
     if (!DS.State.run) return;
     try {
-      // Can't serialize functions, so save deck as card IDs
+      var run = DS.State.run;
       var saveData = {
+        version: 1,
+        timestamp: Date.now(),
         screen: DS.State.screen,
         stats: DS.State.stats,
         run: {
-          heroes: DS.State.run.heroes,
-          gold: DS.State.run.gold,
-          floor: DS.State.run.floor,
-          deckIds: DS.State.run.deck.map(function(c) { return c.baseId; })
-        }
+          heroes: run.heroes,
+          gold: run.gold,
+          floor: run.floor,
+          currentNode: run.currentNode,
+          map: run.map,
+          startTime: run.startTime || Date.now(),
+          visitedEvents: run.visitedEvents || [],
+          // Serialize deck: strip functions, keep what we need to rebuild
+          deck: run.deck.map(function(c) {
+            return {
+              id: c.id,
+              baseId: c.baseId,
+              upgraded: c.upgraded || false,
+              heroIdx: c.heroIdx,
+              heroCls: c.heroCls
+            };
+          }),
+          // Serialize relics: just IDs
+          relicIds: (run.relics || []).map(function(r) { return r.id; })
+        },
+        // Roster mapping for summary screen
+        _runRosterMap: DS.State._runRosterMap || null,
+        selectedHeroes: DS.State.selectedHeroes || null
       };
       localStorage.setItem('darkspire_save', JSON.stringify(saveData));
     } catch(e) {
@@ -196,15 +255,141 @@ DS.State = {
     }
   },
 
+  // Check if a run save exists
+  hasRunSave: function() {
+    return localStorage.getItem('darkspire_save') !== null;
+  },
+
+  // Delete run save
+  deleteRunSave: function() {
+    localStorage.removeItem('darkspire_save');
+  },
+
   // Load run from localStorage
   load: function() {
     try {
       var raw = localStorage.getItem('darkspire_save');
       if (!raw) return false;
-      // For now, just return false — save/load is complex with function refs
-      return false;
+      var data = JSON.parse(raw);
+
+      // Validate shape
+      if (!data.run || !data.run.heroes || !data.run.deck) return false;
+
+      // Restore simple state
+      DS.State.screen = data.screen || 'map';
+      DS.State.stats = data.stats || { floorsCleared: 0, enemiesSlain: 0, cardsCollected: 0 };
+      DS.State._runRosterMap = data._runRosterMap || null;
+      DS.State.selectedHeroes = data.selectedHeroes || null;
+
+      // Restore run
+      DS.State.run = {
+        heroes: data.run.heroes,
+        gold: data.run.gold || 0,
+        floor: data.run.floor || 0,
+        currentNode: data.run.currentNode || null,
+        map: data.run.map || null,
+        startTime: data.run.startTime || Date.now(),
+        visitedEvents: data.run.visitedEvents || [],
+        deck: [],
+        relics: []
+      };
+
+      // Rehydrate deck — rebuild card objects from definitions
+      data.run.deck.forEach(function(saved) {
+        var card = DS.State._rehydrateCard(saved);
+        if (card) DS.State.run.deck.push(card);
+      });
+
+      // Rehydrate relics — look up full objects from DS.Relics
+      (data.run.relicIds || []).forEach(function(relicId) {
+        var relic = DS.State._findRelicDef(relicId);
+        if (relic) DS.State.run.relics.push(relic);
+      });
+
+      // Clear the save (mid-run saves are consumed on load — roguelike)
+      DS.State.deleteRunSave();
+
+      return true;
     } catch(e) {
+      console.warn('Failed to load:', e);
       return false;
+    }
+  },
+
+  // Rebuild a card object from its serialized form
+  _rehydrateCard: function(saved) {
+    var heroCls = saved.heroCls;
+    var baseId = saved.baseId;
+    if (!heroCls || !baseId) return null;
+
+    // Find the card definition
+    var cardDefs = DS.Cards[heroCls];
+    if (!cardDefs) return null;
+
+    var def = null;
+    for (var i = 0; i < cardDefs.length; i++) {
+      if (cardDefs[i].id === baseId) {
+        def = cardDefs[i];
+        break;
+      }
+    }
+    if (!def) return null;
+
+    // Find hero display info
+    var heroDef = null;
+    for (var h = 0; h < DS.Heroes.length; h++) {
+      if (DS.Heroes[h].cls === heroCls) { heroDef = DS.Heroes[h]; break; }
+    }
+
+    // Clone the card
+    var card = {
+      id: saved.id,
+      baseId: def.id,
+      name: def.name,
+      cost: def.cost,
+      type: def.type,
+      target: def.target,
+      prefPos: def.prefPos.slice(),
+      desc: def.desc,
+      value: def.value,
+      effect: def.effect,
+      heroIdx: saved.heroIdx,
+      heroCls: heroCls,
+      heroName: heroDef ? heroDef.name : heroCls,
+      upgraded: false
+    };
+
+    // Re-apply upgrade if it was upgraded
+    if (saved.upgraded) {
+      card.upgraded = true;
+      card.name = card.name + '+';
+      if (card.value) {
+        var oldVal = card.value;
+        card.value = Math.ceil(oldVal * 1.5);
+        card.desc = card.desc.replace(String(oldVal), String(card.value));
+        // Rebind effect with upgraded value
+        if (DS.UI && DS.UI.rebindCardEffect) {
+          DS.UI.rebindCardEffect(card, card.value);
+        }
+      }
+    }
+
+    return card;
+  },
+
+  // Find a relic definition by ID
+  _findRelicDef: function(relicId) {
+    if (!DS.Relics) return null;
+    for (var i = 0; i < DS.Relics.length; i++) {
+      if (DS.Relics[i].id === relicId) return DS.Relics[i];
+    }
+    return null;
+  },
+
+  // Auto-save after returning to map (called by the game flow)
+  autoSave: function() {
+    if (DS.State.screen === 'map' && DS.State.run) {
+      DS.State.save();
     }
   }
 };

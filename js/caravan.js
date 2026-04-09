@@ -37,9 +37,9 @@ DS.Caravan = {
     // 4. Welfare rule: if fewer than 2 alive AND gold < 30, guarantee 2 free recruits min
     var welfare = (aliveCount < 2 && DS.Meta.gold < 30);
 
-    // 5. Build available classes (not already in roster)
-    var allClasses = DS.Heroes.map(function(h) { return h.cls; });
-    var available = allClasses.filter(function(cls) {
+    // 5. Build available classes (unlocked and not already in roster)
+    var unlockedClasses = (DS.Meta && DS.Meta.getUnlockedClasses) ? DS.Meta.getUnlockedClasses() : DS.Heroes.map(function(h) { return h.cls; });
+    var available = unlockedClasses.filter(function(cls) {
       return rosterClasses.indexOf(cls) === -1;
     });
 
