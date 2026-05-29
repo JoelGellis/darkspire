@@ -368,34 +368,49 @@
     // Cancel any previous animation loop for this canvas
     if (_animFrame) cancelAnimationFrame(_animFrame);
 
-    // Click handler
-    canvas.onclick = function (e) {
-      if (!onNodeClick) return;
+    // Shared hit-test: which available node (if any) is under the given client point.
+    // Click AND hover use this identical math, so hover feedback is a true preview of
+    // where a click will land — if a node glows on hover it is genuinely clickable.
+    var hoverId = null;
+    function availableNodeAt(clientX, clientY) {
       var rect = canvas.getBoundingClientRect();
       var scaleX = CANVAS_W / rect.width;
       var scaleY = CANVAS_H / rect.height;
-      var mx = (e.clientX - rect.left) * scaleX;
-      var my = (e.clientY - rect.top) * scaleY;
-
+      var mx = (clientX - rect.left) * scaleX;
+      var my = (clientY - rect.top) * scaleY;
       for (var i = 0; i < available.length; i++) {
         var node = findNode(mapData, available[i]);
         if (!node) continue;
         var pos = nodePixel(node);
         var r = node.type === "boss" ? BOSS_RADIUS : NODE_RADIUS;
         var dx = mx - pos.x, dy = my - pos.y;
-        if (dx * dx + dy * dy <= (r + 8) * (r + 8)) {
-          // Flash effect
-          flashNode(ctx, pos, r);
-          onNodeClick(node.id);
-          return;
-        }
+        if (dx * dx + dy * dy <= (r + 8) * (r + 8)) return node;
+      }
+      return null;
+    }
+
+    // Click handler
+    canvas.onclick = function (e) {
+      if (!onNodeClick) return;
+      var node = availableNodeAt(e.clientX, e.clientY);
+      if (node) {
+        flashNode(ctx, nodePixel(node), node.type === "boss" ? BOSS_RADIUS : NODE_RADIUS);
+        onNodeClick(node.id);
       }
     };
+
+    // Hover feedback: pointer cursor + highlight only over a clickable node.
+    canvas.onmousemove = function (e) {
+      var node = availableNodeAt(e.clientX, e.clientY);
+      hoverId = node ? node.id : null;
+      canvas.style.cursor = node ? "pointer" : "default";
+    };
+    canvas.onmouseleave = function () { hoverId = null; };
 
     // Animation loop
     function frame(timestamp) {
       _animTime = timestamp || 0;
-      drawMap(ctx, mapData, currentNodeId, available, visitedEdges, _animTime);
+      drawMap(ctx, mapData, currentNodeId, available, visitedEdges, _animTime, hoverId);
       _animFrame = requestAnimationFrame(frame);
     }
     _animFrame = requestAnimationFrame(frame);
@@ -422,7 +437,7 @@
     rest: "Rest", event: "Event", shop: "Shop", boss: "Boss"
   };
 
-  function drawMap(ctx, mapData, currentNodeId, available, visitedEdges, time) {
+  function drawMap(ctx, mapData, currentNodeId, available, visitedEdges, time, hoverId) {
     // Background
     drawBackground(ctx);
 
@@ -435,7 +450,7 @@
         var node = mapData.floors[f][n];
         var isCurrent = node.id === currentNodeId;
         var isAvailable = available.indexOf(node.id) !== -1;
-        drawNode(ctx, node, isCurrent, isAvailable, time);
+        drawNode(ctx, node, isCurrent, isAvailable, time, node.id === hoverId);
       }
     }
 
@@ -567,12 +582,23 @@
     }
   }
 
-  function drawNode(ctx, node, isCurrent, isAvailable, time) {
+  function drawNode(ctx, node, isCurrent, isAvailable, time, isHover) {
     var pos = nodePixel(node);
     var r = node.type === "boss" ? BOSS_RADIUS : NODE_RADIUS;
     var color = TYPE_COLORS[node.type] || "#888888";
 
     ctx.save();
+
+    // Hover highlight — bright white ring on the clickable node under the cursor.
+    // Mirrors the click hit-radius (r + 8), so it shows the exact clickable zone.
+    if (isHover && isAvailable) {
+      drawGlow(ctx, pos.x, pos.y, r + 16, "rgba(255,255,255,0.5)", 16);
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, r + 8, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
 
     // Determine visibility/style
     if (node.completed) {
