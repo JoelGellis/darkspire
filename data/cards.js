@@ -9,6 +9,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      prefPos: [1, 2, 3],
       desc: 'Deal 7 damage.',
       value: 7,
       effect: function(state, hero, target, card) {
@@ -21,6 +22,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
+      prefPos: [1, 2],
       desc: 'Gain 8 Block.',
       value: 8,
       effect: function(state, hero, target, card) {
@@ -33,7 +35,8 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'enemy',
-      desc: 'Deal 15 damage.',
+      prefPos: [1],
+      desc: 'Deal 15 damage. Pos 1 only.',
       value: 15,
       effect: function(state, hero, target, card) {
         DS.Combat.dealDamage(target, card.value);
@@ -45,6 +48,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'all_allies',
+      prefPos: [1, 2],
       desc: '4 Block to ALL allies.',
       value: 4,
       effect: function(state, hero, target, card) {
@@ -60,6 +64,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'all_enemies',
+      prefPos: [1, 2],
       desc: 'Deal 6 damage to ALL enemies.',
       value: 6,
       effect: function(state, hero, target, card) {
@@ -74,6 +79,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
+      prefPos: [1],
       desc: 'Gain 5 Block. Enemies target you.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -89,6 +95,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
+      prefPos: [1, 2, 3],
       desc: 'Gain Block = half current Block (min 3).',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -102,6 +109,7 @@ DS.Cards = {
       cost: 1,
       type: 'heal',
       target: 'self',
+      prefPos: [1, 2],
       desc: 'Heal 6 HP. Exhaust.',
       value: 6,
       effect: function(state, hero, target, card) {
@@ -116,6 +124,7 @@ DS.Cards = {
       cost: 1,
       type: 'utility',
       target: 'none',
+      prefPos: [1, 2],
       desc: 'Gain 2 Strength this combat. Exhaust.',
       value: 2,
       effect: function(state, hero, target, card) {
@@ -130,6 +139,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'enemy',
+      prefPos: [1],
       desc: 'Deal 8 damage. Apply 2 Vulnerable.',
       value: 8,
       effect: function(state, hero, target, card) {
@@ -144,7 +154,8 @@ DS.Cards = {
       cost: 3,
       type: 'attack',
       target: 'all_enemies',
-      desc: 'Deal 10 damage to ALL enemies.',
+      prefPos: [1],
+      desc: 'Deal 10 damage to ALL enemies. Pos 1 only.',
       value: 10,
       effect: function(state, hero, target, card) {
         DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
@@ -158,6 +169,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
+      prefPos: [1, 2],
       desc: 'Gain 12 Block. Exhaust.',
       value: 12,
       effect: function(state, hero, target, card) {
@@ -175,6 +187,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      prefPos: [1, 2, 3],
       desc: 'Deal 8 damage.',
       value: 8,
       effect: function(state, hero, target, card) {
@@ -187,6 +200,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
+      prefPos: [2, 3, 4],
       desc: 'Gain 6 Block.',
       value: 6,
       effect: function(state, hero, target, card) {
@@ -199,6 +213,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy_any',
+      prefPos: [2, 3, 4],
       desc: 'Deal 5 damage. Hits any enemy.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -211,11 +226,12 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
-      desc: 'Deal 6 damage. Draw 1 card.',
-      value: 6,
+      prefPos: [2, 3],
+      desc: 'Deal 4 damage + move forward 1.',
+      value: 4,
       effect: function(state, hero, target, card) {
         DS.Combat.dealDamage(target, card.value);
-        DS.Combat.drawCard();
+        DS.Combat.moveForward(hero);
       }
     },
     // --- Reward-only cards (indices 4-7) ---
@@ -225,6 +241,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      prefPos: [1, 2],
       desc: 'Strike 3 times for 3 damage.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -237,11 +254,14 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'ally',
-      desc: 'Give an ally 5 Block. Draw 1 card.',
-      value: 5,
+      prefPos: [2, 3, 4],
+      desc: 'Gain 4 Block. Swap positions with an ally.',
+      value: 4,
       effect: function(state, hero, target, card) {
-        DS.Combat.gainBlock(target, card.value);
-        DS.Combat.drawCard();
+        DS.Combat.gainBlock(hero, card.value);
+        var tmp = hero.pos;
+        hero.pos = target.pos;
+        target.pos = tmp;
       }
     },
     {
@@ -250,6 +270,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      prefPos: [2, 3],
       desc: 'Deal 4 damage + 3 Poison.',
       value: 4,
       effect: function(state, hero, target, card) {
@@ -263,6 +284,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'all_enemies',
+      prefPos: [3, 4],
       desc: 'Deal 3 damage to all enemies.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -278,6 +300,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      prefPos: [2, 3],
       desc: 'Deal 3 damage. Apply 2 Weak.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -292,6 +315,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      prefPos: [1, 2, 3],
       desc: 'Deal 5 damage. Apply 3 Bleed.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -306,6 +330,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'enemy',
+      prefPos: [1, 2],
       desc: 'Deal 20 damage. Exhaust.',
       value: 20,
       effect: function(state, hero, target, card) {
@@ -319,6 +344,7 @@ DS.Cards = {
       cost: 1,
       type: 'utility',
       target: 'all_enemies',
+      prefPos: [2, 3, 4],
       desc: 'Apply 2 Poison to ALL enemies.',
       value: 2,
       effect: function(state, hero, target, card) {
@@ -337,6 +363,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      prefPos: [2, 3, 4],
       desc: 'Deal 5 damage.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -349,6 +376,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'ally',
+      prefPos: [3, 4],
       desc: 'Give ally 7 Block.',
       value: 7,
       effect: function(state, hero, target, card) {
@@ -361,6 +389,7 @@ DS.Cards = {
       cost: 1,
       type: 'heal',
       target: 'ally',
+      prefPos: [3, 4],
       desc: 'Heal ally 8 HP.',
       value: 8,
       effect: function(state, hero, target, card) {
@@ -373,7 +402,8 @@ DS.Cards = {
       cost: 2,
       type: 'block',
       target: 'all_allies',
-      desc: 'All allies: 4 Block + 2 HP.',
+      prefPos: [4],
+      desc: 'All allies: 4 Block + 2 HP. Pos 4 only.',
       value: 4,
       effect: function(state, hero, target, card) {
         DS.State.run.heroes.filter(function(h) { return h.hp > 0; }).forEach(function(h) {
@@ -389,6 +419,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'enemy',
+      prefPos: [2, 3, 4],
       desc: 'Deal 9 damage.',
       value: 9,
       effect: function(state, hero, target, card) {
@@ -401,6 +432,7 @@ DS.Cards = {
       cost: 2,
       type: 'block',
       target: 'all_allies',
+      prefPos: [3, 4],
       desc: 'All allies: 3 Block + 3 HP.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -416,6 +448,7 @@ DS.Cards = {
       cost: 0,
       type: 'heal',
       target: 'ally',
+      prefPos: [3, 4],
       desc: 'Remove all Poison from an ally.',
       value: 0,
       effect: function(state, hero, target, card) {
@@ -429,6 +462,7 @@ DS.Cards = {
       cost: 3,
       type: 'heal',
       target: 'ally_dead',
+      prefPos: [4],
       desc: 'Revive a dead hero at 1 HP. Exhaust.',
       value: 1,
       effect: function(state, hero, target, card) {
@@ -444,6 +478,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'all_enemies',
+      prefPos: [3, 4],
       desc: 'Deal 4 damage to all. Apply 1 Vulnerable.',
       value: 4,
       effect: function(state, hero, target, card) {
@@ -460,6 +495,7 @@ DS.Cards = {
       cost: 1,
       type: 'heal',
       target: 'all_allies',
+      prefPos: [3, 4],
       desc: 'Heal all allies 3 HP. Remove all Weak.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -476,6 +512,7 @@ DS.Cards = {
       cost: 1,
       type: 'heal',
       target: 'none',
+      prefPos: [3, 4],
       desc: 'Lose 5 HP. Heal all other allies 10 HP.',
       value: 10,
       effect: function(state, hero, target, card) {
@@ -492,6 +529,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'all_enemies',
+      prefPos: [3, 4],
       desc: 'Deal 5 damage to all enemies. Heal all allies 3 HP.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -513,6 +551,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy_any',
+      prefPos: [3, 4],
       desc: 'Deal 6 damage. Hits any enemy.',
       value: 6,
       effect: function(state, hero, target, card) {
@@ -525,6 +564,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
+      prefPos: [3, 4],
       desc: 'Gain 5 Block.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -537,7 +577,8 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'all_enemies',
-      desc: 'Deal 4 damage to ALL enemies.',
+      prefPos: [4],
+      desc: 'Deal 4 damage to ALL enemies. Pos 4 only.',
       value: 4,
       effect: function(state, hero, target, card) {
         DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
@@ -551,7 +592,8 @@ DS.Cards = {
       cost: 1,
       type: 'draw',
       target: 'none',
-      desc: 'Draw 3 cards.',
+      prefPos: [4],
+      desc: 'Draw 3 cards. Pos 4 only.',
       value: 3,
       effect: function(state, hero, target, card) {
         for (var i = 0; i < card.value; i++) DS.Combat.drawCard();
@@ -564,6 +606,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'enemy',
+      prefPos: [4],
       desc: 'Strike random enemies 4 times for 3 damage.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -581,6 +624,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'all_enemies',
+      prefPos: [3, 4],
       desc: '2 damage to all enemies. 25% stun.',
       value: 2,
       effect: function(state, hero, target, card) {
@@ -599,6 +643,7 @@ DS.Cards = {
       cost: 0,
       type: 'block',
       target: 'self',
+      prefPos: [3, 4],
       desc: 'Convert energy to Block (4 per 1 energy).',
       value: 4,
       effect: function(state, hero, target, card) {
@@ -613,12 +658,22 @@ DS.Cards = {
       cost: 0,
       type: 'utility',
       target: 'none',
-      desc: 'Gain 1 energy. Draw 1 card. Exhaust.',
+      prefPos: [1, 2, 3, 4],
+      desc: 'Swap two heroes\' positions. Exhaust.',
       value: 0,
       effect: function(state, hero, target, card) {
-        DS.State.combat.energy += 1;
-        DS.Combat.drawCard();
-        DS.Combat.logMsg(hero.name + ' teleports through the weave.', 'system');
+        var front = null;
+        DS.State.run.heroes.forEach(function(h) {
+          if (h.hp > 0 && h !== hero) {
+            if (!front || h.pos < front.pos) front = h;
+          }
+        });
+        if (front) {
+          var tmp = hero.pos;
+          hero.pos = front.pos;
+          front.pos = tmp;
+          DS.Combat.logMsg(hero.name + ' teleports, swapping with ' + front.name + '.', 'system');
+        }
         card._exhaust = true;
       }
     },
@@ -629,6 +684,7 @@ DS.Cards = {
       cost: 3,
       type: 'attack',
       target: 'all_enemies',
+      prefPos: [4],
       desc: 'Deal 3 damage to all enemies. Apply 2 Weak.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -645,6 +701,7 @@ DS.Cards = {
       cost: 1,
       type: 'utility',
       target: 'ally',
+      prefPos: [3, 4],
       desc: 'Give an ally 3 Strength. Exhaust.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -659,6 +716,7 @@ DS.Cards = {
       cost: 3,
       type: 'attack',
       target: 'all_enemies',
+      prefPos: [4],
       desc: 'Deal 15 damage to ALL enemies. Exhaust.',
       value: 15,
       effect: function(state, hero, target, card) {
@@ -674,6 +732,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'all_allies',
+      prefPos: [3, 4],
       desc: 'Give all allies 3 Block. Draw 1 card.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -707,6 +766,7 @@ DS.Cards.buildStartingDeck = function(heroList) {
           cost: cardDef.cost,
           type: cardDef.type,
           target: cardDef.target,
+          prefPos: cardDef.prefPos.slice(),
           desc: cardDef.desc,
           value: cardDef.value,
           effect: cardDef.effect,
@@ -752,6 +812,7 @@ DS.Cards.getRewardPool = function(count, activeClasses) {
         cost: cardDef.cost,
         type: cardDef.type,
         target: cardDef.target,
+        prefPos: cardDef.prefPos.slice(),
         desc: cardDef.desc,
         value: cardDef.value,
         effect: cardDef.effect,
@@ -782,7 +843,7 @@ DS.Cards.getRewardPool = function(count, activeClasses) {
           allCards.push({
             id: cardDef.id, baseId: cardDef.id, name: cardDef.name,
             cost: cardDef.cost, type: cardDef.type, target: cardDef.target,
-            desc: cardDef.desc, value: cardDef.value,
+            prefPos: cardDef.prefPos.slice(), desc: cardDef.desc, value: cardDef.value,
             effect: cardDef.effect, heroIdx: heroIdx, heroCls: cls,
             heroName: heroName, upgraded: false
           });
@@ -807,7 +868,7 @@ DS.Cards.UPGRADE_DEFS = {
   fighter_strike: { name: 'Strike+', desc: 'Deal 10 damage.', value: 10 },
   fighter_shield_block: { name: 'Shield Block+', desc: 'Gain 11 Block.', value: 11 },
   fighter_heavy_blow: {
-    name: 'Heavy Blow+', desc: 'Deal 18 damage.', value: 18
+    name: 'Heavy Blow+', desc: 'Deal 18 damage. Pos 1-2.', value: 18, prefPos: [1, 2]
   },
   fighter_rally: { name: 'Rally+', desc: '6 Block to ALL allies.', value: 6 },
   fighter_cleave: { name: 'Cleave+', desc: 'Deal 9 damage to ALL enemies.', value: 9 },
@@ -822,7 +883,7 @@ DS.Cards.UPGRADE_DEFS = {
       DS.Combat.applyStatus(target, 'vulnerable', 3);
     }
   },
-  fighter_whirlwind: { name: 'Whirlwind+', desc: 'Deal 14 damage to ALL enemies.', value: 14 },
+  fighter_whirlwind: { name: 'Whirlwind+', desc: 'Deal 14 damage to ALL enemies. Pos 1 only.', value: 14 },
   fighter_iron_will: { name: 'Iron Will+', desc: 'Gain 16 Block. Exhaust.', value: 16 },
 
   // --- ROGUE ---
@@ -831,7 +892,7 @@ DS.Cards.UPGRADE_DEFS = {
   rogue_throwing_knife: { name: 'Throwing Knife+', desc: 'Deal 8 damage. Hits any enemy.', value: 8 },
   rogue_shadow_step: { name: 'Shadow Step+', desc: 'Deal 7 damage + move forward 1.', value: 7 },
   rogue_flurry: { name: 'Flurry+', desc: 'Strike 3 times for 4 damage.', value: 4 },
-  rogue_smoke_bomb: { name: 'Smoke Bomb+', desc: 'Give an ally 8 Block. Draw 1 card.', value: 8 },
+  rogue_smoke_bomb: { name: 'Smoke Bomb+', desc: 'Gain 7 Block. Swap positions with an ally.', value: 7 },
   rogue_poison_blade: {
     name: 'Poison Blade+', desc: 'Deal 5 damage + 5 Poison.', value: 5,
     effect: function(state, hero, target, card) {
@@ -862,7 +923,7 @@ DS.Cards.UPGRADE_DEFS = {
   cleric_divine_shield: { name: 'Divine Shield+', desc: 'Give ally 10 Block.', value: 10 },
   cleric_heal: { name: 'Heal+', desc: 'Heal ally 12 HP.', value: 12 },
   cleric_bless: {
-    name: 'Bless+', desc: 'All allies: 6 Block + 4 HP.', value: 6,
+    name: 'Bless+', desc: 'All allies: 6 Block + 4 HP. Pos 4 only.', value: 6,
     effect: function(state, hero, target, card) {
       DS.State.run.heroes.filter(function(h) { return h.hp > 0; }).forEach(function(h) {
         DS.Combat.gainBlock(h, card.value);
@@ -905,8 +966,8 @@ DS.Cards.UPGRADE_DEFS = {
   // --- WIZARD ---
   wizard_magic_missile: { name: 'Magic Missile+', desc: 'Deal 9 damage. Hits any enemy.', value: 9 },
   wizard_arcane_ward: { name: 'Arcane Ward+', desc: 'Gain 8 Block.', value: 8 },
-  wizard_fireball: { name: 'Fireball+', desc: 'Deal 7 damage to ALL enemies.', value: 7 },
-  wizard_arcane_intellect: { name: 'Arcane Intellect+', desc: 'Draw 4 cards.', value: 4 },
+  wizard_fireball: { name: 'Fireball+', desc: 'Deal 7 damage to ALL enemies. Pos 4 only.', value: 7 },
+  wizard_arcane_intellect: { name: 'Arcane Intellect+', desc: 'Draw 4 cards. Pos 4 only.', value: 4 },
   wizard_chain_lightning: {
     name: 'Chain Lightning+', desc: 'Strike random enemies 5 times for 4 damage.', value: 4,
     effect: function(state, hero, target, card) {
@@ -931,12 +992,22 @@ DS.Cards.UPGRADE_DEFS = {
   },
   wizard_mana_shield: { name: 'Mana Shield+', desc: 'Convert energy to Block (5 per 1 energy).', value: 5 },
   wizard_teleport: {
-    name: 'Teleport+', desc: 'Gain 2 energy. Draw 2 cards. Exhaust.', value: 0,
+    name: 'Teleport+', desc: 'Swap two heroes\' positions. Both gain 3 Block. Exhaust.', value: 3,
     effect: function(state, hero, target, card) {
-      DS.State.combat.energy += 2;
-      DS.Combat.drawCard();
-      DS.Combat.drawCard();
-      DS.Combat.logMsg(hero.name + ' teleports through the weave.', 'system');
+      var front = null;
+      DS.State.run.heroes.forEach(function(h) {
+        if (h.hp > 0 && h !== hero) {
+          if (!front || h.pos < front.pos) front = h;
+        }
+      });
+      if (front) {
+        var tmp = hero.pos;
+        hero.pos = front.pos;
+        front.pos = tmp;
+        DS.Combat.logMsg(hero.name + ' teleports, swapping with ' + front.name + '.', 'system');
+        DS.Combat.gainBlock(hero, card.value);
+        DS.Combat.gainBlock(front, card.value);
+      }
       card._exhaust = true;
     }
   },
@@ -966,7 +1037,7 @@ DS.Cards.UPGRADE_DEFS = {
   barbarian_savage_strike: { name: 'Savage Strike+', desc: 'Deal 11 damage.', value: 11 },
   barbarian_tough_skin: { name: 'Tough Skin+', desc: 'Gain 9 Block.', value: 9 },
   barbarian_reckless_charge: {
-    name: 'Reckless Charge+', desc: 'Deal 16 damage. Take 2 damage.', value: 16,
+    name: 'Reckless Charge+', desc: 'Deal 16 damage. Take 2 damage. Pos 1 only.', value: 16,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
       hero.hp = Math.max(1, hero.hp - 2);
@@ -991,7 +1062,7 @@ DS.Cards.UPGRADE_DEFS = {
     }
   },
   barbarian_bloodlust: {
-    name: 'Bloodlust+', desc: 'Deal 14 damage. If kill, heal 8.', value: 14,
+    name: 'Bloodlust+', desc: 'Deal 14 damage. If kill, heal 8. Pos 1 only.', value: 14,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
       if (target.hp <= 0) {
@@ -999,7 +1070,7 @@ DS.Cards.UPGRADE_DEFS = {
       }
     }
   },
-  barbarian_whirlwind_axe: { name: 'Whirlwind Axe+', desc: 'Deal 10 damage to ALL enemies.', value: 10 },
+  barbarian_whirlwind_axe: { name: 'Whirlwind Axe+', desc: 'Deal 10 damage to ALL enemies. Pos 1 only.', value: 10 },
   barbarian_berserker_roar: {
     name: 'Berserker Roar+', desc: 'All enemies gain 3 Vulnerable. Gain 2 Strength.', value: 3,
     effect: function(state, hero, target, card) {
@@ -1012,7 +1083,7 @@ DS.Cards.UPGRADE_DEFS = {
   barbarian_pain_threshold: { name: 'Pain Threshold+', desc: 'Gain Block = missing HP (max 20).', value: 20 },
   barbarian_undying_rage: { name: 'Undying Rage+', desc: 'Set HP to 1. Gain 8 Strength. Exhaust.', value: 8 },
   barbarian_headbutt: {
-    name: 'Headbutt+', desc: 'Deal 10 damage. 40% stun.', value: 10,
+    name: 'Headbutt+', desc: 'Deal 10 damage. 40% stun. Pos 1 only.', value: 10,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
       if (target.hp > 0 && Math.random() < 0.40) {
@@ -1135,7 +1206,7 @@ DS.Cards.UPGRADE_DEFS = {
     }
   },
   necromancer_corpse_explosion: {
-    name: 'Corpse Explosion+', desc: 'Deal 3 x dead enemy count to all alive enemies.', value: 3
+    name: 'Corpse Explosion+', desc: 'Deal 3 x dead enemy count to all alive enemies. Pos 4 only.', value: 3
   },
   necromancer_dark_pact: {
     name: 'Dark Pact+', desc: 'Lose 3 HP. Draw 3 cards. Exhaust.', value: 3,
@@ -1147,7 +1218,7 @@ DS.Cards.UPGRADE_DEFS = {
     }
   },
   necromancer_mass_curse: {
-    name: 'Mass Curse+', desc: 'All enemies: 3 Weak + 2 Vulnerable.', value: 3,
+    name: 'Mass Curse+', desc: 'All enemies: 3 Weak + 2 Vulnerable. Pos 4 only.', value: 3,
     effect: function(state, hero, target, card) {
       DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
         DS.Combat.applyWeak(e, card.value);
@@ -1164,7 +1235,7 @@ DS.Cards.UPGRADE_DEFS = {
   },
   necromancer_blight: { name: 'Blight+', desc: 'Apply 4 Poison to ALL enemies.', value: 4 },
   necromancer_raise_shade: {
-    name: 'Raise Shade+', desc: 'Deal 14 damage + 5 Poison. Exhaust.', value: 14,
+    name: 'Raise Shade+', desc: 'Deal 14 damage + 5 Poison. Exhaust. Pos 4 only.', value: 14,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
       DS.Combat.applyPoison(target, 5);
@@ -1184,7 +1255,7 @@ DS.Cards.UPGRADE_DEFS = {
   paladin_lay_on_hands: { name: 'Lay on Hands+', desc: 'Heal ally 10 HP.', value: 10 },
   paladin_righteous_blow: { name: 'Righteous Blow+', desc: 'Deal 11 damage.', value: 11 },
   paladin_divine_smite: {
-    name: 'Divine Smite+', desc: 'Deal 16 damage. Apply 3 Vulnerable.', value: 16,
+    name: 'Divine Smite+', desc: 'Deal 16 damage. Apply 3 Vulnerable. Pos 1 only.', value: 16,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
       DS.Combat.applyVulnerable(target, 3);
@@ -1202,7 +1273,7 @@ DS.Cards.UPGRADE_DEFS = {
     }
   },
   paladin_guardian_stance: {
-    name: 'Guardian Stance+', desc: 'Gain 18 Block. Taunt all enemies.', value: 18,
+    name: 'Guardian Stance+', desc: 'Gain 18 Block. Taunt all enemies. Pos 1 only.', value: 18,
     effect: function(state, hero, target, card) {
       DS.Combat.gainBlock(hero, card.value);
       DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
@@ -1225,10 +1296,12 @@ DS.Cards.UPGRADE_DEFS = {
   },
   paladin_aura_of_protection: { name: 'Aura of Protection+', desc: 'All allies gain 6 Block.', value: 6 },
   paladin_retribution: {
-    name: 'Retribution+', desc: 'Deal 9 damage. Gain 6 Block.', value: 9,
+    name: 'Retribution+', desc: 'Deal 9 damage. Pos 1: also gain 6 Block.', value: 9,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
-      DS.Combat.gainBlock(hero, 6);
+      if (hero.pos === 1) {
+        DS.Combat.gainBlock(hero, 6);
+      }
     }
   },
   paladin_sacred_oath: {
@@ -1240,7 +1313,7 @@ DS.Cards.UPGRADE_DEFS = {
     }
   },
   paladin_crusader_strike: {
-    name: 'Crusader Strike+', desc: 'Deal 14 damage. Heal self 7.', value: 14,
+    name: 'Crusader Strike+', desc: 'Deal 14 damage. Heal self 7. Pos 1 only.', value: 14,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
       DS.Combat.healTarget(hero, 7);
@@ -1263,6 +1336,7 @@ DS.Cards.applyUpgrade = function(card) {
   if (def.value !== undefined) card.value = def.value;
   if (def.cost !== undefined) card.cost = def.cost;
   if (def.effect) card.effect = def.effect;
+  if (def.prefPos) card.prefPos = def.prefPos.slice();
   if (def.innate !== undefined) card.innate = def.innate;
   if (def.ethereal !== undefined) card.ethereal = def.ethereal;
   card.upgraded = true;

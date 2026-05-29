@@ -56,6 +56,7 @@ DS.State = {
         cls: def.cls,
         hp: maxHp,
         maxHp: maxHp,
+        pos: runIdx + 1, // Sequential positions (1-4) based on party order
         block: 0,
         poison: 0,
         weak: 0,
@@ -145,6 +146,7 @@ DS.State = {
         hp: scaledHp,
         maxHp: scaledHp,
         block: 0,
+        pos: i + 1, // Position by spawn order: 1 = front (closest to player)
         poison: 0,
         weak: 0,
         vulnerable: 0,
@@ -347,6 +349,7 @@ DS.State = {
       cost: def.cost,
       type: def.type,
       target: def.target,
+      prefPos: def.prefPos.slice(),
       desc: def.desc,
       value: def.value,
       effect: def.effect,

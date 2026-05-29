@@ -13,6 +13,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [1, 2],
     desc: 'Deal 8 damage.',
     value: 8,
     effect: function(state, hero, target, card) {
@@ -25,6 +26,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'block',
     target: 'self',
+    prefPos: [1, 2, 3],
     desc: 'Gain 6 Block.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -37,7 +39,8 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    desc: 'Deal 12 damage. Take 3 damage.',
+    prefPos: [1],
+    desc: 'Deal 12 damage. Take 3 damage. Pos 1 only.',
     value: 12,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
@@ -51,6 +54,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'utility',
     target: 'none',
+    prefPos: [1, 2],
     desc: 'Gain 2 Strength. Lose 4 HP. Exhaust.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -67,6 +71,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [1, 2],
     desc: 'Deal 6 damage. Double if below 50% HP.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -81,7 +86,8 @@ DS.Cards.barbarian = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
-    desc: 'Deal 10 damage. If kill, heal 5.',
+    prefPos: [1],
+    desc: 'Deal 10 damage. If kill, heal 5. Pos 1 only.',
     value: 10,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
@@ -96,7 +102,8 @@ DS.Cards.barbarian = [
     cost: 2,
     type: 'attack',
     target: 'all_enemies',
-    desc: 'Deal 7 damage to ALL enemies.',
+    prefPos: [1],
+    desc: 'Deal 7 damage to ALL enemies. Pos 1 only.',
     value: 7,
     effect: function(state, hero, target, card) {
       DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
@@ -110,6 +117,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'utility',
     target: 'none',
+    prefPos: [1, 2],
     desc: 'All enemies gain 2 Vulnerable. Gain 1 Strength.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -125,6 +133,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'block',
     target: 'self',
+    prefPos: [1, 2, 3],
     desc: 'Gain Block = missing HP (max 15).',
     value: 15,
     effect: function(state, hero, target, card) {
@@ -139,6 +148,7 @@ DS.Cards.barbarian = [
     cost: 2,
     type: 'utility',
     target: 'none',
+    prefPos: [1, 2],
     desc: 'Set HP to 1. Gain 6 Strength. Exhaust.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -154,7 +164,8 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    desc: 'Deal 7 damage. 30% stun.',
+    prefPos: [1],
+    desc: 'Deal 7 damage. 30% stun. Pos 1 only.',
     value: 7,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
@@ -170,6 +181,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [1, 2],
     desc: 'Strike 4 times for 2 damage. +1 each if below 50% HP.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -194,6 +206,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'attack',
     target: 'enemy_any',
+    prefPos: [1, 2, 3],
     desc: 'Deal 6 damage. Hits any enemy.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -206,6 +219,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'block',
     target: 'self',
+    prefPos: [1, 2, 3, 4],
     desc: 'Gain 5 Block.',
     value: 5,
     effect: function(state, hero, target, card) {
@@ -218,6 +232,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [2, 3, 4],
     desc: 'Deal 9 damage.',
     value: 9,
     effect: function(state, hero, target, card) {
@@ -230,6 +245,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'utility',
     target: 'enemy',
+    prefPos: [2, 3, 4],
     desc: 'Apply 2 Weak + 2 Vulnerable.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -244,6 +260,7 @@ DS.Cards.ranger = [
     cost: 0,
     type: 'utility',
     target: 'enemy',
+    prefPos: [1, 2, 3, 4],
     desc: 'Mark target. Next hit deals +3 bonus damage.',
     value: 3,
     effect: function(state, hero, target, card) {
@@ -259,6 +276,7 @@ DS.Cards.ranger = [
     cost: 2,
     type: 'attack',
     target: 'all_enemies',
+    prefPos: [3, 4],
     desc: 'Deal 4 damage to ALL enemies.',
     value: 4,
     effect: function(state, hero, target, card) {
@@ -273,6 +291,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'attack',
     target: 'enemy_any',
+    prefPos: [2, 3, 4],
     desc: 'Deal 3 damage + 3 Poison.',
     value: 3,
     effect: function(state, hero, target, card) {
@@ -286,6 +305,7 @@ DS.Cards.ranger = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
+    prefPos: [2, 3],
     desc: 'Deal 14 damage. If Marked, deal +6 and clear Mark.',
     value: 14,
     effect: function(state, hero, target, card) {
@@ -305,6 +325,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [2, 3, 4],
     desc: 'Hit 3 random enemies for 3 damage each.',
     value: 3,
     effect: function(state, hero, target, card) {
@@ -322,6 +343,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'block',
     target: 'self',
+    prefPos: [1, 2, 3, 4],
     desc: 'Gain 8 Block. Draw 1 card.',
     value: 8,
     effect: function(state, hero, target, card) {
@@ -335,6 +357,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'utility',
     target: 'enemy',
+    prefPos: [2, 3, 4],
     desc: 'Deal 5 damage + 3 Bleed.',
     value: 5,
     effect: function(state, hero, target, card) {
@@ -348,6 +371,7 @@ DS.Cards.ranger = [
     cost: 3,
     type: 'attack',
     target: 'all_enemies',
+    prefPos: [3, 4],
     desc: 'Deal 8 damage to ALL enemies. Exhaust.',
     value: 8,
     effect: function(state, hero, target, card) {
@@ -367,6 +391,7 @@ DS.Heroes.push({
   name: 'Barbarian',
   cls: 'barbarian',
   maxHp: 58,
+  startPos: 1,
   colors: { primary: '#cc4422', secondary: '#3a1a0a', accent: '#ff6633' },
   sprite: {
     body: 'heavy',
@@ -382,6 +407,7 @@ DS.Heroes.push({
   name: 'Ranger',
   cls: 'ranger',
   maxHp: 36,
+  startPos: 2,
   colors: { primary: '#44aa44', secondary: '#1a3a1a', accent: '#77cc55' },
   sprite: {
     body: 'light',

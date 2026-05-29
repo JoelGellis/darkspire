@@ -12,6 +12,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [3, 4],
     desc: 'Deal 4 damage. Heal self 3.',
     value: 4,
     effect: function(state, hero, target, card) {
@@ -25,6 +26,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'attack',
     target: 'enemy_any',
+    prefPos: [3, 4],
     desc: 'Deal 6 damage. Hits any enemy.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -37,6 +39,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'block',
     target: 'self',
+    prefPos: [3, 4],
     desc: 'Gain 5 Block.',
     value: 5,
     effect: function(state, hero, target, card) {
@@ -49,6 +52,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'utility',
     target: 'enemy',
+    prefPos: [3, 4],
     desc: 'Apply 2 Weak.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -62,6 +66,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'utility',
     target: 'enemy',
+    prefPos: [3, 4],
     desc: 'If Poisoned, double it. Otherwise apply 3 Poison.',
     value: 3,
     effect: function(state, hero, target, card) {
@@ -80,6 +85,7 @@ DS.Cards.necromancer = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
+    prefPos: [3, 4],
     desc: 'Deal 6 damage. Heal lowest-HP ally 6.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -97,7 +103,8 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'attack',
     target: 'all_enemies',
-    desc: 'Deal 2 x dead enemy count to all alive enemies.',
+    prefPos: [4],
+    desc: 'Deal 2 x dead enemy count to all alive enemies. Pos 4 only.',
     value: 2,
     effect: function(state, hero, target, card) {
       var deadCount = DS.State.combat.enemies.filter(function(e) { return e.hp <= 0; }).length;
@@ -118,6 +125,7 @@ DS.Cards.necromancer = [
     cost: 0,
     type: 'draw',
     target: 'none',
+    prefPos: [3, 4],
     desc: 'Lose 5 HP. Draw 3 cards. Exhaust.',
     value: 3,
     effect: function(state, hero, target, card) {
@@ -133,7 +141,8 @@ DS.Cards.necromancer = [
     cost: 2,
     type: 'utility',
     target: 'all_enemies',
-    desc: 'All enemies: 2 Weak + 1 Vulnerable.',
+    prefPos: [4],
+    desc: 'All enemies: 2 Weak + 1 Vulnerable. Pos 4 only.',
     value: 2,
     effect: function(state, hero, target, card) {
       DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
@@ -148,6 +157,7 @@ DS.Cards.necromancer = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
+    prefPos: [3, 4],
     desc: 'Deal 12 damage. Heal self 4.',
     value: 12,
     effect: function(state, hero, target, card) {
@@ -161,6 +171,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'utility',
     target: 'all_enemies',
+    prefPos: [3, 4],
     desc: 'Apply 2 Poison to ALL enemies.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -175,7 +186,8 @@ DS.Cards.necromancer = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
-    desc: 'Deal 10 damage + 3 Poison. Exhaust.',
+    prefPos: [4],
+    desc: 'Deal 10 damage + 3 Poison. Exhaust. Pos 4 only.',
     value: 10,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
@@ -186,7 +198,7 @@ DS.Cards.necromancer = [
 ];
 
 // ============================================================
-// PALADIN CARDS — Off-tank/support hybrid devotion bonus.
+// PALADIN CARDS — Off-tank/support hybrid. Pos 1 devotion bonus.
 // ============================================================
 
 DS.Cards.paladin = [
@@ -197,6 +209,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [1, 2],
     desc: 'Deal 5 damage. Gain 3 Block.',
     value: 5,
     effect: function(state, hero, target, card) {
@@ -210,6 +223,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'block',
     target: 'ally',
+    prefPos: [1, 2, 3],
     desc: 'Give ally 7 Block.',
     value: 7,
     effect: function(state, hero, target, card) {
@@ -222,6 +236,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'heal',
     target: 'ally',
+    prefPos: [1, 2, 3],
     desc: 'Heal ally 6 HP.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -234,6 +249,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
+    prefPos: [1, 2],
     desc: 'Deal 8 damage.',
     value: 8,
     effect: function(state, hero, target, card) {
@@ -247,7 +263,8 @@ DS.Cards.paladin = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
-    desc: 'Deal 12 damage. Apply 2 Vulnerable.',
+    prefPos: [1],
+    desc: 'Deal 12 damage. Apply 2 Vulnerable. Pos 1 only.',
     value: 12,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
@@ -260,6 +277,7 @@ DS.Cards.paladin = [
     cost: 2,
     type: 'attack',
     target: 'all_enemies',
+    prefPos: [1, 2],
     desc: 'Deal 4 to all enemies. All allies gain 3 Block.',
     value: 4,
     effect: function(state, hero, target, card) {
@@ -277,7 +295,8 @@ DS.Cards.paladin = [
     cost: 2,
     type: 'block',
     target: 'self',
-    desc: 'Gain 14 Block. Taunt all enemies.',
+    prefPos: [1],
+    desc: 'Gain 14 Block. Taunt all enemies. Pos 1 only.',
     value: 14,
     effect: function(state, hero, target, card) {
       DS.Combat.gainBlock(hero, card.value);
@@ -293,6 +312,7 @@ DS.Cards.paladin = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
+    prefPos: [1, 2],
     desc: 'Deal damage equal to your Block. Exhaust.',
     value: 0,
     effect: function(state, hero, target, card) {
@@ -311,6 +331,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'block',
     target: 'all_allies',
+    prefPos: [1, 2],
     desc: 'All allies gain 4 Block.',
     value: 4,
     effect: function(state, hero, target, card) {
@@ -325,11 +346,14 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    desc: 'Deal 6 damage. Gain 4 Block.',
+    prefPos: [1, 2],
+    desc: 'Deal 6 damage. Pos 1: also gain 4 Block.',
     value: 6,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
-      DS.Combat.gainBlock(hero, 4);
+      if (hero.pos === 1) {
+        DS.Combat.gainBlock(hero, 4);
+      }
     }
   },
   {
@@ -338,6 +362,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'utility',
     target: 'none',
+    prefPos: [1, 2],
     desc: 'Gain 2 Strength + 5 Block. Exhaust.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -352,7 +377,8 @@ DS.Cards.paladin = [
     cost: 2,
     type: 'attack',
     target: 'enemy',
-    desc: 'Deal 10 damage. Heal self 5.',
+    prefPos: [1],
+    desc: 'Deal 10 damage. Heal self 5. Pos 1 only.',
     value: 10,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
@@ -369,6 +395,7 @@ DS.Heroes.push({
   name: 'Necromancer',
   cls: 'necromancer',
   maxHp: 32,
+  startPos: 4,
   colors: { primary: '#8844aa', secondary: '#1a0a2a', accent: '#aa66cc' },
   sprite: {
     body: 'robes',
@@ -384,6 +411,7 @@ DS.Heroes.push({
   name: 'Paladin',
   cls: 'paladin',
   maxHp: 46,
+  startPos: 1,
   colors: { primary: '#ddcc44', secondary: '#f0e8d0', accent: '#ffee88' },
   sprite: {
     body: 'heavy',

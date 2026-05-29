@@ -71,6 +71,14 @@ Gold is THE currency. Earned during runs, **banked back to town** between runs. 
 - **Take-home:** the standout item you keep becomes one of your **selectable loadout items on a
   future run** (ties back to the lean run-start loadout). Risk a hard run now to bank a permanent edge.
 
+### Content Sourcing Principle
+When designing/fleshing out content, triangulate from three sources:
+- **D&D** → base fantasy *flavor* (classes, monsters, items, naming, lore).
+- **Darkest Dungeon** → *tactics mechanics* (positioning, stress/affliction-style systems, party dynamics).
+- **Slay the Spire** → *balance numbers* (card costs, damage curves, scaling, economy tuning).
+
+Method: research the analogues, abstract/generalize, "find the mean" — don't copy any one wholesale.
+
 *(More vision incoming — Joel is still dictating. Append, don't overwrite.)*
 
 ---

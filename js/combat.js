@@ -59,6 +59,7 @@ DS.Combat = {
         cost: card.cost,
         type: card.type,
         target: card.target,
+        prefPos: card.prefPos.slice(),
         desc: card.desc,
         value: card.value,
         effect: card.effect,
@@ -142,12 +143,20 @@ DS.Combat = {
       return { playable: false, reason: 'dead' };
     }
     if (card.cost > combat.energy) return { playable: false, reason: 'energy' };
+    // Position is no longer a hard lock — cards are always playable.
+    // Preferred position grants a +2 value bonus (applied in playCard).
     // Resurrect-type cards need at least one dead hero to target
     if (card.target === 'ally_dead') {
       var hasDead = run.heroes.some(function(h) { return h.hp <= 0; });
       if (!hasDead) return { playable: false, reason: 'no_target' };
     }
     return { playable: true, reason: null };
+  },
+
+  // Check if a card gets the preferred-position bonus
+  isInPreferredPos: function(card) {
+    var hero = DS.State.run.heroes[card.heroIdx];
+    return hero && hero.hp > 0 && card.prefPos.includes(hero.pos);
   },
 
   // ===== CARD SELECTION =====
@@ -220,6 +229,13 @@ DS.Combat = {
 
     var hero = DS.State.run.heroes[card.heroIdx];
 
+    // Position bonus: +2 value when played from preferred position
+    var posBonus = 0;
+    if (card.value && DS.Combat.isInPreferredPos(card)) {
+      posBonus = 2;
+      card.value = card.value + posBonus;
+    }
+
     // Track last attacker for vampiric blade
     if (card.type === 'attack') {
       if (combat) combat._lastAttacker = hero;
@@ -260,7 +276,7 @@ DS.Combat = {
       }
     });
 
-    // Restore modified card value (undo Soul Jar)
+    // Restore modified card value (undo Soul Jar and position bonus)
     if (originalValue !== undefined) {
       card.value = originalValue;
     }
@@ -372,9 +388,9 @@ DS.Combat = {
         if (tauntTarget) {
           target = tauntTarget;
         } else if (intent.targeting === 'front') {
-          target = alive[0];
+          target = alive.reduce(function(a, b) { return a.pos < b.pos ? a : b; });
         } else if (intent.targeting === 'back') {
-          target = alive[alive.length - 1];
+          target = alive.reduce(function(a, b) { return a.pos > b.pos ? a : b; });
         } else {
           target = alive[Math.floor(Math.random() * alive.length)];
         }
@@ -415,9 +431,7 @@ DS.Combat = {
         if (!alive4.length) break;
         var target4;
         if (intent.targeting === 'front') {
-          target4 = alive4[0];
-        } else if (intent.targeting === 'back') {
-          target4 = alive4[alive4.length - 1];
+          target4 = alive4.reduce(function(a, b) { return a.pos < b.pos ? a : b; });
         } else {
           target4 = alive4[Math.floor(Math.random() * alive4.length)];
         }
@@ -834,6 +848,66 @@ DS.Combat = {
         combo.effect(DS.State, card, target);
       }
     });
+  },
+
+  moveForward: function(hero) {
+    if (hero.pos <= 1) {
+      DS.Combat.logMsg(hero.name + ' is already at the front.', '');
+      return;
+    }
+    var heroes = DS.State.run.heroes;
+    var inFront = heroes.find(function(h) { return h.hp > 0 && h.pos === hero.pos - 1; });
+    if (inFront) {
+      var oldPos = hero.pos;
+      hero.pos = inFront.pos;
+      inFront.pos = oldPos;
+      DS.Combat.logMsg(hero.name + ' advances! ' + inFront.name + ' shifts to pos ' + inFront.pos + '.', '');
+    } else {
+      hero.pos--;
+      DS.Combat.logMsg(hero.name + ' advances to position ' + hero.pos + '.', '');
+    }
+  },
+
+  moveBackward: function(hero) {
+    var maxPos = DS.State.run.heroes.length;
+    if (hero.pos >= maxPos) {
+      DS.Combat.logMsg(hero.name + ' is already at the back.', '');
+      return;
+    }
+    var heroes = DS.State.run.heroes;
+    var behind = heroes.find(function(h) { return h.hp > 0 && h.pos === hero.pos + 1; });
+    if (behind) {
+      var oldPos = hero.pos;
+      hero.pos = behind.pos;
+      behind.pos = oldPos;
+      DS.Combat.logMsg(hero.name + ' falls back! ' + behind.name + ' shifts to pos ' + behind.pos + '.', '');
+    } else {
+      hero.pos++;
+      DS.Combat.logMsg(hero.name + ' falls back to position ' + hero.pos + '.', '');
+    }
+  },
+
+  // Built-in Move action — costs 1 energy (0 with Position Boots)
+  moveHeroAction: function(heroIdx, direction) {
+    var combat = DS.State.combat;
+    if (combat.gameOver || combat.animating) return;
+    var hero = DS.State.run.heroes[heroIdx];
+    if (!hero || hero.hp <= 0) return;
+
+    var moveCost = DS.Combat.hasRelicFlag('freeMove') ? 0 : 1;
+    if (combat.energy < moveCost) return;
+
+    var maxPos = DS.State.run.heroes.length;
+    if (direction === 'forward' && hero.pos <= 1) return;
+    if (direction === 'back' && hero.pos >= maxPos) return;
+
+    combat.energy -= moveCost;
+    if (direction === 'forward') {
+      DS.Combat.moveForward(hero);
+    } else {
+      DS.Combat.moveBackward(hero);
+    }
+    DS.UI.render();
   },
 
   drawCard: function() {
