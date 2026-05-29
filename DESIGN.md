@@ -79,6 +79,11 @@ When designing/fleshing out content, triangulate from three sources:
 
 Method: research the analogues, abstract/generalize, "find the mean" — don't copy any one wholesale.
 
+**Reference-data database (TODO):** build a local, cited, easily-accessible catalogue of card types,
+damage numbers, dice mechanics, and stats from the source games (D&D / Darkest Dungeon / Slay the Spire)
+— structured markdown/JSON in `reference/`, kept official + updated — so real numbers are fast context
+when designing and balancing.
+
 *(More vision incoming — Joel is still dictating. Append, don't overwrite.)*
 
 ---
