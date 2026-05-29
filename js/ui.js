@@ -566,8 +566,18 @@ DS.UI = {
       var extraClass = '';
       if (!check.playable) {
         if (check.reason === 'dead') extraClass = 'hero-dead';
+        else if (check.reason === 'position') extraClass = 'unplayable locked-position';
         else extraClass = 'unplayable';
       }
+
+      // Position badge — shows the card's required rank(s). Turns red with a warning
+      // when the hero is out of position (the reason it's locked), so the fix is obvious.
+      var posHero = DS.State.run.heroes[card.heroIdx];
+      var posLocked = check.reason === 'position';
+      var posBadge = '<div class="card-pos-badge' + (posLocked ? ' locked' : '') + '" title="' +
+        (posLocked ? 'Locked: ' : '') + card.heroName + ' must be at position ' +
+        card.prefPos.join('/') + (posHero ? ' (currently ' + posHero.pos + ')' : '') + '">' +
+        (posLocked ? '⚠' : '❖') + ' ' + card.prefPos.join('/') + '</div>';
 
       var artClass = 'card-art-' + card.type;
 
@@ -593,6 +603,7 @@ DS.UI = {
 
       el.innerHTML =
         '<div class="card-art ' + artClass + '"></div>' +
+        posBadge +
         '<div class="card-header">' +
           '<div class="card-name">' + card.name + upgradedBadge + '</div>' +
           '<div class="card-cost">' + card.cost + '</div>' +

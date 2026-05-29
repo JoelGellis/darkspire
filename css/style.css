@@ -1175,6 +1175,35 @@ body {
   cursor: not-allowed;
 }
 
+/* Position-locked: red border, kept readable so the player sees WHERE to move */
+.card.locked-position {
+  opacity: 0.62;
+  border-color: var(--crimson) !important;
+  box-shadow: 0 0 10px rgba(196, 60, 60, 0.45), inset 0 0 14px rgba(196, 60, 60, 0.12);
+}
+
+/* Required-rank badge in the card's top-left corner */
+.card-pos-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 4;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(20, 14, 28, 0.85);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+.card-pos-badge.locked {
+  background: rgba(60, 16, 16, 0.92);
+  border-color: var(--crimson);
+  color: #ff9a8a;
+}
+
 .card.hero-dead {
   opacity: 0.2;
   cursor: not-allowed;

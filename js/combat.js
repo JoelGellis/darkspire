@@ -143,8 +143,12 @@ DS.Combat = {
       return { playable: false, reason: 'dead' };
     }
     if (card.cost > combat.energy) return { playable: false, reason: 'energy' };
-    // Position is no longer a hard lock — cards are always playable.
-    // Preferred position grants a +2 value bonus (applied in playCard).
+    // Position is a HARD gate (Darkest-Dungeon-style rank lock): a card can only be
+    // played while its hero stands in one of the card's preferred positions. Checked
+    // against the hero's LIVE pos, so moving/swapping changes what's playable in real time.
+    if (card.prefPos && card.prefPos.length && !DS.Combat.isInPreferredPos(card)) {
+      return { playable: false, reason: 'position' };
+    }
     // Resurrect-type cards need at least one dead hero to target
     if (card.target === 'ally_dead') {
       var hasDead = run.heroes.some(function(h) { return h.hp <= 0; });
@@ -229,12 +233,8 @@ DS.Combat = {
 
     var hero = DS.State.run.heroes[card.heroIdx];
 
-    // Position bonus: +2 value when played from preferred position
-    var posBonus = 0;
-    if (card.value && DS.Combat.isInPreferredPos(card)) {
-      posBonus = 2;
-      card.value = card.value + posBonus;
-    }
+    // (Position is now a hard playability gate in canPlayCard, not a value bonus —
+    //  a card already can't reach playCard unless its hero is in a preferred position.)
 
     // Track last attacker for vampiric blade
     if (card.type === 'attack') {
