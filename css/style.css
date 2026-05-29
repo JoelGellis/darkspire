@@ -3191,3 +3191,32 @@ body {
   background: rgba(160, 80, 220, 0.3);
   color: var(--text-bright);
 }
+
+/* ===== POSITION BADGES (v0.2 — tactical positioning) ===== */
+.stage-entity { position: relative; }
+.entity-pos-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 5;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold, #e8d070);
+  background: radial-gradient(circle at 50% 40%, rgba(40,30,20,0.95), rgba(20,14,10,0.95));
+  border: 1px solid var(--gold-dim, #6b4e1f);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  pointer-events: none;
+}
+.entity-pos-badge.enemy-pos-badge {
+  left: auto;
+  right: -6px;
+  color: #e08080;
+  border-color: #7a2a2a;
+  background: radial-gradient(circle at 50% 40%, rgba(40,20,20,0.95), rgba(22,10,10,0.95));
+}

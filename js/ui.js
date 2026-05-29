@@ -384,8 +384,9 @@ DS.UI = {
     var run = DS.State.run;
     panel.innerHTML = '';
 
-    // Render in reverse party order so the last hero is leftmost (back), first is rightmost (near enemies)
-    var ordered = run.heroes.slice().reverse();
+    // Render sorted by live position: pos 4 leftmost (back), pos 1 rightmost (front, near enemies).
+    // Sorting by pos (not party order) means in-combat moves/swaps update the formation visually.
+    var ordered = run.heroes.slice().sort(function(a, b) { return b.pos - a.pos; });
     ordered.forEach(function(hero) {
       var dead = hero.hp <= 0;
       var pct = dead ? 0 : Math.max(0, (hero.hp / hero.maxHp) * 100);
@@ -419,6 +420,7 @@ DS.UI = {
       if (hero.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1</span>';
 
       el.innerHTML =
+        '<div class="entity-pos-badge" title="Position ' + hero.pos + ' (1 = front)">' + hero.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
         '<div class="entity-name ' + hero.cls + '">' + hero.name + '</div>' +
         '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div>' +
@@ -435,7 +437,8 @@ DS.UI = {
     var combat = DS.State.combat;
     panel.innerHTML = '';
 
-    combat.enemies.forEach(function(enemy) {
+    var orderedEnemies = combat.enemies.slice().sort(function(a, b) { return a.pos - b.pos; });
+    orderedEnemies.forEach(function(enemy) {
       var dead = enemy.hp <= 0;
       var pct = dead ? 0 : Math.max(0, (enemy.hp / enemy.maxHp) * 100);
 
@@ -500,6 +503,7 @@ DS.UI = {
 
       el.innerHTML =
         intentHtml +
+        '<div class="entity-pos-badge enemy-pos-badge" title="Position ' + enemy.pos + ' (1 = front)">' + enemy.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(enemy, 'left').outerHTML + '</div>' +
         '<div class="entity-name">' + enemy.name + '</div>' +
         '<div class="entity-hp-bar"><div class="entity-hp-fill enemy-hp" style="width:' + pct + '%"></div></div>' +
