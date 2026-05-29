@@ -26,7 +26,10 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
   **Needs a human in-browser glance:** layout fit on narrow cards, and disabled-button click semantics.
 
 ## Decisions locked this session
-- **Position model:** soft **+2 value bonus** in a card's preferred position (NOT a hard gate).
+- **Position model (UPDATED 2026-05-29, `e52eb68`):** position is a **HARD GATE** (Darkest-Dungeon
+  rank lock) — a card is unplayable unless its hero's live pos ∈ `card.prefPos`. Reverses the
+  earlier "soft +2 bonus, not a gate" call. UI: red border + corner rank badge on locked cards.
+  Repositioning (move buttons / Shadow Step etc.) is now mandatory strategy, not optional.
 - **Battlefield:** horizontal, 4 heroes vs ≤4 enemies. Hero pos 1 = front (rightmost, near enemies)…
   pos 4 = back. Enemy pos 1 = front (leftmost, near player). Enemy pos = spawn order.
 - **4 mechanic cards:** Shadow Step = move forward; Smoke Bomb = block + swap-with-ally; Wizard
@@ -84,8 +87,20 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
   (+HP, 2nd attack), Spider Queen 13.9%→20.6% (dropped Spiderling poison-on-death, PSN 3→2).
   All 4 bosses now 20–49%. **Feel-check against real playtest before trusting** (sim = greedy
   bot, no relics/reposition → lower bound).
-- ⬜ **Next: trivial-normals stakes pass.** 21 normals at ~100% win / ~0% death are flat filler.
-  Nudge a representative subset in `data/enemies.js`, re-run sims, keep the *relative* signal.
+- ⬜ **BLOCKED→Next: teach the sim AI to reposition.** The hard position gate made the greedy
+  no-move bot an invalid balance proxy (it can't play gated cards it should move for). Before any
+  more normals/boss tuning, update `sims/policy.js` to use move actions + play gated cards from the
+  right rank. THEN resume the trivial-normals stakes pass (still ~20 flat 100%-win pools).
+- ⬜ Verify repositioning *cards* under the new gate: Shadow Step (move fwd), Smoke Bomb (block+swap),
+  Wizard Teleport (swap two), Paladin Retribution (pos-1 bonus) — confirm they still work in-browser.
+
+## UI fixes landed (2026-05-29, from playtest feedback)
+- Combat battlefield: was rendering **vertical** + combat-log **over the enemies** — killed a dead
+  `#heroes-panel{flex:1;flex-direction:column}` rule beating `.stage-heroes` on ID specificity;
+  reserved a 195px right gutter for the log overlay (`a5677bb`).
+- Map: nodes were **unclickable** (tall 500×700 canvas overflowed under header/footer, which ate
+  clicks) — canvas now scales to fit (`a5677bb`). Added **hover feedback** (pointer + white ring on
+  clickable nodes, shared hit-test w/ click — `3895202`) as a diagnostic + UX win.
 
 ## Immediate next steps on unpin
 1. Joel playtests Phase 1 + Phase 3 (badges 1–4, targeting, reposition cards, move buttons;
