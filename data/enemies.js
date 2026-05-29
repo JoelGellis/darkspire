@@ -5,21 +5,21 @@ DS.Enemies = {
     // Pool 1: Skeleton Patrol
     [
       {
-        name: 'Bone Soldier', icon: '\uD83D\uDC80', maxHp: 22, pos: 1,
+        name: 'Bone Soldier', icon: '\uD83D\uDC80', maxHp: 22,
         intents: [
           { name: 'Attack', type: 'attack', dmg: 8, desc: 'ATK 8', targeting: 'front' },
           { name: 'Defend', type: 'defend', block: 6, desc: 'DEF 6' }
         ]
       },
       {
-        name: 'Bone Captain', icon: '\u2694\uFE0F', maxHp: 28, pos: 2,
+        name: 'Bone Captain', icon: '\u2694\uFE0F', maxHp: 28,
         intents: [
           { name: 'Attack', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' },
           { name: 'War Cry', type: 'buff', desc: 'WAR CRY +3', buffAmt: 3 }
         ]
       },
       {
-        name: 'Bone Archer', icon: '\uD83C\uDFF9', maxHp: 16, pos: 3,
+        name: 'Bone Archer', icon: '\uD83C\uDFF9', maxHp: 16,
         intents: [
           { name: 'Snipe', type: 'attack', dmg: 6, desc: 'ATK 6\u2192back', targeting: 'back' },
           { name: 'Multi-shot', type: 'attack_multi', dmg: 2, hits: 3, desc: 'ATK 2\u00D73', targeting: 'random' }
@@ -30,21 +30,21 @@ DS.Enemies = {
     // Pool 2: Goblin Ambush
     [
       {
-        name: 'Goblin Raider', icon: '\uD83D\uDC7A', maxHp: 12, pos: 1,
+        name: 'Goblin Raider', icon: '\uD83D\uDC7A', maxHp: 12,
         intents: [
           { name: 'Stab', type: 'attack', dmg: 5, desc: 'ATK 5', targeting: 'front' },
           { name: 'Slash', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'front' }
         ]
       },
       {
-        name: 'Goblin Raider', icon: '\uD83D\uDC7A', maxHp: 12, pos: 2,
+        name: 'Goblin Raider', icon: '\uD83D\uDC7A', maxHp: 12,
         intents: [
           { name: 'Stab', type: 'attack', dmg: 5, desc: 'ATK 5', targeting: 'front' },
           { name: 'Defend', type: 'defend', block: 4, desc: 'DEF 4' }
         ]
       },
       {
-        name: 'Goblin Poisoner', icon: '\uD83D\uDDE1\uFE0F', maxHp: 12, pos: 3,
+        name: 'Goblin Poisoner', icon: '\uD83D\uDDE1\uFE0F', maxHp: 12,
         intents: [
           { name: 'Poison Dagger', type: 'attack_poison', dmg: 3, poison: 2, desc: 'ATK 3 + PSN 2', targeting: 'front' },
           { name: 'Throw Vial', type: 'poison', poison: 3, desc: 'PSN 3\u2192random', targeting: 'random' }
@@ -55,21 +55,21 @@ DS.Enemies = {
     // Pool 3: Dark Cult
     [
       {
-        name: 'Dark Cultist', icon: '\uD83D\uDD2E', maxHp: 20, pos: 2,
+        name: 'Dark Cultist', icon: '\uD83D\uDD2E', maxHp: 20,
         intents: [
           { name: 'Dark Bolt', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
           { name: 'Heal Allies', type: 'heal_allies', heal: 5, desc: 'HEAL ALL 5' }
         ]
       },
       {
-        name: 'Cultist Acolyte', icon: '\uD83D\uDC7B', maxHp: 14, pos: 1,
+        name: 'Cultist Acolyte', icon: '\uD83D\uDC7B', maxHp: 14,
         intents: [
           { name: 'Strike', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'front' },
           { name: 'Defend', type: 'defend', block: 5, desc: 'DEF 5' }
         ]
       },
       {
-        name: 'Cultist Acolyte', icon: '\uD83D\uDC7B', maxHp: 14, pos: 3,
+        name: 'Cultist Acolyte', icon: '\uD83D\uDC7B', maxHp: 14,
         intents: [
           { name: 'Strike', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'front' },
           { name: 'Dark Prayer', type: 'buff', desc: 'BUFF +2', buffAmt: 2 }
@@ -80,14 +80,14 @@ DS.Enemies = {
     // Pool 4: Slime Nest
     [
       {
-        name: 'Slime Mother', icon: '\uD83E\uDDA0', maxHp: 35, pos: 2,
+        name: 'Slime Mother', icon: '\uD83E\uDDA0', maxHp: 35,
         intents: [
           { name: 'Acid Spray', type: 'attack_all', dmg: 4, desc: 'ATK 4 ALL', targeting: 'all' },
           { name: 'Absorb', type: 'defend', block: 8, desc: 'DEF 8' }
         ]
       },
       {
-        name: 'Slimeling', icon: '\uD83D\uDCA7', maxHp: 8, pos: 1,
+        name: 'Slimeling', icon: '\uD83D\uDCA7', maxHp: 8,
         deathEffect: 'poison_random_2',
         intents: [
           { name: 'Slap', type: 'attack', dmg: 3, desc: 'ATK 3', targeting: 'front' },
@@ -95,7 +95,7 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Slimeling', icon: '\uD83D\uDCA7', maxHp: 8, pos: 3,
+        name: 'Slimeling', icon: '\uD83D\uDCA7', maxHp: 8,
         deathEffect: 'poison_random_2',
         intents: [
           { name: 'Slap', type: 'attack', dmg: 3, desc: 'ATK 3', targeting: 'random' },
@@ -107,21 +107,21 @@ DS.Enemies = {
     // Pool 5: Mushroom Grove
     [
       {
-        name: 'Fungal Brute', icon: '\uD83C\uDF44', maxHp: 30, pos: 1,
+        name: 'Fungal Brute', icon: '\uD83C\uDF44', maxHp: 30,
         intents: [
           { name: 'Slam', type: 'attack', dmg: 9, desc: 'ATK 9', targeting: 'front' },
           { name: 'Spore Cloud', type: 'poison', poison: 2, desc: 'PSN 2\u2192random', targeting: 'random' }
         ]
       },
       {
-        name: 'Spore Sprite', icon: '\u2728', maxHp: 10, pos: 2,
+        name: 'Spore Sprite', icon: '\u2728', maxHp: 10,
         intents: [
           { name: 'Weaken', type: 'weaken', turns: 2, desc: 'WEAK 2', targeting: 'random' },
           { name: 'Heal', type: 'heal_allies', heal: 4, desc: 'HEAL ALL 4' }
         ]
       },
       {
-        name: 'Spore Sprite', icon: '\u2728', maxHp: 10, pos: 3,
+        name: 'Spore Sprite', icon: '\u2728', maxHp: 10,
         intents: [
           { name: 'Prick', type: 'attack_poison', dmg: 2, poison: 2, desc: 'ATK 2 + PSN 2', targeting: 'random' },
           { name: 'Defend', type: 'defend', block: 4, desc: 'DEF 4' }
@@ -132,21 +132,21 @@ DS.Enemies = {
     // Pool 6: Wraith Haunt
     [
       {
-        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 18, pos: 1,
+        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 18,
         intents: [
           { name: 'Life Drain', type: 'attack', dmg: 7, desc: 'ATK 7\u2192back', targeting: 'back' },
           { name: 'Phase', type: 'defend', block: 6, desc: 'DEF 6' }
         ]
       },
       {
-        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 18, pos: 3,
+        name: 'Wraith', icon: '\uD83D\uDC7B', maxHp: 18,
         intents: [
           { name: 'Life Drain', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'random' },
           { name: 'Curse', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' }
         ]
       },
       {
-        name: 'Phantom Knight', icon: '\u2694\uFE0F', maxHp: 24, pos: 2,
+        name: 'Phantom Knight', icon: '\u2694\uFE0F', maxHp: 24,
         intents: [
           { name: 'Phantom Strike', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' },
           { name: 'Shield', type: 'defend', block: 7, desc: 'DEF 7' },
@@ -158,21 +158,21 @@ DS.Enemies = {
     // Pool 7: Fungal Colony
     [
       {
-        name: 'Fungal Brute', icon: '\uD83C\uDF44', maxHp: 28, pos: 1,
+        name: 'Fungal Brute', icon: '\uD83C\uDF44', maxHp: 28,
         intents: [
           { name: 'Slam', type: 'attack', dmg: 9, desc: 'ATK 9', targeting: 'front' },
           { name: 'Harden', type: 'defend', block: 7, desc: 'DEF 7' }
         ]
       },
       {
-        name: 'Spore Sprayer', icon: '\uD83D\uDCA8', maxHp: 18, pos: 2,
+        name: 'Spore Sprayer', icon: '\uD83D\uDCA8', maxHp: 18,
         intents: [
           { name: 'Spore Cloud', type: 'poison', poison: 3, desc: 'PSN 3\u2192random', targeting: 'random' },
           { name: 'Burst', type: 'attack_all', dmg: 3, desc: 'ATK 3 ALL', targeting: 'all' }
         ]
       },
       {
-        name: 'Mushroom Cap', icon: '\uD83C\uDF41', maxHp: 10, pos: 3,
+        name: 'Mushroom Cap', icon: '\uD83C\uDF41', maxHp: 10,
         intents: [
           { name: 'Regenerate', type: 'heal_allies', heal: 4, desc: 'HEAL ALL 4' },
           { name: 'Toxic Bite', type: 'attack_poison', dmg: 4, poison: 2, desc: 'ATK 4 + PSN 2', targeting: 'front' }
@@ -183,21 +183,21 @@ DS.Enemies = {
     // Pool 8: Shadow Pack
     [
       {
-        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20, pos: 1,
+        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20,
         intents: [
           { name: 'Frenzy', type: 'attack_multi', dmg: 3, hits: 2, desc: 'ATK 3\u00D72', targeting: 'random' },
           { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
         ]
       },
       {
-        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20, pos: 2,
+        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20,
         intents: [
           { name: 'Lunge', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
           { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
         ]
       },
       {
-        name: 'Shadow Alpha', icon: '\uD83D\uDC3A', maxHp: 30, pos: 3,
+        name: 'Shadow Alpha', icon: '\uD83D\uDC3A', maxHp: 30,
         intents: [
           { name: 'Howl', type: 'buff', desc: 'BUFF +2', buffAmt: 2 },
           { name: 'Shadow Strike', type: 'attack_all', dmg: 5, desc: 'ATK 5 ALL', targeting: 'all' }
@@ -208,7 +208,7 @@ DS.Enemies = {
     // Pool 9: Tomb Guardians — high block, slow but deadly
     [
       {
-        name: 'Tomb Sentinel', icon: '\uD83D\uDDFF', maxHp: 35, pos: 1,
+        name: 'Tomb Sentinel', icon: '\uD83D\uDDFF', maxHp: 35,
         intents: [
           { name: 'Stone Fist', type: 'attack', dmg: 12, desc: 'ATK 12', targeting: 'front' },
           { name: 'Stone Wall', type: 'defend', block: 10, desc: 'DEF 10' },
@@ -216,7 +216,7 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Tomb Warden', icon: '\u26B0\uFE0F', maxHp: 30, pos: 2,
+        name: 'Tomb Warden', icon: '\u26B0\uFE0F', maxHp: 30,
         intents: [
           { name: 'Guard', type: 'defend', block: 8, desc: 'DEF 8' },
           { name: 'Entomb', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' },
@@ -224,7 +224,7 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Tomb Priest', icon: '\uD83D\uDD6F\uFE0F', maxHp: 18, pos: 3,
+        name: 'Tomb Priest', icon: '\uD83D\uDD6F\uFE0F', maxHp: 18,
         intents: [
           { name: 'Death Chant', type: 'buff', desc: 'BUFF +3', buffAmt: 3 },
           { name: 'Curse', type: 'attack', dmg: 6, desc: 'ATK 6\u2192back', targeting: 'back' }
@@ -235,28 +235,28 @@ DS.Enemies = {
     // Pool 10: Feral Pack — many low-HP enemies, attack_all
     [
       {
-        name: 'Rabid Wolf', icon: '\uD83D\uDC3A', maxHp: 12, pos: 1,
+        name: 'Rabid Wolf', icon: '\uD83D\uDC3A', maxHp: 12,
         intents: [
           { name: 'Lunge', type: 'attack', dmg: 5, desc: 'ATK 5', targeting: 'front' },
           { name: 'Frenzy', type: 'attack_multi', dmg: 2, hits: 3, desc: 'ATK 2\u00D73', targeting: 'random' }
         ]
       },
       {
-        name: 'Rabid Wolf', icon: '\uD83D\uDC3A', maxHp: 12, pos: 2,
+        name: 'Rabid Wolf', icon: '\uD83D\uDC3A', maxHp: 12,
         intents: [
           { name: 'Snap', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
           { name: 'Bite', type: 'attack', dmg: 5, desc: 'ATK 5', targeting: 'front' }
         ]
       },
       {
-        name: 'Dire Rat', icon: '\uD83D\uDC00', maxHp: 8, pos: 3,
+        name: 'Dire Rat', icon: '\uD83D\uDC00', maxHp: 8,
         intents: [
           { name: 'Gnaw', type: 'attack_poison', dmg: 3, poison: 2, desc: 'ATK 3 + PSN 2', targeting: 'random' },
           { name: 'Scurry', type: 'attack', dmg: 4, desc: 'ATK 4', targeting: 'back' }
         ]
       },
       {
-        name: 'Dire Rat', icon: '\uD83D\uDC00', maxHp: 8, pos: 4,
+        name: 'Dire Rat', icon: '\uD83D\uDC00', maxHp: 8,
         intents: [
           { name: 'Gnaw', type: 'attack_poison', dmg: 3, poison: 2, desc: 'ATK 3 + PSN 2', targeting: 'random' },
           { name: 'Swarm', type: 'attack_all', dmg: 2, desc: 'ATK 2 ALL', targeting: 'all' }
@@ -267,21 +267,21 @@ DS.Enemies = {
     // Pool 11: Cursed Knights — buff each other, punish single-target
     [
       {
-        name: 'Cursed Champion', icon: '\u2694\uFE0F', maxHp: 26, pos: 1,
+        name: 'Cursed Champion', icon: '\u2694\uFE0F', maxHp: 26,
         intents: [
           { name: 'Cursed Blade', type: 'attack', dmg: 9, desc: 'ATK 9', targeting: 'front' },
           { name: 'Rally', type: 'buff', desc: 'BUFF +3', buffAmt: 3 }
         ]
       },
       {
-        name: 'Cursed Champion', icon: '\u2694\uFE0F', maxHp: 26, pos: 2,
+        name: 'Cursed Champion', icon: '\u2694\uFE0F', maxHp: 26,
         intents: [
           { name: 'Shield Bash', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' },
           { name: 'Iron Guard', type: 'defend', block: 8, desc: 'DEF 8' }
         ]
       },
       {
-        name: 'Cursed Standard Bearer', icon: '\uD83D\uDEA9', maxHp: 20, pos: 3,
+        name: 'Cursed Standard Bearer', icon: '\uD83D\uDEA9', maxHp: 20,
         intents: [
           { name: 'Empower', type: 'buff', desc: 'BUFF +4', buffAmt: 4 },
           { name: 'Hex', type: 'weaken', turns: 2, desc: 'WEAK 2', targeting: 'random' },
@@ -295,14 +295,14 @@ DS.Enemies = {
     // Pool 1: Bone Knight + Bone Mage
     [
       {
-        name: 'Bone Knight', icon: '\uD83D\uDC80', maxHp: 45, pos: 1,
+        name: 'Bone Knight', icon: '\uD83D\uDC80', maxHp: 45,
         intents: [
           { name: 'Cleave', type: 'attack', dmg: 12, desc: 'ATK 12', targeting: 'front' },
           { name: 'Shield Wall', type: 'defend', block: 8, desc: 'DEF 8' }
         ]
       },
       {
-        name: 'Bone Mage', icon: '\u2620\uFE0F', maxHp: 25, pos: 3,
+        name: 'Bone Mage', icon: '\u2620\uFE0F', maxHp: 25,
         intents: [
           { name: 'Dark Wave', type: 'attack_all', dmg: 3, desc: 'ATK 3 ALL', targeting: 'all' },
           { name: 'Empower', type: 'buff', desc: 'BUFF +5', buffAmt: 5 }
@@ -313,7 +313,7 @@ DS.Enemies = {
     // Pool 2: Bandit King + Thugs
     [
       {
-        name: 'Bandit King', icon: '\uD83D\uDC51', maxHp: 50, pos: 2,
+        name: 'Bandit King', icon: '\uD83D\uDC51', maxHp: 50,
         intents: [
           { name: 'Heavy Strike', type: 'attack', dmg: 8, desc: 'ATK 8', targeting: 'front' },
           { name: 'Rally', type: 'buff', desc: 'RALLY +3', buffAmt: 3 },
@@ -321,14 +321,14 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Bandit Thug', icon: '\uD83D\uDDE1\uFE0F', maxHp: 18, pos: 1,
+        name: 'Bandit Thug', icon: '\uD83D\uDDE1\uFE0F', maxHp: 18,
         intents: [
           { name: 'Slash', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' },
           { name: 'Guard', type: 'defend', block: 5, desc: 'DEF 5' }
         ]
       },
       {
-        name: 'Bandit Thug', icon: '\uD83D\uDDE1\uFE0F', maxHp: 18, pos: 3,
+        name: 'Bandit Thug', icon: '\uD83D\uDDE1\uFE0F', maxHp: 18,
         intents: [
           { name: 'Slash', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'random' },
           { name: 'Guard', type: 'defend', block: 5, desc: 'DEF 5' }
@@ -339,14 +339,14 @@ DS.Enemies = {
     // Pool 3: Shadow Assassins
     [
       {
-        name: 'Shadow Blade', icon: '\uD83D\uDDE1\uFE0F', maxHp: 32, pos: 1,
+        name: 'Shadow Blade', icon: '\uD83D\uDDE1\uFE0F', maxHp: 32,
         intents: [
           { name: 'Flurry', type: 'attack_multi', dmg: 4, hits: 3, desc: 'ATK 4\u00D73', targeting: 'random' },
           { name: 'Vanish', type: 'defend', block: 10, desc: 'DEF 10' }
         ]
       },
       {
-        name: 'Shadow Caster', icon: '\uD83D\uDD2E', maxHp: 28, pos: 3,
+        name: 'Shadow Caster', icon: '\uD83D\uDD2E', maxHp: 28,
         intents: [
           { name: 'Shadow Bolt', type: 'attack', dmg: 8, desc: 'ATK 8\u2192back', targeting: 'back' },
           { name: 'Weaken All', type: 'weaken', turns: 1, desc: 'WEAK ALL 1', targeting: 'random' },
@@ -358,7 +358,7 @@ DS.Enemies = {
     // Pool 4: The Executioner — single powerful enemy, kills fast
     [
       {
-        name: 'The Executioner', icon: '\uD83E\uDE93', maxHp: 65, pos: 2,
+        name: 'The Executioner', icon: '\uD83E\uDE93', maxHp: 65,
         intents: [
           { name: 'Cleave', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' },
           { name: 'Judgment', type: 'attack', dmg: 14, desc: 'ATK 14\u2192back', targeting: 'back' },
@@ -372,7 +372,7 @@ DS.Enemies = {
     // Pool 5: Twin Shades — 2 enemies that mirror each other's actions
     [
       {
-        name: 'Twin Shade', icon: '\uD83D\uDC7B', maxHp: 36, pos: 1,
+        name: 'Twin Shade', icon: '\uD83D\uDC7B', maxHp: 36,
         intents: [
           { name: 'Shadow Cut', type: 'attack', dmg: 8, desc: 'ATK 8', targeting: 'front' },
           { name: 'Phase', type: 'defend', block: 8, desc: 'DEF 8' },
@@ -380,7 +380,7 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Twin Shade', icon: '\uD83D\uDC7B', maxHp: 36, pos: 3,
+        name: 'Twin Shade', icon: '\uD83D\uDC7B', maxHp: 36,
         intents: [
           { name: 'Shadow Cut', type: 'attack', dmg: 8, desc: 'ATK 8', targeting: 'front' },
           { name: 'Phase', type: 'defend', block: 8, desc: 'DEF 8' },
@@ -394,7 +394,7 @@ DS.Enemies = {
     // Boss 1: The Lich
     [
       {
-        name: 'The Lich', icon: '\uD83D\uDC80', maxHp: 80, pos: 2, isBoss: true,
+        name: 'The Lich', icon: '\uD83D\uDC80', maxHp: 80, isBoss: true,
         intents: [
           { name: 'Soul Drain', type: 'attack_all', dmg: 10, desc: 'ATK 10 ALL', targeting: 'all' },
           { name: 'Dark Bolt', type: 'attack', dmg: 15, desc: 'ATK 15\u2192back', targeting: 'back' },
@@ -403,14 +403,14 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 15, pos: 1,
+        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 15,
         intents: [
           { name: 'Strike', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'front' },
           { name: 'Block', type: 'defend', block: 4, desc: 'DEF 4' }
         ]
       },
       {
-        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 15, pos: 3,
+        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 15,
         intents: [
           { name: 'Strike', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
           { name: 'Block', type: 'defend', block: 4, desc: 'DEF 4' }
@@ -421,7 +421,7 @@ DS.Enemies = {
     // Boss 2: The Iron Golem — block-heavy solo boss, rewards multi-hit strategies
     [
       {
-        name: 'Iron Golem', icon: '\uD83E\uDD16', maxHp: 110, pos: 2, isBoss: true,
+        name: 'Iron Golem', icon: '\uD83E\uDD16', maxHp: 110, isBoss: true,
         intents: [
           { name: 'Smash', type: 'attack', dmg: 16, desc: 'ATK 16', targeting: 'front' },
           { name: 'Iron Guard', type: 'defend', block: 18, desc: 'DEF 18' },
@@ -436,7 +436,7 @@ DS.Enemies = {
     // Boss 3: The Spider Queen
     [
       {
-        name: 'Spider Queen', icon: '\uD83D\uDD77\uFE0F', maxHp: 90, pos: 2, isBoss: true,
+        name: 'Spider Queen', icon: '\uD83D\uDD77\uFE0F', maxHp: 90, isBoss: true,
         intents: [
           { name: 'Venomous Bite', type: 'attack_poison', dmg: 10, poison: 3, desc: 'ATK 10 + PSN 3', targeting: 'front' },
           { name: 'Web Trap', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' },
@@ -445,7 +445,7 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10, pos: 1,
+        name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10,
         deathEffect: 'poison_random_2',
         intents: [
           { name: 'Bite', type: 'attack_poison', dmg: 3, poison: 1, desc: 'ATK 3 + PSN 1', targeting: 'random' },
@@ -453,7 +453,7 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10, pos: 3,
+        name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10,
         deathEffect: 'poison_random_2',
         intents: [
           { name: 'Bite', type: 'attack_poison', dmg: 3, poison: 1, desc: 'ATK 3 + PSN 1', targeting: 'random' },
@@ -465,7 +465,7 @@ DS.Enemies = {
     // Boss 4: The Vampire Lord — sustain tank with lifesteal flavor, summons bats
     [
       {
-        name: 'Vampire Lord', icon: '\uD83E\uDDDB', maxHp: 100, pos: 2, isBoss: true,
+        name: 'Vampire Lord', icon: '\uD83E\uDDDB', maxHp: 100, isBoss: true,
         intents: [
           { name: 'Blood Drain', type: 'attack', dmg: 14, desc: 'ATK 14', targeting: 'front' },
           { name: 'Crimson Wave', type: 'attack_all', dmg: 7, desc: 'ATK 7 ALL', targeting: 'all' },
@@ -476,14 +476,14 @@ DS.Enemies = {
         ]
       },
       {
-        name: 'Vampire Bat', icon: '\uD83E\uDD87', maxHp: 8, pos: 1,
+        name: 'Vampire Bat', icon: '\uD83E\uDD87', maxHp: 8,
         intents: [
           { name: 'Bite', type: 'attack', dmg: 4, desc: 'ATK 4', targeting: 'random' },
           { name: 'Screech', type: 'weaken', turns: 1, desc: 'WEAK 1', targeting: 'random' }
         ]
       },
       {
-        name: 'Vampire Bat', icon: '\uD83E\uDD87', maxHp: 8, pos: 3,
+        name: 'Vampire Bat', icon: '\uD83E\uDD87', maxHp: 8,
         intents: [
           { name: 'Bite', type: 'attack', dmg: 4, desc: 'ATK 4', targeting: 'random' },
           { name: 'Screech', type: 'weaken', turns: 1, desc: 'WEAK 1', targeting: 'random' }

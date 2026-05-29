@@ -274,7 +274,6 @@ DS.Events = [
                 cost: card.cost,
                 type: card.type,
                 target: card.target,
-                prefPos: card.prefPos.slice(),
                 desc: card.desc,
                 value: card.value,
                 effect: card.effect,

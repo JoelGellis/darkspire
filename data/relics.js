@@ -165,12 +165,14 @@ DS.Relics = [
   },
 
   {
-    id: 'position_boots',
-    name: 'Position Boots',
-    desc: 'Move actions cost 0 energy.',
+    id: 'swift_boots',
+    name: 'Swift Boots',
+    desc: 'At the start of combat, draw 1 extra card.',
     rarity: 'uncommon',
     icon: '\uD83E\uDD7E',
-    freeMove: true
+    onCombatStart: function(state) {
+      DS.Combat.drawCard();
+    }
   },
 
   {

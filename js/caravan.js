@@ -321,7 +321,6 @@ DS.UI._buildCaravanCard = function(entry, selected) {
         '<div class="caravan-card-class">' + entry.heroClass + '</div>' +
         '<div class="caravan-card-stats">' +
           '<span class="caravan-stat">\u2764 ' + effectiveHp + ' HP</span>' +
-          '<span class="caravan-stat">Pos ' + def.startPos + '</span>' +
         '</div>';
 
   // Veteran stars
@@ -352,13 +351,10 @@ DS.UI._buildCaravanPartyBar = function(pool, selected) {
     '</div>' +
     '<div class="caravan-party-slots">';
 
-  // Build party sorted by startPos
+  // Build party in selection order
   var party = [];
   selected.forEach(function(idx) {
     party.push(pool[idx]);
-  });
-  party.sort(function(a, b) {
-    return a.heroDef.startPos - b.heroDef.startPos;
   });
 
   for (var slot = 0; slot < 4; slot++) {
@@ -368,7 +364,6 @@ DS.UI._buildCaravanPartyBar = function(pool, selected) {
       html +=
         '<div class="caravan-party-slot" style="border-color:' + color + '">' +
           '<div class="caravan-slot-name" style="color:' + color + '">' + entry.heroDef.name + '</div>' +
-          '<div class="caravan-slot-pos">Pos ' + entry.heroDef.startPos + '</div>' +
         '</div>';
     } else {
       html += '<div class="caravan-party-slot caravan-party-slot-empty"><div class="caravan-slot-label">Empty</div></div>';
@@ -420,7 +415,6 @@ DS.UI._injectCaravanStyles = function() {
     '.caravan-party-slots { display: flex; gap: 12px; }' +
     '.caravan-party-slot { flex: 1; border: 2px solid #444; border-radius: 6px; padding: 10px; text-align: center; min-height: 50px; display: flex; flex-direction: column; justify-content: center; background: rgba(255,255,255,0.03); }' +
     '.caravan-party-slot-empty { border-style: dashed; background: none; color: #555; }' +
-    '.caravan-slot-pos { font-size: 0.75em; color: #888; }' +
     '.caravan-slot-name { font-size: 0.95em; font-weight: bold; }' +
     '.caravan-slot-label { font-size: 0.85em; }' +
 

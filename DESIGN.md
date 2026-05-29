@@ -1,7 +1,7 @@
 # DARKSPIRE — Game Design Document
 
 ## Concept
-Darkest Dungeon meets Slay the Spire. Four-hero party, positional deckbuilding combat,
+Darkest Dungeon meets Slay the Spire. Four-hero party, deckbuilding combat,
 branching dungeon map, roguelike progression. Browser-based, vanilla JS, single HTML file.
 
 ---
@@ -12,22 +12,20 @@ branching dungeon map, roguelike progression. Browser-based, vanilla JS, single 
 - Title screen → New Run → Map → Node encounters → Reward → Map → ... → Boss → Game Over
 - 7-floor branching map (canvas-rendered, animated, StS-style)
 - Card-based combat with energy system (3/turn, draw 5)
-- Position system (heroes at pos 1-4, cards require specific positions)
 - Turn structure: play cards → end turn → enemy actions → poison ticks → new turn
 
 ### Heroes (4, fixed party)
-| Hero    | HP | Pos | Role                        |
-|---------|----|-----|-----------------------------|
-| Fighter | 52 | 1   | Tank — block, melee damage   |
-| Rogue   | 38 | 2   | DPS — multi-hit, poison      |
-| Cleric  | 34 | 3   | Support — heals, shields     |
-| Wizard  | 26 | 4   | AoE — spells, card draw      |
+| Hero    | HP | Role                         |
+|---------|----|------------------------------|
+| Fighter | 52 | Tank — block, melee damage   |
+| Rogue   | 38 | DPS — multi-hit, poison      |
+| Cleric  | 34 | Support — heals, shields     |
+| Wizard  | 26 | AoE — spells, card draw      |
 
 ### Cards (32 total: 4 per hero × 2 tiers)
 - **Starter cards** (16): 4 per hero, 2 copies each = 32-card starting deck
 - **Reward cards** (16): 4 per hero, offered post-combat (3 random picks)
 - Card types: attack, block, heal, draw, utility
-- Position-gated: each card lists valid positions (prefPos)
 - Upgrade system: +3 value, append "+" to name
 
 ### Enemies
@@ -39,10 +37,10 @@ branching dungeon map, roguelike progression. Browser-based, vanilla JS, single 
 
 ### Relics (12 total)
 - **Common** (5): Iron Shield, Healing Herb, Sharpening Stone, Torch, Lucky Coin
-- **Uncommon** (5): Berserker's Ring, Mage's Codex, Guardian Angel, Position Boots, Vampiric Blade
+- **Uncommon** (5): Berserker's Ring, Mage's Codex, Guardian Angel, Swift Boots, Vampiric Blade
 - **Rare** (3): Crown of Thorns, Philosopher's Stone, Time Crystal, Soul Jar, Dragon's Heart
 - Hook system: onCombatStart, onTurnStart, onCardPlayed, onDamageTaken, onEnemyKill, onCombatEnd
-- Flag system: energyBonus, enemyDamageBonus, goldMultiplier, ignorePosition, persistentBlock, etc.
+- Flag system: energyBonus, enemyDamageBonus, goldMultiplier, persistentBlock, etc.
 
 ### Events (8)
 Mysterious Shrine, Wandering Merchant, Training Grounds, Trapped Chest,
@@ -88,7 +86,6 @@ The Beggar (delayed relic payoff), Ancient Library, Blood Altar, The Forge
 - [x] Enemy intent icons — DONE (sword, shield, arrow, skull, heart, poison icons)
 - [ ] Turn order clarity (whose turn it is, visual indicator)
 - [x] Card highlighting — DONE (playable cards breathe-glow, unplayable dimmed/labelled)
-- [ ] Position indicators on the battlefield
 - [ ] Responsive layout (currently assumes ~500px+ width)
 - [ ] Mobile touch support
 
@@ -212,7 +209,6 @@ darkspire/
 2. **Vanilla JS.** No React, no framework. DOM manipulation + canvas.
 3. **Data-driven.** Heroes, cards, enemies, relics, events are all plain objects in data/ files.
 4. **Hook system for relics.** Relics declare hooks (onCombatStart, onCardPlayed, etc.) that the combat engine calls at the right time. New relics = new objects, no engine changes needed.
-5. **Position matters.** The 4-position system is the key differentiator from StS. Cards are gated by position. Moving/swapping heroes is a tactical choice.
 
 ### Known Bugs / Tech Debt
 - [ ] Save/Load is stubbed but non-functional (functions with refs can't serialize)

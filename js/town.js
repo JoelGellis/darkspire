@@ -505,20 +505,21 @@ DS.UI._injectTownStyles = function() {
   DS.UI._stylesInjected.town = true;
   var style = document.createElement('style');
   style.textContent =
-    '.screen-town { padding: 20px 24px; max-width: 800px; margin: 0 auto; min-height: 100vh; background: var(--bg-darkest); }' +
+    '.screen-town { padding: 24px 28px; max-width: 820px; margin: 0 auto; min-height: 100vh; background: radial-gradient(ellipse at 50% 10%,rgba(60,30,20,0.15) 0%,transparent 50%),var(--bg-darkest); }' +
 
-    '.town-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--border); }' +
-    '.town-header-stats { display: flex; gap: 16px; align-items: center; }' +
-    '.town-gold { font-size: 1.2em; color: var(--gold); }' +
+    '.town-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }' +
+    '.town-header-stats { display: flex; gap: 18px; align-items: center; }' +
+    '.town-gold { font-size: 1.2em; color: var(--gold); text-shadow: 0 0 6px rgba(212,168,67,0.2); }' +
     '.town-runs { font-size: 0.9em; color: var(--text-dim); }' +
 
-    '.town-section-title { font-size: 1.1em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin: 0 0 12px 0; }' +
+    '.town-section-title { font-family: "Cinzel",serif; font-size: 1.1em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 3px; margin: 0 0 14px 0; }' +
     '.town-roster { margin-bottom: 28px; }' +
     '.town-roster-list { display: flex; flex-wrap: wrap; gap: 12px; }' +
 
-    '.town-hero-card { background: var(--bg-panel); border: 2px solid var(--border); border-radius: 8px; padding: 14px 16px; min-width: 160px; max-width: 200px; }' +
-    '.town-hero-veteran { border-color: var(--gold-dim); }' +
-    '.town-hero-name { font-size: 1.1em; font-weight: 700; margin-bottom: 4px; }' +
+    '.town-hero-card { background: linear-gradient(180deg,rgba(26,18,37,0.95),rgba(18,12,28,0.95)); border: 2px solid var(--border); border-radius: 8px; padding: 16px 18px; min-width: 165px; max-width: 210px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.25s; }' +
+    '.town-hero-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }' +
+    '.town-hero-veteran { border-color: var(--gold-dim); box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 8px rgba(212,168,67,0.1); }' +
+    '.town-hero-name { font-family: "Cinzel",serif; font-size: 1.1em; font-weight: 700; margin-bottom: 4px; letter-spacing: 1px; }' +
     '.town-hero-stars { font-size: 0.85em; margin-bottom: 4px; }' +
     '.town-hero-stats { font-size: 0.8em; color: var(--text-dim); display: flex; flex-direction: column; gap: 2px; }' +
 
@@ -530,8 +531,8 @@ DS.UI._injectTownStyles = function() {
 
     '.town-buildings { margin-bottom: 28px; }' +
     '.town-buildings-grid { display: flex; flex-wrap: wrap; gap: 12px; }' +
-    '.town-building { background: var(--bg-panel); border: 2px solid var(--border); border-radius: 8px; padding: 16px; min-width: 200px; max-width: 240px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }' +
-    '.town-building:hover { border-color: var(--border-light); transform: translateY(-2px); }' +
+    '.town-building { background: linear-gradient(180deg,rgba(26,18,37,0.95),rgba(18,12,28,0.95)); border: 2px solid var(--border); border-radius: 8px; padding: 18px; min-width: 200px; max-width: 240px; cursor: pointer; transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }' +
+    '.town-building:hover { border-color: var(--border-light); transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }' +
     '.town-building-icon { font-size: 1.6em; margin-bottom: 6px; }' +
     '.town-building-name { font-size: 1em; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }' +
     '.town-building-desc { font-size: 0.8em; color: var(--text-dim); margin-bottom: 6px; line-height: 1.4; }' +
@@ -540,8 +541,8 @@ DS.UI._injectTownStyles = function() {
     '.town-building-cost { font-size: 0.85em; color: var(--gold); font-weight: 700; }' +
 
     '.town-actions { display: flex; gap: 12px; margin-top: 24px; }' +
-    '.town-btn-spire { background: var(--crimson); color: #fff; border: 1px solid var(--crimson-dim); padding: 12px 32px; border-radius: 4px; cursor: pointer; font-size: 1.1em; font-weight: 700; letter-spacing: 2px; }' +
-    '.town-btn-spire:hover { background: #d84848; }' +
+    '.town-btn-spire { background: linear-gradient(180deg,#c43c3c,#a02828); color: #fff; border: 2px solid #d04848; padding: 14px 36px; border-radius: 6px; cursor: pointer; font-family: "Cinzel",serif; font-size: 1.1em; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; box-shadow: 0 3px 10px rgba(196,60,60,0.3), inset 0 1px 0 rgba(255,255,255,0.1); transition: all 0.25s; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }' +
+    '.town-btn-spire:hover { background: linear-gradient(180deg,#d84848,#b03030); box-shadow: 0 0 20px rgba(196,60,60,0.4), 0 4px 12px rgba(196,60,60,0.2); transform: translateY(-2px); }' +
     '.town-btn-newgame { background: var(--bg-panel); color: var(--text-dim); border: 1px solid var(--border); padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 0.9em; }' +
     '.town-btn-newgame:hover { background: var(--bg-card); }' +
 

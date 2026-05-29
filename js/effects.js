@@ -26,51 +26,86 @@
 
   var CONFIGS = {
     combat: {
-      count: 30,
+      count: 40,
       spawn: function (w, h) {
+        var r = Math.random();
         return {
           x: Math.random() * w,
           y: h + 10,
-          vx: (Math.random() - 0.5) * 0.3,
-          vy: -(0.3 + Math.random() * 0.5),
-          size: 1 + Math.random() * 2,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: -(0.3 + Math.random() * 0.6),
+          size: 0.8 + Math.random() * 2.2,
           life: 1.0,
           decay: 0.002 + Math.random() * 0.003,
-          color: Math.random() > 0.6 ? "200,80,30" : "180,140,60",
-          drift: Math.random() * 0.02,
+          color: r > 0.7 ? "220,90,30" : r > 0.3 ? "180,140,60" : "160,80,40",
+          drift: Math.random() * 0.025,
         };
       },
     },
     rest: {
-      count: 40,
+      count: 50,
       spawn: function (w, h) {
         var cx = w / 2;
         return {
-          x: cx + (Math.random() - 0.5) * 80,
-          y: h * 0.55 + Math.random() * 30,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: -(0.5 + Math.random() * 1.0),
+          x: cx + (Math.random() - 0.5) * 100,
+          y: h * 0.52 + Math.random() * 30,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: -(0.5 + Math.random() * 1.2),
           size: 1 + Math.random() * 2.5,
           life: 1.0,
-          decay: 0.005 + Math.random() * 0.005,
+          decay: 0.004 + Math.random() * 0.005,
           color: Math.random() > 0.4 ? "240,140,30" : "255,200,60",
-          drift: Math.random() * 0.03,
+          drift: Math.random() * 0.035,
         };
       },
     },
     title: {
-      count: 20,
+      count: 28,
+      spawn: function (w, h) {
+        var r = Math.random();
+        return {
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.12,
+          vy: -(0.04 + Math.random() * 0.12),
+          size: 0.5 + Math.random() * 1.8,
+          life: 1.0,
+          decay: 0.001 + Math.random() * 0.0015,
+          color: r > 0.6 ? "160,80,220" : r > 0.3 ? "120,60,180" : "200,60,60",
+          drift: Math.random() * 0.012,
+        };
+      },
+    },
+    reward: {
+      count: 35,
+      spawn: function (w, h) {
+        var cx = w / 2;
+        return {
+          x: cx + (Math.random() - 0.5) * w * 0.6,
+          y: h + 10,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: -(0.4 + Math.random() * 0.8),
+          size: 0.8 + Math.random() * 2,
+          life: 1.0,
+          decay: 0.002 + Math.random() * 0.003,
+          color: Math.random() > 0.5 ? "212,168,67" : "240,200,80",
+          drift: Math.random() * 0.02,
+        };
+      },
+    },
+    map: {
+      count: 15,
       spawn: function (w, h) {
         return {
           x: Math.random() * w,
           y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.1,
-          vy: -(0.05 + Math.random() * 0.15),
-          size: 0.5 + Math.random() * 1.5,
+          vx: (Math.random() - 0.5) * 0.08,
+          vy: -(0.02 + Math.random() * 0.06),
+          size: 0.3 + Math.random() * 1.0,
           life: 1.0,
-          decay: 0.001 + Math.random() * 0.002,
-          color: Math.random() > 0.5 ? "160,80,220" : "120,60,180",
-          drift: Math.random() * 0.01,
+          decay: 0.0008 + Math.random() * 0.001,
+          color: Math.random() > 0.5 ? "120,80,40" : "80,60,30",
+          drift: Math.random() * 0.008,
         };
       },
     },
@@ -174,6 +209,8 @@
     "screen-title": "title",
     "screen-combat": "combat",
     "screen-rest": "rest",
+    "screen-reward": "reward",
+    "screen-map": "map",
   };
 
   function detectScreen() {

@@ -384,18 +384,9 @@ DS.UI = {
     var run = DS.State.run;
     panel.innerHTML = '';
 
-    // Back to front: pos 4 is leftmost (back), pos 1 is rightmost (front, near enemies)
-    for (var pos = 4; pos >= 1; pos--) {
-      var hero = run.heroes.find(function(h) { return h.pos === pos; });
-      if (!hero) {
-        // Empty slot placeholder
-        var empty = document.createElement('div');
-        empty.className = 'stage-entity stage-hero empty-slot';
-        empty.innerHTML = '<div class="entity-pos">' + pos + '</div><div class="entity-sprite-wrap"><div class="sprite-empty"></div></div>';
-        panel.appendChild(empty);
-        continue;
-      }
-
+    // Render in reverse party order so the last hero is leftmost (back), first is rightmost (near enemies)
+    var ordered = run.heroes.slice().reverse();
+    ordered.forEach(function(hero) {
       var dead = hero.hp <= 0;
       var pct = dead ? 0 : Math.max(0, (hero.hp / hero.maxHp) * 100);
 
@@ -428,7 +419,6 @@ DS.UI = {
       if (hero.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1</span>';
 
       el.innerHTML =
-        '<div class="entity-pos">' + hero.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
         '<div class="entity-name ' + hero.cls + '">' + hero.name + '</div>' +
         '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div>' +
@@ -436,7 +426,7 @@ DS.UI = {
         (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '');
 
       panel.appendChild(el);
-    }
+    });
   },
 
   // ===== ENEMY RENDERING =====
@@ -445,9 +435,7 @@ DS.UI = {
     var combat = DS.State.combat;
     panel.innerHTML = '';
 
-    // Front to back: pos 1 leftmost (near heroes), higher positions to the right
-    var sorted = combat.enemies.slice().sort(function(a, b) { return a.pos - b.pos; });
-    sorted.forEach(function(enemy) {
+    combat.enemies.forEach(function(enemy) {
       var dead = enemy.hp <= 0;
       var pct = dead ? 0 : Math.max(0, (enemy.hp / enemy.maxHp) * 100);
 
@@ -512,7 +500,6 @@ DS.UI = {
 
       el.innerHTML =
         intentHtml +
-        '<div class="entity-pos">' + enemy.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(enemy, 'left').outerHTML + '</div>' +
         '<div class="entity-name">' + enemy.name + '</div>' +
         '<div class="entity-hp-bar"><div class="entity-hp-fill enemy-hp" style="width:' + pct + '%"></div></div>' +
@@ -534,18 +521,15 @@ DS.UI = {
     var maxAngle = Math.min(total * 5, 35);
 
     combat.hand.forEach(function(card, idx) {
-      var hero = DS.State.run.heroes[card.heroIdx];
       var check = DS.Combat.canPlayCard(card);
       var isSelected = combat.selectedCard === idx;
 
       var extraClass = '';
       if (!check.playable) {
         if (check.reason === 'dead') extraClass = 'hero-dead';
-        else if (check.reason === 'position') extraClass = 'wrong-pos';
         else extraClass = 'unplayable';
       }
 
-      var posOk = hero.hp > 0 && (card.prefPos.includes(hero.pos) || (check.playable && check.usesBoots));
       var artClass = 'card-art-' + card.type;
 
       // Fan arc math
@@ -566,7 +550,6 @@ DS.UI = {
         })(idx);
       }
 
-      var posReqStr = card.prefPos.join(',');
       var upgradedBadge = card.upgraded ? '<span class="card-upgraded">+</span>' : '';
 
       el.innerHTML =
@@ -578,9 +561,6 @@ DS.UI = {
         '<div class="card-effect">' + card.desc + '</div>' +
         '<div class="card-footer">' +
           '<div class="card-class">' + card.heroName + '</div>' +
-          '<div class="card-pos-req ' + (posOk ? 'pos-ok' : 'pos-bad') + '">' +
-            (posOk ? '\u2713' : '\u2717') + ' Pos ' + posReqStr + (hero.hp > 0 ? ' (at ' + hero.pos + ')' : '') +
-          '</div>' +
         '</div>';
       container.appendChild(el);
     });
@@ -616,7 +596,7 @@ DS.UI = {
           '<div class="card-effect">' + card.desc + '</div>' +
           '<div class="card-footer">' +
             '<div class="card-class">' + card.heroName + '</div>' +
-            '<div class="card-pos-req">Pos ' + card.prefPos.join(',') + '</div>' +
+            
           '</div>' +
         '</div>';
     });
@@ -646,7 +626,6 @@ DS.UI = {
             cost: card.cost,
             type: card.type,
             target: card.target,
-            prefPos: card.prefPos.slice(),
             desc: card.desc,
             value: card.value,
             effect: card.effect,
@@ -777,7 +756,7 @@ DS.UI = {
           '<div class="card-effect">' + upgradeDesc + '</div>' +
           '<div class="card-footer">' +
             '<div class="card-class">' + card.heroName + '</div>' +
-            '<div class="card-pos-req">Pos ' + card.prefPos.join(',') + '</div>' +
+            
           '</div>' +
         '</div>';
     });
@@ -846,7 +825,7 @@ DS.UI = {
           '<div class="card-effect">' + card.desc + '</div>' +
           '<div class="card-footer">' +
             '<div class="card-class">' + card.heroName + '</div>' +
-            '<div class="card-pos-req">Pos ' + card.prefPos.join(',') + '</div>' +
+            
           '</div>' +
         '</div>';
     });
@@ -1067,7 +1046,7 @@ DS.UI = {
             '<div class="card-effect">' + card.desc + '</div>' +
             '<div class="card-footer">' +
               '<div class="card-class">' + card.heroName + '</div>' +
-              '<div class="card-pos-req">Pos ' + card.prefPos.join(',') + '</div>' +
+              
             '</div>' +
           '</div>' +
           '<div class="shop-price' + (canAfford ? '' : ' shop-price-red') + '">\uD83D\uDCB0 ' + price + '</div>' +
@@ -1147,7 +1126,6 @@ DS.UI = {
             cost: card.cost,
             type: card.type,
             target: card.target,
-            prefPos: card.prefPos.slice(),
             desc: card.desc,
             value: card.value,
             effect: card.effect,
@@ -1311,7 +1289,7 @@ DS.UI = {
           '<div class="card-effect">' + card.desc + '</div>' +
           '<div class="card-footer">' +
             '<div class="card-class">' + card.heroName + '</div>' +
-            '<div class="card-pos-req">Pos ' + card.prefPos.join(',') + '</div>' +
+            
           '</div>' +
         '</div>';
     });
@@ -1367,7 +1345,7 @@ DS.UI = {
             '<div class="card-effect">' + card.desc + '</div>' +
             '<div class="card-footer">' +
               '<div class="card-class">' + card.heroName + '</div>' +
-              '<div class="card-pos-req">Pos ' + card.prefPos.join(',') + '</div>' +
+              
             '</div>' +
           '</div>';
       });
@@ -1448,21 +1426,19 @@ DS.UI = {
     DS.UI._stylesInjected.map = true;
     var style = document.createElement('style');
     style.textContent = [
-      '.screen-map { display:flex; flex-direction:column; min-height:100vh; background:var(--bg-darkest); }',
-      '.map-header { display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:linear-gradient(180deg,#1a0e28,var(--bg-dark)); border-bottom:2px solid var(--border); }',
       '.map-header-left { display:flex; align-items:center; gap:16px; }',
       '.map-header-right { display:flex; align-items:center; gap:8px; }',
-      '.map-gold { font-size:14px; }',
-      '.map-body { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; }',
-      '.map-footer { padding:16px 24px; border-top:2px solid var(--border); background:var(--bg-dark); }',
+      '.map-gold { font-size:15px; }',
+      '.map-body { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; position:relative; }',
+      '.map-footer { padding:16px 24px; border-top:1px solid rgba(80,60,30,0.3); background:linear-gradient(0deg,rgba(16,10,6,0.9),rgba(14,8,16,0.6)); }',
       '.map-deck-info { text-align:center; font-size:12px; color:var(--text-dim); margin-top:8px; letter-spacing:1px; }',
       '.relic-icons { display:flex; gap:6px; flex-wrap:wrap; }',
-      '.relic-icon { font-size:20px; cursor:help; transition:transform 0.2s; }',
-      '.relic-icon:hover { transform:scale(1.3); }',
+      '.relic-icon { font-size:20px; cursor:help; transition:all 0.2s; }',
+      '.relic-icon:hover { transform:scale(1.3) translateY(-2px); }',
       '.party-bar { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }',
-      '.party-hero { padding:8px 14px; background:var(--bg-panel); border:1px solid var(--border); border-radius:6px; min-width:110px; text-align:center; }',
-      '.party-hero-name { font-size:12px; font-weight:700; margin-bottom:3px; }',
-      '.party-hero-hp { font-size:11px; color:var(--text-dim); margin-bottom:3px; }',
+      '.party-hero { padding:10px 16px; background:linear-gradient(180deg,rgba(26,18,37,0.9),rgba(18,12,28,0.9)); border:1px solid var(--border); border-radius:8px; min-width:115px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.3); }',
+      '.party-hero-name { font-family:"Cinzel",serif; font-size:12px; font-weight:700; margin-bottom:4px; letter-spacing:1px; }',
+      '.party-hero-hp { font-size:11px; color:var(--text-dim); margin-bottom:4px; }',
     ].join('\n');
     document.head.appendChild(style);
   },
@@ -1472,17 +1448,17 @@ DS.UI = {
     DS.UI._stylesInjected.event = true;
     var style = document.createElement('style');
     style.textContent = [
-      '.screen-event { display:flex; justify-content:center; align-items:center; background:radial-gradient(circle at 50% 40%,rgba(100,40,180,0.15) 0%,transparent 60%),var(--bg-darkest); }',
-      '.event-panel { text-align:center; max-width:650px; padding:40px; }',
-      '.event-icon { font-size:56px; margin-bottom:10px; }',
-      '.event-title { font-size:36px; font-weight:900; letter-spacing:6px; color:var(--purple); text-shadow:0 0 20px rgba(140,60,220,0.4); margin-bottom:12px; }',
-      '.event-text { font-size:15px; color:var(--text-dim); line-height:1.7; margin-bottom:28px; max-width:540px; margin-left:auto; margin-right:auto; font-style:italic; }',
+      '.screen-event { display:flex; justify-content:center; align-items:center; min-height:100vh; background:radial-gradient(ellipse at 50% 40%,rgba(100,40,180,0.12) 0%,transparent 55%),radial-gradient(ellipse at 50% 50%,rgba(60,30,100,0.08) 0%,transparent 70%),var(--bg-darkest); }',
+      '.event-panel { text-align:center; max-width:650px; padding:44px 40px; background:linear-gradient(180deg,rgba(32,24,48,0.6),rgba(20,14,30,0.8)); border:1px solid var(--border); border-radius:12px; box-shadow:0 12px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.03); position:relative; }',
+      '.event-icon { font-size:60px; margin-bottom:12px; filter:drop-shadow(0 0 15px rgba(140,60,220,0.3)); }',
+      '.event-title { font-family:"Cinzel Decorative","Cinzel",serif; font-size:36px; font-weight:900; letter-spacing:6px; color:var(--purple); text-shadow:0 0 20px rgba(140,60,220,0.4),0 3px 0 rgba(60,20,100,0.4); margin-bottom:14px; }',
+      '.event-text { font-family:"Crimson Text",serif; font-size:15px; color:var(--text-dim); line-height:1.8; margin-bottom:28px; max-width:540px; margin-left:auto; margin-right:auto; font-style:italic; }',
       '.event-choices { display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }',
-      '.btn-event-choice { padding:16px 24px; text-align:left; background:var(--bg-panel); border:2px solid var(--border); border-radius:8px; cursor:pointer; transition:all 0.3s; color:var(--text); }',
-      '.btn-event-choice:hover { border-color:var(--purple); box-shadow:0 0 16px rgba(140,60,220,0.2); background:rgba(100,40,160,0.1); }',
-      '.event-choice-label { font-size:15px; font-weight:700; color:var(--text-bright); margin-bottom:4px; }',
+      '.btn-event-choice { padding:16px 24px; text-align:left; background:linear-gradient(90deg,rgba(20,14,30,0.7),rgba(25,18,38,0.5)); border:1px solid var(--border); border-left:3px solid var(--border); border-radius:4px 8px 8px 4px; cursor:pointer; transition:all 0.25s; color:var(--text); }',
+      '.btn-event-choice:hover { border-color:var(--purple); border-left-color:var(--purple); box-shadow:0 0 20px rgba(140,60,220,0.2),0 2px 8px rgba(0,0,0,0.3); background:linear-gradient(90deg,rgba(50,30,70,0.7),rgba(35,22,50,0.5)); transform:translateX(6px); }',
+      '.event-choice-label { font-family:"Cinzel",serif; font-size:15px; font-weight:700; color:var(--text-bright); margin-bottom:4px; }',
       '.event-choice-desc { font-size:12px; color:var(--text-dim); }',
-      '.event-result { font-size:15px; color:var(--text); line-height:1.6; margin-bottom:24px; padding:20px; background:var(--bg-panel); border:1px solid var(--border); border-radius:8px; font-style:italic; }',
+      '.event-result { font-size:15px; color:var(--text); line-height:1.6; margin-bottom:24px; padding:20px; background:rgba(20,14,30,0.5); border:1px solid var(--border); border-left:3px solid var(--purple); border-radius:4px 8px 8px 4px; font-style:italic; }',
       '.btn-event-continue { padding:14px 40px; font-size:16px; font-weight:700; letter-spacing:3px; }',
     ].join('\n');
     document.head.appendChild(style);
@@ -1493,11 +1469,11 @@ DS.UI = {
     DS.UI._stylesInjected.shop = true;
     var style = document.createElement('style');
     style.textContent = [
-      '.screen-shop { display:flex; justify-content:center; align-items:flex-start; background:radial-gradient(circle at 50% 30%,rgba(40,100,50,0.12) 0%,transparent 50%),var(--bg-darkest); min-height:100vh; padding-top:20px; }',
+      '.screen-shop { display:flex; justify-content:center; align-items:flex-start; background:radial-gradient(ellipse at 50% 15%,rgba(80,60,20,0.2) 0%,transparent 40%),radial-gradient(ellipse at 50% 80%,rgba(40,20,60,0.1) 0%,transparent 40%),var(--bg-darkest); min-height:100vh; padding-top:20px; }',
       '.shop-panel { text-align:center; max-width:800px; width:100%; padding:30px; }',
-      '.shop-header { margin-bottom:24px; }',
-      '.shop-title { font-size:40px; font-weight:900; letter-spacing:8px; color:var(--gold); text-shadow:0 0 20px rgba(212,168,67,0.3); margin-bottom:8px; }',
-      '.shop-gold { font-size:20px; color:var(--gold); font-weight:700; }',
+      '.shop-header { margin-bottom:28px; }',
+      '.shop-title { font-family:"Cinzel Decorative","Cinzel",serif; font-size:42px; font-weight:900; letter-spacing:10px; color:var(--gold); text-shadow:0 0 25px rgba(212,168,67,0.4),0 3px 0 rgba(140,100,30,0.4); margin-bottom:10px; }',
+      '.shop-gold { font-size:20px; color:var(--gold); font-weight:700; text-shadow:0 0 8px rgba(212,168,67,0.2); }',
       '.shop-section { margin-bottom:28px; }',
       '.shop-section-title { font-size:14px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:12px; }',
       '.shop-cards { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }',
@@ -1540,10 +1516,10 @@ DS.UI = {
     var style = document.createElement('style');
     style.textContent = [
       '.top-bar-center { display:flex; align-items:center; justify-content:center; }',
-      '.turn-phase-indicator { font-size:13px; font-weight:900; letter-spacing:3px; text-transform:uppercase; padding:3px 14px; border-radius:4px; transition:all 0.3s; }',
-      '.turn-phase-indicator.player-phase { color:#44ff88; text-shadow:0 0 8px rgba(68,255,136,0.4); }',
-      '.turn-phase-indicator.enemy-phase { color:#ff4444; text-shadow:0 0 8px rgba(255,68,68,0.4); animation:enemyPhasePulse 0.8s ease-in-out infinite; }',
-      '@keyframes enemyPhasePulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }',
+      '.turn-phase-indicator { font-family:"Cinzel",serif; font-size:14px; font-weight:900; letter-spacing:4px; text-transform:uppercase; padding:4px 18px; border-radius:4px; transition:all 0.4s; border:1px solid transparent; }',
+      '.turn-phase-indicator.player-phase { color:#44ff88; text-shadow:0 0 10px rgba(68,255,136,0.5), 0 0 25px rgba(68,255,136,0.15); border-color:rgba(68,255,136,0.15); background:rgba(68,255,136,0.04); }',
+      '.turn-phase-indicator.enemy-phase { color:#ff4444; text-shadow:0 0 10px rgba(255,68,68,0.5), 0 0 25px rgba(255,68,68,0.15); border-color:rgba(255,68,68,0.15); background:rgba(255,68,68,0.04); animation:enemyPhasePulse 1s ease-in-out infinite; }',
+      '@keyframes enemyPhasePulse { 0%,100% { opacity:1; text-shadow:0 0 10px rgba(255,68,68,0.5), 0 0 25px rgba(255,68,68,0.15); } 50% { opacity:0.6; text-shadow:0 0 16px rgba(255,68,68,0.7), 0 0 35px rgba(255,68,68,0.25); } }',
     ].join('\n');
     document.head.appendChild(style);
   }
