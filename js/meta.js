@@ -9,6 +9,7 @@ DS.Meta = {
   buildings: {},
   graveyard: [],
   unlocks: [],
+  ownedGear: [],   // gear/artifacts bought from the merchant; equipping is Phase 5 (loadout)
 
   // Building config (not persisted — reference only)
   _buildingConfig: {
@@ -34,6 +35,7 @@ DS.Meta = {
     };
     DS.Meta.graveyard = [];
     DS.Meta.unlocks = [];
+    DS.Meta.ownedGear = [];
     DS.Meta.save();
   },
 
@@ -46,7 +48,8 @@ DS.Meta = {
         heroRoster: DS.Meta.heroRoster,
         buildings: DS.Meta.buildings,
         graveyard: DS.Meta.graveyard,
-        unlocks: DS.Meta.unlocks
+        unlocks: DS.Meta.unlocks,
+        ownedGear: DS.Meta.ownedGear
       };
       localStorage.setItem('darkspire_meta', JSON.stringify(data));
     } catch (e) {
@@ -70,6 +73,7 @@ DS.Meta = {
       DS.Meta.buildings = data.buildings || { chapel: { level: 0 }, tavern: { level: 0 }, graveyard: { level: 0 } };
       DS.Meta.graveyard = data.graveyard || [];
       DS.Meta.unlocks = data.unlocks || [];
+      DS.Meta.ownedGear = data.ownedGear || [];   // backfills old saves with no gear
 
       // Ensure building shape
       if (!DS.Meta.buildings.chapel) DS.Meta.buildings.chapel = { level: 0 };
@@ -148,6 +152,23 @@ DS.Meta = {
 
   getGold: function() {
     return DS.Meta.gold;
+  },
+
+  // ===== GEAR (merchant purchases) =====
+  // Gear is bought in town with banked gold and stored on the meta save.
+  // Equipping/loadout selection is Phase 5 — for now ownership just persists.
+
+  ownsGear: function(gearId) {
+    return DS.Meta.ownedGear.indexOf(gearId) !== -1;
+  },
+
+  // Buy a gear item: deduct banked gold, record ownership. Returns true on success.
+  buyGear: function(gearId, price) {
+    if (DS.Meta.ownsGear(gearId)) return false;
+    if (!DS.Meta.spendGold(price)) return false;   // spendGold persists the save
+    DS.Meta.ownedGear.push(gearId);
+    DS.Meta.save();
+    return true;
   },
 
   // ===== BUILDINGS =====
@@ -285,5 +306,37 @@ DS.Meta = {
   // Bonus starting gold from champion unlock
   getUnlockGoldBonus: function() {
     return DS.Meta.hasUnlock('champion') ? 10 : 0;
+  }
+};
+
+// ===== GEAR CATALOGUE (PLACEHOLDER) =====
+// The town merchant sells GEAR / artifacts only (no cards, no card-removal) — that
+// service lives on-run. This is a small PLACEHOLDER set so the merchant flow is
+// playable now; the real catalogue + effects land with Phase 5 (loadout/equipment).
+//
+// TODO(Phase 5): give each item a real effect (passive / triggered / deck-injecting),
+//   wire ownership into the run-start loadout, and add salvage/take-home.
+// TODO(balance): prices are rough placeholders. Replace from the reference-data DB
+//   (D&D flavor · Darkest Dungeon tactics · Slay the Spire numbers) once it exists.
+DS.Gear = {
+  catalog: [
+    // --- Common ---
+    { id: 'gear_iron_dagger',   name: 'Iron Dagger',     icon: '🗡️', rarity: 'common',   price: 30,  desc: 'A plain but reliable blade. (Effect TBD — Phase 5)' },
+    { id: 'gear_oak_buckler',   name: 'Oak Buckler',     icon: '🛡️', rarity: 'common',   price: 35,  desc: 'A light wooden shield. (Effect TBD — Phase 5)' },
+    { id: 'gear_leather_jerkin',name: 'Leather Jerkin',  icon: '🦺',       rarity: 'common',   price: 30,  desc: 'Basic hide armor. (Effect TBD — Phase 5)' },
+    // --- Uncommon ---
+    { id: 'gear_whetstone',     name: 'Whetstone Charm', icon: '⚙️',       rarity: 'uncommon', price: 60,  desc: 'Keeps an edge keen. (Effect TBD — Phase 5)' },
+    { id: 'gear_shadow_cloak',  name: 'Shadow Cloak',    icon: '🧥',       rarity: 'uncommon', price: 65,  desc: 'Woven from dusk. (Effect TBD — Phase 5)' },
+    { id: 'gear_vigor_ring',    name: 'Ring of Vigor',   icon: '💍',       rarity: 'uncommon', price: 70,  desc: 'Pulses with vitality. (Effect TBD — Phase 5)' },
+    // --- Rare ---
+    { id: 'gear_dragonscale',   name: 'Dragonscale Plate', icon: '🐲',     rarity: 'rare',     price: 130, desc: 'Forged from a wyrm\'s hide. (Effect TBD — Phase 5)' },
+    { id: 'gear_ember_staff',   name: 'Staff of Embers',   icon: '🔥',     rarity: 'rare',     price: 140, desc: 'Smolders with old fire. (Effect TBD — Phase 5)' }
+  ],
+
+  getById: function(gearId) {
+    for (var i = 0; i < DS.Gear.catalog.length; i++) {
+      if (DS.Gear.catalog[i].id === gearId) return DS.Gear.catalog[i];
+    }
+    return null;
   }
 };

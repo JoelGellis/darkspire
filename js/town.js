@@ -145,6 +145,19 @@ DS.UI.renderTown = function(root) {
         : '<div class="town-building-cost">MAX LEVEL</div>') +
     '</div>';
 
+  // Merchant — the same merchant met on runs, but in town he deals in GEAR / artifacts
+  // only (no cards, no card-removal — those stay on-run). Opens the gear shop sub-view.
+  var ownedGearCount = (meta.ownedGear || []).length;
+  var gearTotal = (DS.Gear && DS.Gear.catalog) ? DS.Gear.catalog.length : 0;
+  buildingsHtml +=
+    '<div class="town-building town-building-merchant" id="town-building-merchant">' +
+      '<div class="town-building-icon">&#x1F9D9;</div>' +
+      '<div class="town-building-name">Merchant</div>' +
+      '<div class="town-building-desc">The wandering trader has set up a stall. Buy gear &amp; artifacts with your banked gold.</div>' +
+      '<div class="town-building-bonus">Gear owned: ' + ownedGearCount + '/' + gearTotal + '</div>' +
+      '<div class="town-building-cost">Browse wares &rarr;</div>' +
+    '</div>';
+
   buildingsHtml += '</div></div>';
 
   // ===== UNLOCKS =====
@@ -177,6 +190,10 @@ DS.UI.renderTown = function(root) {
 
   document.getElementById('town-building-blacksmith').onclick = function() {
     DS.UI._townShowBlacksmithHeroPicker(root);
+  };
+
+  document.getElementById('town-building-merchant').onclick = function() {
+    DS.UI._townShowMerchant(root);
   };
 
   document.getElementById('town-building-chapel').onclick = function() {
@@ -449,6 +466,76 @@ DS.UI._townShowBlacksmithConfirm = function(root, rosterIdx, cardIdx) {
   };
 };
 
+// ===== MERCHANT SUB-VIEW: GEAR SHOP (gear/artifacts only) =====
+// Same merchant as on runs, but the town stall sells GEAR ONLY — no cards, no
+// card-removal (those services stay on-run). Spends BANKED town gold (DS.Meta.gold).
+
+DS.UI._townShowMerchant = function(root) {
+  root.innerHTML = '';
+  var screen = document.createElement('div');
+  screen.className = 'screen screen-town';
+
+  var meta = DS.Meta;
+  var catalog = (DS.Gear && DS.Gear.catalog) ? DS.Gear.catalog : [];
+
+  var html =
+    '<div class="town-subview">' +
+      '<h2 class="town-section-title">MERCHANT &mdash; Gear &amp; Artifacts</h2>' +
+      '<div class="town-sub-desc">The wandering trader deals only in gear here &mdash; cards and card-removal are for the road. Equipping comes later (Phase 5); for now your purchases are banked.</div>' +
+      '<div class="town-gold-display">&#x1F4B0; ' + meta.gold + ' Gold</div>' +
+      '<div class="town-gear-picker">';
+
+  if (catalog.length === 0) {
+    html += '<div class="town-empty">The merchant has nothing to sell.</div>';
+  }
+
+  catalog.forEach(function(item) {
+    var owned = meta.ownsGear(item.id);
+    var canAfford = meta.gold >= item.price;
+    var cls = 'town-gear-card town-gear-' + item.rarity;
+    if (owned) cls += ' town-gear-owned';
+    else if (!canAfford) cls += ' town-gear-unaffordable';
+
+    html +=
+      '<div class="' + cls + '"' + (!owned && canAfford ? ' data-gear-id="' + item.id + '"' : '') + '>' +
+        '<div class="town-gear-icon">' + item.icon + '</div>' +
+        '<div class="town-gear-name">' + item.name + '</div>' +
+        '<div class="town-gear-rarity town-gear-rarity-' + item.rarity + '">' + item.rarity + '</div>' +
+        '<div class="town-gear-desc">' + item.desc + '</div>' +
+        (owned
+          ? '<div class="town-gear-status town-gear-status-owned">OWNED</div>'
+          : '<div class="town-gear-price' + (canAfford ? '' : ' town-gear-price-red') + '">&#x1F4B0; ' + item.price + 'g</div>') +
+      '</div>';
+  });
+
+  html +=
+      '</div>' +
+      '<button class="btn town-btn-back" id="btn-merchant-back">BACK</button>' +
+    '</div>';
+
+  screen.innerHTML = html;
+  root.appendChild(screen);
+
+  // Wire buy clicks (only affordable, unowned items carry data-gear-id)
+  catalog.forEach(function(item) {
+    var el = root.querySelector('[data-gear-id="' + item.id + '"]');
+    if (!el) return;
+    el.style.cursor = 'pointer';
+    el.onclick = function() {
+      if (DS.Meta.buyGear(item.id, item.price)) {
+        DS.UI._townFlash(root, 'Bought ' + item.name + '!');
+        DS.UI._townShowMerchant(root);   // re-render: gold deducts, item flips to OWNED
+      } else {
+        DS.UI._townFlash(root, 'Not enough gold!');
+      }
+    };
+  });
+
+  document.getElementById('btn-merchant-back').onclick = function() {
+    DS.UI.renderTown(root);
+  };
+};
+
 // ===== HELPERS =====
 
 // Find hero definition by class name
@@ -594,6 +681,24 @@ DS.UI._injectTownStyles = function() {
     '.town-unlock-name { font-size: 0.95em; font-weight: 700; color: var(--gold); margin-bottom: 2px; }' +
     '.town-unlock-locked .town-unlock-name { color: var(--text-dim); }' +
     '.town-unlock-desc { font-size: 0.75em; color: var(--text-dim); line-height: 1.3; }' +
+
+    // Merchant building accent + gear shop sub-view
+    '.town-building-merchant { border-color: var(--gold-dim); }' +
+    '.town-gear-picker { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }' +
+    '.town-gear-card { background: var(--bg-panel); border: 2px solid var(--border); border-radius: 8px; padding: 14px; width: 170px; display: flex; flex-direction: column; gap: 4px; transition: border-color 0.2s, transform 0.15s; }' +
+    '.town-gear-card[data-gear-id]:hover { border-color: var(--gold-dim); transform: translateY(-2px); cursor: pointer; }' +
+    '.town-gear-owned { opacity: 0.5; }' +
+    '.town-gear-unaffordable { opacity: 0.45; }' +
+    '.town-gear-icon { font-size: 1.6em; }' +
+    '.town-gear-name { font-weight: 700; color: var(--text-bright); }' +
+    '.town-gear-rarity { font-size: 0.7em; text-transform: uppercase; letter-spacing: 2px; }' +
+    '.town-gear-rarity-common { color: var(--text-dim); }' +
+    '.town-gear-rarity-uncommon { color: var(--blue); }' +
+    '.town-gear-rarity-rare { color: var(--gold); }' +
+    '.town-gear-desc { font-size: 0.78em; color: var(--text-dim); line-height: 1.35; flex: 1; }' +
+    '.town-gear-price { font-size: 0.9em; color: var(--gold); font-weight: 700; margin-top: 4px; }' +
+    '.town-gear-price-red { color: var(--crimson); }' +
+    '.town-gear-status-owned { font-size: 0.85em; color: var(--green); font-weight: 700; margin-top: 4px; }' +
 
     '.town-flash { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--bg-card); color: var(--gold); border: 1px solid var(--gold-dim); padding: 10px 24px; border-radius: 6px; font-weight: 700; z-index: 200; animation: fadeIn 0.2s; }' +
     '@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }';
