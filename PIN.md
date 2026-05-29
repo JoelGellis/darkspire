@@ -79,9 +79,16 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
 - Caveat: greedy bot, starter decks only, no repositioning/relics → absolute win% is a *lower bound*;
   trust the *relative* ordering. F5/boss numbers = "unupgraded party vs scaled fight," not live runs.
 
+## Balance pass progress
+- ✅ **Boss variance fixed** (`6819f6a`): spread 74.8% → 28%. Iron Golem 88.7%→48.8%
+  (+HP, 2nd attack), Spider Queen 13.9%→20.6% (dropped Spiderling poison-on-death, PSN 3→2).
+  All 4 bosses now 20–49%. **Feel-check against real playtest before trusting** (sim = greedy
+  bot, no relics/reposition → lower bound).
+- ⬜ **Next: trivial-normals stakes pass.** 21 normals at ~100% win / ~0% death are flat filler.
+  Nudge a representative subset in `data/enemies.js`, re-run sims, keep the *relative* signal.
+
 ## Immediate next steps on unpin
 1. Joel playtests Phase 1 + Phase 3 (badges 1–4, targeting, reposition cards, move buttons;
-   town → Merchant → buy gear → gold banks).
-2. **Balance pass (in progress, data-driven):** compress boss variance, add stakes to trivial
-   normals. Edit `data/enemies.js` → re-run `sims/run.js` → compare REPORT.md. Single-thread (one file).
+   town → Merchant → buy gear → gold banks) + the rebalanced bosses.
+2. Background loop continues the trivial-normals stakes pass (data/enemies.js → sims → compare).
 3. Then Phase 4: retreat + damned-hero permadeath.
