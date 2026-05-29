@@ -97,8 +97,12 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
   board, (b) soften the gate (free/cheaper moves, or only SOME cards gated), (c) accept it (real runs
   have relics/upgrades the sim lacks → sim is a lower bound). **Do NOT auto-tune the whole game vs an
   unupgraded bot — that would make the real, progressed game trivial.** Await Joel's pick.
-- ⬜ Safe loop work meanwhile (no design-taste call): fix the dead-hero pos-collision edge case
-  (moveForward past a dead mid-rank hero can double-occupy a rank); add a deck-size/curse check.
+- ✅ **Dead-hero rank collision fixed** (`5af0d50`): move actions now swap with whoever holds the
+  adjacent rank (alive or dead), keeping positions a clean 1..N permutation. Sim unchanged (no regr).
+- ⬜ Next autonomous-safe item: **Phase 4 scaffolding** (retreat + damned-hero permadeath) per
+  DESIGN.md. Rules are well-specified there; the only open param is the manual-retreat bank %
+  (~50% default, flag for Joel). Touches state.js/main.js/ui.js. (Deck-size limit deferred — needs a
+  spec, not autonomous.)
 
 ## UI fixes landed (2026-05-29, from playtest feedback)
 - Combat battlefield: was rendering **vertical** + combat-log **over the enemies** — killed a dead
