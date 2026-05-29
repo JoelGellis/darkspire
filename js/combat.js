@@ -856,7 +856,10 @@ DS.Combat = {
       return;
     }
     var heroes = DS.State.run.heroes;
-    var inFront = heroes.find(function(h) { return h.hp > 0 && h.pos === hero.pos - 1; });
+    // Swap with whoever holds the rank ahead (alive OR dead). Positions are a permutation
+    // of 1..N, so there's always an occupant; swapping keeps it collision-free even when a
+    // dead hero sits in the adjacent rank (the old hp>0 filter let the corpse get double-stacked).
+    var inFront = heroes.find(function(h) { return h !== hero && h.pos === hero.pos - 1; });
     if (inFront) {
       var oldPos = hero.pos;
       hero.pos = inFront.pos;
@@ -875,7 +878,8 @@ DS.Combat = {
       return;
     }
     var heroes = DS.State.run.heroes;
-    var behind = heroes.find(function(h) { return h.hp > 0 && h.pos === hero.pos + 1; });
+    // Swap with whoever holds the rank behind (alive OR dead) — see moveForward note.
+    var behind = heroes.find(function(h) { return h !== hero && h.pos === hero.pos + 1; });
     if (behind) {
       var oldPos = hero.pos;
       hero.pos = behind.pos;
