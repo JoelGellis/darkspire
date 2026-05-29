@@ -1468,7 +1468,7 @@ DS.UI = {
       '.map-header-left { display:flex; align-items:center; gap:16px; }',
       '.map-header-right { display:flex; align-items:center; gap:8px; }',
       '.map-gold { font-size:15px; }',
-      '.map-body { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; position:relative; }',
+      '.map-body { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; position:relative; overflow:hidden; min-height:0; }',
       '.map-footer { padding:16px 24px; border-top:1px solid rgba(80,60,30,0.3); background:linear-gradient(0deg,rgba(16,10,6,0.9),rgba(14,8,16,0.6)); }',
       '.map-deck-info { text-align:center; font-size:12px; color:var(--text-dim); margin-top:8px; letter-spacing:1px; }',
       '.relic-icons { display:flex; gap:6px; flex-wrap:wrap; }',

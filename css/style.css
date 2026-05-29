@@ -340,33 +340,10 @@ body {
 }
 
 /* ===== BATTLEFIELD ===== */
-#battlefield {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 20px 24px;
-  gap: 20px;
-  min-height: 340px;
-  background:
-    radial-gradient(ellipse at 50% 100%, rgba(40, 20, 60, 0.5) 0%, transparent 70%),
-    var(--bg-darkest);
-}
-
-.battlefield-divider {
-  width: 2px;
-  min-height: 280px;
-  background: linear-gradient(180deg, transparent, var(--border), transparent);
-  flex-shrink: 0;
-}
-
-#heroes-panel, #enemies-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-#enemies-panel { align-items: flex-end; }
+/* NOTE: the legacy #battlefield / #heroes-panel{flex-direction:column} rules were
+   removed — they fought the .combat-stage/.stage-heroes row layout on ID specificity,
+   forcing the battlefield vertical and stretching the enemy panel under the log.
+   Horizontal layout is governed by .combat-stage + .stage-heroes/.stage-enemies below. */
 
 .panel-label {
   font-family: 'Cinzel', serif;
@@ -2550,7 +2527,9 @@ body {
   flex: 1;
   min-height: 0;
   position: relative;
-  padding: 24px 16px 8px;
+  /* reserve the right gutter for the absolute combat-log overlay (185px) so the
+     centered hero|divider|enemy group never renders underneath it */
+  padding: 24px 195px 8px 16px;
   background:
     /* Torch glow left */
     radial-gradient(ellipse at 8% 25%, rgba(240, 140, 40, 0.1) 0%, transparent 30%),

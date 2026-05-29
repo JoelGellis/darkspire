@@ -354,6 +354,10 @@
       canvas.style.display = "block";
       canvas.style.margin = "0 auto";
       canvas.style.cursor = "pointer";
+      // Scale to fit its box (preserves the 500:700 aspect via the width/height attrs)
+      // so the whole map stays visible and clickable — never clipped under header/footer.
+      canvas.style.maxWidth = "100%";
+      canvas.style.maxHeight = "100%";
       container.appendChild(canvas);
     }
 
