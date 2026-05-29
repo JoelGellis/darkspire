@@ -1,0 +1,220 @@
+{
+  "_meta": {
+    "purpose": "Machine-readable companion to the cited reference markdown in reference/. Real numbers from the three Darkspire source games for fast balance context. Every entry carries a source URL. See the per-game .md files for the full prose, confidence tags, and the full Sources lists.",
+    "researchDate": "2026-05-29",
+    "confidenceNote": "Markdown files tag each datum [VERIFIED]/[COMMUNITY]/[INFERRED]. This JSON omits the tag for brevity — when a number matters, check the .md. StS numbers come from the slaythespire.wiki.gg game-data mirror (Fandom blocks automated fetch). DD numbers from darkestdungeon.wiki.gg (DD1). D&D from the open5e SRD mirror + dndbeyond free rules.",
+    "files": {
+      "sts": "reference/sts.md — Slay the Spire balance numbers",
+      "darkestDungeon": "reference/darkest-dungeon.md — Darkest Dungeon tactics mechanics",
+      "dnd5e": "reference/dnd-5e.md — D&D 5e SRD flavor"
+    }
+  },
+
+  "slayTheSpire": {
+    "game": "slay-the-spire",
+    "yardstick": {
+      "strike_dmg_per_energy": 6,
+      "defend_block_per_energy": 5,
+      "energy_per_turn": 3,
+      "cards_drawn_per_turn": 5,
+      "max_hand_size": 10,
+      "rule_of_thumb": "1 energy ~= 5-6 points of effect; above-rate cards must pay for themselves with an attached effect",
+      "source": "https://slaythespire.wiki.gg/wiki/Strike"
+    },
+    "cards": [
+      {"name": "Strike", "rarity": "basic", "type": "attack", "cost": 1, "value": 6, "valueUpgraded": 9, "note": "starter yardstick", "source": "https://slaythespire.wiki.gg/wiki/Strike"},
+      {"name": "Defend", "rarity": "basic", "type": "skill", "cost": 1, "value": 5, "valueUpgraded": 8, "note": "block; starter yardstick (Ironclad)", "source": "https://slaythespire.wiki.gg/wiki/Defend_(Ironclad)"},
+      {"name": "Bash", "rarity": "basic", "type": "attack", "cost": 2, "value": 8, "valueUpgraded": 10, "note": "+2 Vulnerable (3 upg)", "source": "https://slaythespire.wiki.gg/wiki/Bash"},
+      {"name": "Twin Strike", "rarity": "common", "type": "attack", "cost": 1, "value": 10, "valueUpgraded": 14, "note": "5x2 dmg (7x2 upg)", "source": "https://slaythespire.wiki.gg/wiki/Twin_Strike"},
+      {"name": "Pommel Strike", "rarity": "common", "type": "attack", "cost": 1, "value": 9, "valueUpgraded": 10, "note": "+draw 1 (2 upg)", "source": "https://slaythespire.wiki.gg/wiki/Pommel_Strike"},
+      {"name": "Iron Wave", "rarity": "common", "type": "attack", "cost": 1, "value": 5, "valueUpgraded": 7, "note": "also gains 5 block (7 upg)", "source": "https://slaythespire.wiki.gg/wiki/Iron_Wave"},
+      {"name": "Heavy Blade", "rarity": "common", "type": "attack", "cost": 2, "value": 14, "valueUpgraded": 14, "note": "Strength counts x3 (x5 upg) - scaling", "source": "https://slaythespire.wiki.gg/wiki/Heavy_Blade"},
+      {"name": "Shrug It Off", "rarity": "common", "type": "skill", "cost": 1, "value": 8, "valueUpgraded": 11, "note": "block; +draw 1", "source": "https://slaythespire.wiki.gg/wiki/Shrug_It_Off"},
+      {"name": "Uppercut", "rarity": "uncommon", "type": "attack", "cost": 2, "value": 13, "valueUpgraded": 13, "note": "+1 Weak +1 Vuln (2/2 upg)", "source": "https://slaythespire.wiki.gg/wiki/Uppercut"},
+      {"name": "Whirlwind", "rarity": "uncommon", "type": "attack", "cost": "X", "value": 5, "valueUpgraded": 8, "note": "AoE, 5 dmg/hit x X energy (8 upg)", "source": "https://slaythespire.wiki.gg/wiki/Whirlwind"},
+      {"name": "Inflame", "rarity": "uncommon", "type": "power", "cost": 1, "value": 2, "valueUpgraded": 3, "note": "+Strength, permanent this combat", "source": "https://slaythespire.wiki.gg/wiki/Inflame"},
+      {"name": "Bludgeon", "rarity": "rare", "type": "attack", "cost": 3, "value": 32, "valueUpgraded": 42, "note": "top single-target, ~10.7 dmg/energy", "source": "https://slaythespire.wiki.gg/wiki/Bludgeon"},
+      {"name": "Demon Form", "rarity": "rare", "type": "power", "cost": 3, "value": 2, "valueUpgraded": 3, "note": "+Strength EVERY turn; scaling, no immediate dmg", "source": "https://slaythespire.wiki.gg/wiki/Demon_Form"}
+    ],
+    "economy": {
+      "starting_gold": 99,
+      "combat_reward_gold_normal": "10-20",
+      "combat_reward_gold_elite": "25-35",
+      "combat_reward_gold_boss": "95-105",
+      "card_buy_common": "45-55",
+      "card_buy_uncommon": "68-83",
+      "card_buy_rare": "135-165",
+      "relic_common": "143-158",
+      "relic_uncommon": "238-263",
+      "relic_rare": "285-315",
+      "potion_common": "48-53",
+      "potion_uncommon": "71-79",
+      "potion_rare": "95-105",
+      "card_removal_base_cost": 75,
+      "card_removal_escalation": 25,
+      "source": "https://slaythespire.wiki.gg/wiki/Merchant"
+    },
+    "enemies": [
+      {"name": "Red Louse", "act": 1, "type": "normal", "hp": "10-15", "hpHighAsc": "11-16", "source": "https://slaythespire.wiki.gg/wiki/Louses"},
+      {"name": "Green Louse", "act": 1, "type": "normal", "hp": "11-17", "hpHighAsc": "12-18", "source": "https://slaythespire.wiki.gg/wiki/Louses"},
+      {"name": "Jaw Worm", "act": 1, "type": "normal", "hp": "40-44", "hpHighAsc": "42-46", "source": "https://slaythespire.wiki.gg/wiki/Jaw_Worm"},
+      {"name": "Cultist", "act": 1, "type": "normal", "hp": "48-54", "hpHighAsc": "50-56", "source": "https://slaythespire.wiki.gg/wiki/Cultist"},
+      {"name": "Gremlin Nob", "act": 1, "type": "elite", "hp": "82-86", "hpHighAsc": "85-90", "source": "https://slaythespire.wiki.gg/wiki/Gremlin_Nob"},
+      {"name": "Lagavulin", "act": 1, "type": "elite", "hp": "109-111", "hpHighAsc": "112-115", "source": "https://slaythespire.wiki.gg/wiki/Lagavulin"},
+      {"name": "Sentry (each, x3)", "act": 1, "type": "elite", "hp": "38-42", "hpHighAsc": "39-45", "source": "https://slaythespire.wiki.gg/wiki/Sentry"},
+      {"name": "The Guardian", "act": 1, "type": "boss", "hp": "240", "hpHighAsc": "250", "source": "https://slaythespire.wiki.gg/wiki/The_Guardian"},
+      {"name": "Hexaghost", "act": 1, "type": "boss", "hp": "250", "hpHighAsc": "264", "source": "https://slaythespire.wiki.gg/wiki/Hexaghost"},
+      {"name": "Slime Boss", "act": 1, "type": "boss", "hp": "140", "hpHighAsc": "150", "source": "https://slaythespire.wiki.gg/wiki/Slime_Boss"},
+      {"name": "Byrd", "act": 2, "type": "normal", "hp": "25-31", "hpHighAsc": "26-33", "source": "https://slaythespire.wiki.gg/wiki/Byrd"},
+      {"name": "Bronze Automaton", "act": 2, "type": "boss", "hp": "300", "hpHighAsc": "320", "source": "https://slaythespire.wiki.gg/wiki/Automaton"},
+      {"name": "The Champ", "act": 2, "type": "boss", "hp": "420", "hpHighAsc": "440", "source": "https://slaythespire.wiki.gg/wiki/The_Champ"},
+      {"name": "Time Eater", "act": 3, "type": "boss", "hp": "456", "hpHighAsc": "480", "source": "https://slaythespire.wiki.gg/wiki/Time_Eater"},
+      {"name": "Corrupt Heart", "act": 4, "type": "boss", "hp": "750", "hpHighAsc": "800", "source": "https://slaythespire.wiki.gg/wiki/Corrupt_Heart"}
+    ],
+    "difficulty": {
+      "a20_strong_winrate": "~50% (community design anchor, not pinned to one citation)",
+      "overall_winrate": "~9% (1.6M wins / 18M runs, 2020 dataset)",
+      "heart_fatal_rate_ironclad": "51.12%",
+      "heart_fatal_rate_silent": "47.64%",
+      "heart_fatal_rate_defect": "52.75%",
+      "heart_fatal_rate_watcher": "51.96%",
+      "source": "https://foxrow.com/slay-the-spire-statistical-analysis",
+      "processNote": "Full metrics-driven tuning process is in notes/sts-tuning-research.md"
+    }
+  },
+
+  "darkestDungeon": {
+    "game": "darkest-dungeon",
+    "positioning": {
+      "party_ranks": 4,
+      "enemy_ranks": 4,
+      "rank1_is": "front",
+      "rule": "each ability defines launch ranks (where the user must stand) + target ranks (which enemy/ally ranks it can hit); wrong rank greys the ability out",
+      "source": "https://darkestdungeon.wiki.gg/wiki/Getting_Started"
+    },
+    "abilitiesExamples": [
+      {"hero": "Highwayman", "ability": "Point Blank Shot", "fromRanks": "4", "targetRanks": "1", "effect": "+50% DMG, Knockback 1 (100%)", "source": "https://darkestdungeon.wiki.gg/wiki/Highwayman"},
+      {"hero": "Highwayman", "ability": "Duelist's Advance", "fromRanks": "1-3", "targetRanks": "1-3", "effect": "-20% DMG, Forward 1, self-Riposte 3 rds", "source": "https://darkestdungeon.wiki.gg/wiki/Highwayman"},
+      {"hero": "Arbalest", "ability": "Sniper Shot", "fromRanks": "3-4", "targetRanks": "1-4", "effect": "4-8 dmg, +50% vs Marked", "source": "https://darkestdungeon.wiki.gg/wiki/Arbalest"},
+      {"hero": "Arbalest", "ability": "Sniper's Mark", "fromRanks": "3-4", "targetRanks": "1-4", "effect": "Mark 3 rds, -20 DODGE", "source": "https://darkestdungeon.wiki.gg/wiki/Arbalest"},
+      {"hero": "Vestal", "ability": "Judgement", "fromRanks": "1-2", "targetRanks": "1-4", "effect": "ranged attack, -25% ACC, self-heal 3-5", "source": "https://darkestdungeon.wiki.gg/wiki/Vestal"},
+      {"hero": "Vestal", "ability": "Divine Comfort", "fromRanks": "1-3", "targetRanks": "adjacent allies + self", "effect": "heal 1-3 -> 4-5", "source": "https://darkestdungeon.wiki.gg/wiki/Vestal"},
+      {"hero": "Hellion", "ability": "Iron Swan", "fromRanks": "1", "targetRanks": "4", "effect": "6-12 dmg, reaches enemy back rank from front", "source": "https://darkestdungeon.wiki.gg/wiki/Hellion"},
+      {"hero": "Hellion", "ability": "Barbaric YAWP", "fromRanks": "1-2", "targetRanks": "1-4", "effect": "Stun 110%, -20% DMG/-3 SPD; 3 uses/battle", "source": "https://darkestdungeon.wiki.gg/wiki/Hellion"},
+      {"hero": "Plague Doctor", "ability": "Plague Grenade", "fromRanks": "3-4", "targetRanks": "2-3 (AoE)", "effect": "Blight DOT", "source": "https://darkestdungeon.wiki.gg/wiki/Plague_Doctor"},
+      {"hero": "Plague Doctor", "ability": "Disorienting Blast", "fromRanks": "3-4", "targetRanks": "2-4", "effect": "Shuffle + Stun", "source": "https://darkestdungeon.wiki.gg/wiki/Plague_Doctor"},
+      {"hero": "Enemy: Bone Soldier", "ability": "Graveyard Slash", "fromRanks": "1-3", "targetRanks": "player 1-2", "effect": "front-mauler, 3-8 -> 5-15 dmg by difficulty", "source": "https://darkestdungeon.wiki.gg/wiki/Bone_Soldier"}
+    ],
+    "stress": {
+      "threshold1": 100,
+      "threshold2": 200,
+      "affliction_odds": "~75%",
+      "virtue_odds": "~25% (flat base 25% Virtue)",
+      "afflictions": ["Fearful", "Paranoid", "Selfish", "Masochistic", "Abusive", "Hopeless", "Irrational", "Rapturous (CC DLC)", "Refracted (CoM DLC)"],
+      "source": "https://darkestdungeon.wiki.gg/wiki/Affliction"
+    },
+    "combatMath": {
+      "deaths_door_dmg_resist": "none - Death's Door gives no damage reduction; only -10 ACC / -25% DMG / -5 SPD / +33% stress",
+      "deathblow_chance": "~33% per further hit (base 67% deathblow resist; Flagellant 73%; caps 87%)",
+      "hit_formula": "ACC - DODGE (displayed 95% = guaranteed; +4 ACC per consecutive miss)",
+      "crit": "150% of skill's MAX damage; +20% status apply chance; Bleed/Blight last 50% longer on crit",
+      "source": "https://darkestdungeon.wiki.gg/wiki/Death's_Door_(Darkest_Dungeon)"
+    }
+  },
+
+  "dnd5eSrd": {
+    "game": "dnd-5e-srd",
+    "note": "SRD-only content = license-clean flavor to borrow without IP risk.",
+    "classes": [
+      {"name": "Barbarian", "hitDie": "d12", "srdSubclass": "Path of the Berserker", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Bard", "hitDie": "d8", "srdSubclass": "College of Lore", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Cleric", "hitDie": "d8", "srdSubclass": "Life Domain", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Druid", "hitDie": "d8", "srdSubclass": "Circle of the Land", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Fighter", "hitDie": "d10", "srdSubclass": "Champion", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Monk", "hitDie": "d8", "srdSubclass": "Way of the Open Hand", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Paladin", "hitDie": "d10", "srdSubclass": "Oath of Devotion", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Ranger", "hitDie": "d10", "srdSubclass": "Hunter", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Rogue", "hitDie": "d8", "srdSubclass": "Thief", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Sorcerer", "hitDie": "d6", "srdSubclass": "Draconic Bloodline", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Warlock", "hitDie": "d8", "srdSubclass": "The Fiend", "source": "https://api.open5e.com/v1/classes/"},
+      {"name": "Wizard", "hitDie": "d6", "srdSubclass": "School of Evocation", "source": "https://api.open5e.com/v1/classes/"}
+    ],
+    "weapons": [
+      {"name": "Dagger", "dice": "1d4", "type": "piercing", "source": "https://api.open5e.com/v1/weapons/"},
+      {"name": "Mace", "dice": "1d6", "type": "bludgeoning", "source": "https://www.dndbeyond.com/sources/dnd/free-rules/equipment"},
+      {"name": "Shortsword", "dice": "1d6", "type": "piercing", "source": "https://www.dndbeyond.com/sources/dnd/free-rules/equipment"},
+      {"name": "Scimitar", "dice": "1d6", "type": "slashing", "source": "https://www.dndbeyond.com/sources/dnd/free-rules/equipment"},
+      {"name": "Shortbow", "dice": "1d6", "type": "piercing", "source": "https://www.dndbeyond.com/sources/dnd/free-rules/equipment"},
+      {"name": "Rapier", "dice": "1d8", "type": "piercing", "source": "https://www.dndbeyond.com/sources/dnd/free-rules/equipment"},
+      {"name": "Longsword", "dice": "1d8", "type": "slashing", "source": "https://api.open5e.com/v1/weapons/"},
+      {"name": "Warhammer", "dice": "1d8", "type": "bludgeoning", "source": "https://www.dndbeyond.com/sources/dnd/free-rules/equipment"},
+      {"name": "Light Crossbow", "dice": "1d8", "type": "piercing", "source": "https://api.open5e.com/v1/weapons/"},
+      {"name": "Longbow", "dice": "1d8", "type": "piercing", "source": "https://api.open5e.com/v1/weapons/"},
+      {"name": "Heavy Crossbow", "dice": "1d10", "type": "piercing", "source": "https://api.open5e.com/v1/weapons/"},
+      {"name": "Greataxe", "dice": "1d12", "type": "slashing", "source": "https://api.open5e.com/v1/weapons/"},
+      {"name": "Greatsword", "dice": "2d6", "type": "slashing", "source": "https://api.open5e.com/v1/weapons/"}
+    ],
+    "spellsIconic": [
+      {"name": "Magic Missile", "dice": "3x (1d4+1)", "note": "auto-hit darts", "source": "https://api.open5e.com/v1/spells/magic-missile/"},
+      {"name": "Fireball", "dice": "8d6", "note": "20ft radius, Dex save half", "source": "https://api.open5e.com/v1/spells/fireball/"},
+      {"name": "Eldritch Blast", "dice": "1d10", "note": "scales to more beams by level", "source": "https://api.open5e.com/v1/spells/eldritch-blast/"},
+      {"name": "Cure Wounds", "dice": "1d8 + spellcasting mod", "note": "heal", "source": "https://api.open5e.com/v1/spells/cure-wounds/"}
+    ],
+    "damageTypes": ["bludgeoning", "piercing", "slashing", "acid", "cold", "fire", "force", "lightning", "necrotic", "poison", "psychic", "radiant", "thunder"],
+    "monsters": [
+      {"name": "Kobold", "cr": "1/8", "hp": 5, "ac": 12, "attack": "1d4+2", "source": "https://api.open5e.com/v1/monsters/kobold/"},
+      {"name": "Bandit", "cr": "1/8", "hp": 11, "ac": 12, "attack": "1d6+1", "source": "https://api.open5e.com/v1/monsters/bandit/"},
+      {"name": "Goblin", "cr": "1/4", "hp": 7, "ac": 15, "attack": "1d6+2", "source": "https://api.open5e.com/v1/monsters/goblin/"},
+      {"name": "Skeleton", "cr": "1/4", "hp": 13, "ac": 13, "attack": "1d6+2", "source": "https://api.open5e.com/v1/monsters/skeleton/"},
+      {"name": "Zombie", "cr": "1/4", "hp": 22, "ac": 8, "attack": "1d6+1", "source": "https://api.open5e.com/v1/monsters/zombie/"},
+      {"name": "Orc", "cr": "1/2", "hp": 15, "ac": 13, "attack": "1d12+3", "source": "https://api.open5e.com/v1/monsters/orc/"},
+      {"name": "Gnoll", "cr": "1/2", "hp": 22, "ac": 15, "attack": "1d6+2", "source": "https://api.open5e.com/v1/monsters/gnoll/"},
+      {"name": "Bugbear", "cr": "1", "hp": 27, "ac": 16, "attack": "2d8+2", "source": "https://api.open5e.com/v1/monsters/bugbear/"},
+      {"name": "Ghoul", "cr": "1", "hp": 22, "ac": 12, "attack": "2d4+2", "source": "https://api.open5e.com/v1/monsters/ghoul/"},
+      {"name": "Giant Spider", "cr": "1", "hp": 26, "ac": 14, "attack": "1d8+3", "source": "https://api.open5e.com/v1/monsters/giant-spider/"},
+      {"name": "Ogre", "cr": "2", "hp": 59, "ac": 11, "attack": "2d8+4", "source": "https://api.open5e.com/v1/monsters/ogre/"},
+      {"name": "Owlbear", "cr": "3", "hp": 59, "ac": 13, "attack": "2d8+5", "source": "https://api.open5e.com/v1/monsters/owlbear/"},
+      {"name": "Wight", "cr": "3", "hp": 45, "ac": 14, "attack": "1d8+2", "source": "https://api.open5e.com/v1/monsters/wight/"},
+      {"name": "Mummy", "cr": "3", "hp": 58, "ac": 11, "attack": "2d6+3", "source": "https://api.open5e.com/v1/monsters/mummy/"},
+      {"name": "Troll", "cr": "5", "hp": 84, "ac": 15, "attack": "2d6+4", "source": "https://api.open5e.com/v1/monsters/troll/"},
+      {"name": "Hill Giant", "cr": "5", "hp": 105, "ac": 13, "attack": "3d8+5", "source": "https://api.open5e.com/v1/monsters/hill-giant/"},
+      {"name": "Wraith", "cr": "5", "hp": 67, "ac": 13, "attack": "4d8+3", "source": "https://api.open5e.com/v1/monsters/wraith/"},
+      {"name": "Young Red Dragon", "cr": "10", "hp": 178, "ac": 18, "attack": "2d10+1d6", "source": "https://api.open5e.com/v1/monsters/young-red-dragon/"},
+      {"name": "Adult Red Dragon", "cr": "17", "hp": 256, "ac": 19, "attack": "2d10+8", "source": "https://api.open5e.com/v1/monsters/adult-red-dragon/"},
+      {"name": "Lich", "cr": "21", "hp": 135, "ac": 17, "attack": "3d6", "source": "https://api.open5e.com/v1/monsters/lich/"}
+    ],
+    "hpByCr": [
+      {"cr": "0", "hp": "1-6", "profBonus": 2, "ac": 13, "attackBonus": 3, "dmgPerRound": "0-1", "saveDc": 13, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "1/8", "hp": "7-35", "profBonus": 2, "ac": 13, "attackBonus": 3, "dmgPerRound": "2-3", "saveDc": 13, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "1/4", "hp": "36-49", "profBonus": 2, "ac": 13, "attackBonus": 3, "dmgPerRound": "4-5", "saveDc": 13, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "1/2", "hp": "50-70", "profBonus": 2, "ac": 13, "attackBonus": 3, "dmgPerRound": "6-8", "saveDc": 13, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "1", "hp": "71-85", "profBonus": 2, "ac": 13, "attackBonus": 3, "dmgPerRound": "9-14", "saveDc": 13, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "2", "hp": "86-100", "profBonus": 2, "ac": 13, "attackBonus": 3, "dmgPerRound": "15-20", "saveDc": 13, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "3", "hp": "101-115", "profBonus": 2, "ac": 13, "attackBonus": 4, "dmgPerRound": "21-26", "saveDc": 13, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "4", "hp": "116-130", "profBonus": 2, "ac": 14, "attackBonus": 5, "dmgPerRound": "27-32", "saveDc": 14, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "5", "hp": "131-145", "profBonus": 3, "ac": 15, "attackBonus": 6, "dmgPerRound": "33-38", "saveDc": 15, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "6", "hp": "146-160", "profBonus": 3, "ac": 15, "attackBonus": 6, "dmgPerRound": "39-44", "saveDc": 15, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "7", "hp": "161-175", "profBonus": 3, "ac": 15, "attackBonus": 6, "dmgPerRound": "45-50", "saveDc": 15, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "8", "hp": "176-190", "profBonus": 3, "ac": 16, "attackBonus": 7, "dmgPerRound": "51-56", "saveDc": 16, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "9", "hp": "191-205", "profBonus": 4, "ac": 16, "attackBonus": 7, "dmgPerRound": "57-62", "saveDc": 16, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"},
+      {"cr": "10", "hp": "206-220", "profBonus": 4, "ac": 17, "attackBonus": 7, "dmgPerRound": "63-68", "saveDc": 16, "source": "https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-cr/"}
+    ],
+    "items": [
+      {"name": "Potion of Healing", "rarity": "common", "source": "https://api.open5e.com/v1/magicitems/potion-of-healing/"},
+      {"name": "Bag of Holding", "rarity": "uncommon", "source": "https://api.open5e.com/v1/magicitems/bag-of-holding/"},
+      {"name": "Cloak of Protection", "rarity": "uncommon", "source": "https://api.open5e.com/v1/magicitems/cloak-of-protection/"},
+      {"name": "Gauntlets of Ogre Power", "rarity": "uncommon", "source": "https://api.open5e.com/v1/magicitems/gauntlets-of-ogre-power/"},
+      {"name": "Cloak of Elvenkind", "rarity": "uncommon", "source": "https://api.open5e.com/v1/magicitems/cloak-of-elvenkind/"},
+      {"name": "Wand of Magic Missiles", "rarity": "uncommon", "source": "https://api.open5e.com/v1/magicitems/wand-of-magic-missiles/"},
+      {"name": "Amulet of Health", "rarity": "rare", "source": "https://api.open5e.com/v1/magicitems/"},
+      {"name": "Flame Tongue", "rarity": "rare", "source": "https://api.open5e.com/v1/magicitems/flame-tongue/"},
+      {"name": "Boots of Speed", "rarity": "rare", "source": "https://api.open5e.com/v1/magicitems/boots-of-speed/"},
+      {"name": "Ring of Protection", "rarity": "rare", "source": "https://api.open5e.com/v1/magicitems/ring-of-protection/"},
+      {"name": "Bracers of Defense", "rarity": "rare", "source": "https://api.open5e.com/v1/magicitems/bracers-of-defense/"},
+      {"name": "Staff of Power", "rarity": "very rare", "source": "https://api.open5e.com/v1/magicitems/staff-of-power/"},
+      {"name": "Robe of the Archmagi", "rarity": "legendary", "source": "https://api.open5e.com/v1/magicitems/robe-of-the-archmagi/"},
+      {"name": "Vorpal Sword", "rarity": "legendary", "source": "https://api.open5e.com/v1/magicitems/vorpal-sword/"},
+      {"name": "Ring of Invisibility", "rarity": "legendary", "source": "https://api.open5e.com/v1/magicitems/ring-of-invisibility/"}
+    ]
+  }
+}
