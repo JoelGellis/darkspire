@@ -419,13 +419,48 @@ DS.UI = {
       if (hero.bleed > 0) statusHtml += '<span class="status-badge status-bleed">BLD ' + hero.bleed + '</span>';
       if (hero.stunned) statusHtml += '<span class="status-badge status-stun">\u26A1</span>';
 
+      // Move controls (living heroes only, during the player's turn)
+      var moveHtml = '';
+      var canMove = !dead && !combat.gameOver && !combat.animating;
+      if (canMove) {
+        var moveCost = DS.Combat.hasRelicFlag('freeMove') ? 0 : 1;
+        var canAfford = combat.energy >= moveCost;
+        var maxPos = run.heroes.length;
+        var fwdOk = hero.pos > 1 && canAfford;       // forward = toward enemies (pos decreases)
+        var backOk = hero.pos < maxPos && canAfford; // back = retreat (pos increases)
+        moveHtml =
+          '<div class="hero-move-controls">' +
+          '<button class="hero-move-btn move-forward' + (fwdOk ? '' : ' disabled') + '" ' +
+            'title="Advance toward enemies (' + moveCost + ' energy)"' + (fwdOk ? '' : ' disabled') + '>▶</button>' +
+          '<button class="hero-move-btn move-back' + (backOk ? '' : ' disabled') + '" ' +
+            'title="Retreat (' + moveCost + ' energy)"' + (backOk ? '' : ' disabled') + '>◀</button>' +
+          '</div>';
+      }
+
       el.innerHTML =
         '<div class="entity-pos-badge" title="Position ' + hero.pos + ' (1 = front)">' + hero.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
         '<div class="entity-name ' + hero.cls + '">' + hero.name + '</div>' +
         '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div>' +
         '<span class="entity-hp-text">' + (dead ? 'DEAD' : hero.hp + '/' + hero.maxHp) + '</span>' +
-        (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '');
+        (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '') +
+        moveHtml;
+
+      // Wire move buttons (after innerHTML is set so the elements exist)
+      if (canMove) {
+        (function(idx) {
+          var fwdBtn = el.querySelector('.move-forward');
+          var backBtn = el.querySelector('.move-back');
+          if (fwdBtn) fwdBtn.onclick = function(event) {
+            event.stopPropagation();
+            DS.Combat.moveHeroAction(idx, 'forward');
+          };
+          if (backBtn) backBtn.onclick = function(event) {
+            event.stopPropagation();
+            DS.Combat.moveHeroAction(idx, 'back');
+          };
+        })(run.heroes.indexOf(hero));
+      }
 
       panel.appendChild(el);
     });
