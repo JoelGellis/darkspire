@@ -16,10 +16,12 @@
 //     cast an all-ally heal when nobody is hurt; skip resurrect (no dead-ally
 //     targeting in the starter kit anyway).
 //
-// The bot does NOT reposition (no move actions) and does NOT upgrade/buy — it
-// plays the raw starting deck. That makes it a clean *relative* difficulty probe
-// across encounters; it is intentionally not a skilled human. Findings are
-// sensitive to this policy — see REPORT.md caveats.
+// The bot DOES reposition (the hard position gate makes it mandatory): when a
+// high-value card is locked by rank, it will spend energy moving that hero into a
+// preferred position and then play it — if the card's value beats playing something
+// now, net of a per-move energy penalty. It still does NOT upgrade/buy — it plays the
+// raw starting deck. That keeps it a clean *relative* difficulty probe across
+// encounters; it is intentionally not a skilled human. See REPORT.md caveats.
 
 function frontEnemy(DS) {
   const alive = DS.Combat.aliveEnemies();
@@ -91,15 +93,89 @@ function pickBestPlay(DS) {
   return candidates[0];
 }
 
-// Play out one full player turn (greedy until nothing useful / energy gone).
+// ---- Repositioning (the hard position gate makes this mandatory strategy) ----
+
+// Fewest single-rank moves to bring a card's hero into a preferred rank, plus the
+// direction of the first step. Null if already in position or the card has no prefPos.
+function moveToPlay(DS, card) {
+  const hero = DS.State.run.heroes[card.heroIdx];
+  if (!hero || hero.hp <= 0 || !card.prefPos || !card.prefPos.length) return null;
+  if (card.prefPos.includes(hero.pos)) return null;
+  let best = null;
+  card.prefPos.forEach((p) => {
+    const dist = Math.abs(p - hero.pos);
+    if (best === null || dist < best.dist) {
+      best = { dist, dir: p < hero.pos ? 'forward' : 'back' };
+    }
+  });
+  return best;
+}
+
+// Does this hero already have a playable card in hand right now?
+function heroHasPlayable(DS, heroIdx) {
+  return DS.State.combat.hand.some((c) => {
+    if (c.heroIdx !== heroIdx) return false;
+    const ch = DS.Combat.canPlayCard(c);
+    return ch.playable && c.cost <= DS.State.combat.energy;
+  });
+}
+
+// The hero one rank toward `dir` (the one a move would swap with), or null.
+function neighborToward(DS, hero, dir) {
+  const target = dir === 'forward' ? hero.pos - 1 : hero.pos + 1;
+  return DS.State.run.heroes.find((h) => h.hp > 0 && h.pos === target) || null;
+}
+
+// CONSERVATIVE repositioning: only un-stick a hero who has NO playable card, and never
+// swap a neighbor who's currently working (that would just scramble a good formation —
+// the party starts in ideal ranks). The swap-based move makes greedy repositioning a
+// net loss, so we move only to rescue an otherwise-wasted hero turn.
+const MOVE_PENALTY = 4;
+function pickBestMovePlay(DS) {
+  const combat = DS.State.combat;
+  const moveCost = DS.Combat.hasRelicFlag('freeMove') ? 0 : 1;
+  let best = null;
+  combat.hand.forEach((card, idx) => {
+    const check = DS.Combat.canPlayCard(card);
+    if (check.playable || check.reason !== 'position') return; // only rank-locked cards
+    if (card.cost > combat.energy) return;
+    if (heroHasPlayable(DS, card.heroIdx)) return;            // hero isn't stuck — don't scramble
+    const plan = moveToPlay(DS, card);
+    if (!plan) return;
+    if (card.cost + plan.dist * moveCost > combat.energy) return;
+    // Don't drag a working neighbor out of their rank.
+    const nb = neighborToward(DS, DS.State.run.heroes[card.heroIdx], plan.dir);
+    if (nb && heroHasPlayable(DS, DS.State.run.heroes.indexOf(nb))) return;
+    const score = scoreCard(DS, card) - MOVE_PENALTY * plan.dist;
+    if (score <= 0) return;
+    if (!best || score > best.score) {
+      best = { handIdx: idx, dir: plan.dir, score, heroIdx: card.heroIdx };
+    }
+  });
+  return best;
+}
+
+// Play out one full player turn: interleave repositioning with greedy card plays.
 function playerTurn(DS) {
   const combat = DS.State.combat;
   let guard = 0;
-  while (!combat.gameOver && guard++ < 40) {
-    const play = pickBestPlay(DS);
-    if (!play) break;
-    DS.Combat.playCard(play.handIdx, play.target);
+  while (!combat.gameOver && guard++ < 60) {
+    const direct = pickBestPlay(DS);
+    const movePlay = pickBestMovePlay(DS);
+    // Prefer the better of: play now, vs. move-into-rank-then-play (net of move penalty).
+    if (movePlay && (!direct || movePlay.score > direct.score)) {
+      const before = DS.State.run.heroes[movePlay.heroIdx].pos;
+      DS.Combat.moveHeroAction(movePlay.heroIdx, movePlay.dir);
+      if (DS.State.run.heroes[movePlay.heroIdx].pos === before) {
+        // Move was blocked (no energy / at the edge) — fall back to a direct play or stop.
+        if (direct) { DS.Combat.playCard(direct.handIdx, direct.target); continue; }
+        break;
+      }
+      continue; // re-evaluate after the move
+    }
+    if (direct) { DS.Combat.playCard(direct.handIdx, direct.target); continue; }
+    break;
   }
 }
 
-module.exports = { playerTurn, pickBestPlay, frontEnemy, lowestHpHero };
+module.exports = { playerTurn, pickBestPlay, pickBestMovePlay, frontEnemy, lowestHpHero };
