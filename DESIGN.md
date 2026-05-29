@@ -57,6 +57,20 @@ Gold is THE currency. Earned during runs, **banked back to town** between runs. 
 - **Design north star:** cards should feel like **actions performed by your heroes**, not
   abstract resources. Hero identity drives the deck; equipment flavors/extends it.
 
+### Equipment Economy — partial start, build mid-run, salvage, take-home
+- **Run start is intentionally lean (roguelike, not RPG).** You can only **partially equip**
+  your heroes + bring **1–2 party-wide artifacts**. No full loadouts at the door.
+- **You finish equipping mid-run**, at the shop, by cashing in gold. Equipment is acquired
+  *during* the run, not pre-stacked.
+- **Salvage:** items can be sold back for their gold worth. So buying cheap basic/uncommon
+  gear even late is viable — use it temporarily, then **salvage it** for money before run end.
+- **The core strategic tension:**
+  - **Spread thin** — burn gold equipping everyone with cheap/temporary gear → broad, safe power this run.
+  - **Go all-in** — sink gold into a single **rare/legendary** item → weaker base, *tougher run*,
+    but you take home something special.
+- **Take-home:** the standout item you keep becomes one of your **selectable loadout items on a
+  future run** (ties back to the lean run-start loadout). Risk a hard run now to bank a permanent edge.
+
 *(More vision incoming — Joel is still dictating. Append, don't overwrite.)*
 
 ---
