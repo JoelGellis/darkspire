@@ -58,12 +58,30 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
 
 ## Task list (5 phases)
 1. ✅ Rebuild position system  ·  2. ✅ Reconcile cards
-3. ⬜ Gold economy + town merchant (gear-only)
+3. ✅ Gold economy + town merchant (gear-only)  — `6398af0`. Town merchant = same merchant,
+   GEAR ONLY (no cards/removal). Banked `DS.Meta.gold`, `DS.Meta.ownedGear` persists w/ save
+   backfill, placeholder `DS.Gear.catalog`. **Phase-5 TODOs:** gear effects, loadout wiring, salvage.
 4. ⬜ Retreat + damned-hero permadeath
 5. ⬜ Loadout + equipment economy (lean start, salvage, take-home)
 
+## Tooling landed (2026-05-29, three-window fan-out)
+- **`reference/`** (`98b94e0`) — cited reference-data DB: `sts.md`, `darkest-dungeon.md`,
+  `dnd-5e.md`, `data.json`, `INDEX.md`. Real numbers for balancing. **Use this before tuning.**
+- **`sims/`** (`01807aa`) — headless Monte-Carlo balance harness. Runs the REAL combat engine.
+  `node sims/run.js` (1000/encounter), `--n 5000`, `--seed 42`. Output → `sims/REPORT.md`.
+- **node is portable, NOT on PATH:** `C:\Users\joel\AppData\Local\Temp\node-portable\node-v24.16.0-win-x64\node.exe`
+  (in Temp — may get wiped; reinstall/relocate if sims stop running).
+
+## Balance findings from first sim (starting party, no progression — relative signal only)
+- **Boss variance is the #1 problem:** floor-6 win% spread 74.8% — Spider Queen 13.9% (too hard) vs
+  Iron Golem 88.7% (too easy). Whichever boss you draw swings the run too hard. **Compress this.**
+- **21 normals trivial** (100% win, ~0% death) — most fights are no-stakes/flat.
+- Caveat: greedy bot, starter decks only, no repositioning/relics → absolute win% is a *lower bound*;
+  trust the *relative* ordering. F5/boss numbers = "unupgraded party vs scaled fight," not live runs.
+
 ## Immediate next steps on unpin
-1. Confirm the move-button agent's commit landed and is sane.
-2. Joel playtests Phase 1 (badges 1–4, front/back targeting, repositioning cards, move buttons).
-3. Then Phase 3: gold economy + town merchant (gear-only). `js/town.js`, `js/meta.js`, `js/caravan.js`
-   already exist (dual gold: `DS.State.run.gold` in-run, `DS.Meta.gold` banked) — build on them.
+1. Joel playtests Phase 1 + Phase 3 (badges 1–4, targeting, reposition cards, move buttons;
+   town → Merchant → buy gear → gold banks).
+2. **Balance pass (in progress, data-driven):** compress boss variance, add stakes to trivial
+   normals. Edit `data/enemies.js` → re-run `sims/run.js` → compare REPORT.md. Single-thread (one file).
+3. Then Phase 4: retreat + damned-hero permadeath.
