@@ -87,12 +87,18 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
   (+HP, 2nd attack), Spider Queen 13.9%→20.6% (dropped Spiderling poison-on-death, PSN 3→2).
   All 4 bosses now 20–49%. **Feel-check against real playtest before trusting** (sim = greedy
   bot, no relics/reposition → lower bound).
-- ⬜ **BLOCKED→Next: teach the sim AI to reposition.** The hard position gate made the greedy
-  no-move bot an invalid balance proxy (it can't play gated cards it should move for). Before any
-  more normals/boss tuning, update `sims/policy.js` to use move actions + play gated cards from the
-  right rank. THEN resume the trivial-normals stakes pass (still ~20 flat 100%-win pools).
-- ⬜ Verify repositioning *cards* under the new gate: Shadow Step (move fwd), Smoke Bomb (block+swap),
-  Wizard Teleport (swap two), Paladin Retribution (pos-1 bonus) — confirm they still work in-browser.
+- ✅ **Sim AI repositions** (`4424690`): conservative — moves only to un-stick a hero with no
+  playable card, never swaps a working neighbor (greedy moves scrambled the ideal line and tanked
+  win rates). Valid proxy under the gate now.
+- ✅ **Repositioning cards verified** (code-correct): Shadow Step (dmg+moveForward), Smoke Bomb
+  (block+swap ally pos), Teleport (swap w/ frontmost), Retribution (dmg, +6 block only at pos 1).
+- ⛔ **BLOCKED ON JOEL — difficulty-curve decision.** The hard gate ~quartered win rates (bosses
+  2–12%, floor-5 normals too hard for a starter party). Options: (a) re-tune enemies DOWN across the
+  board, (b) soften the gate (free/cheaper moves, or only SOME cards gated), (c) accept it (real runs
+  have relics/upgrades the sim lacks → sim is a lower bound). **Do NOT auto-tune the whole game vs an
+  unupgraded bot — that would make the real, progressed game trivial.** Await Joel's pick.
+- ⬜ Safe loop work meanwhile (no design-taste call): fix the dead-hero pos-collision edge case
+  (moveForward past a dead mid-rank hero can double-occupy a rank); add a deck-size/curse check.
 
 ## UI fixes landed (2026-05-29, from playtest feedback)
 - Combat battlefield: was rendering **vertical** + combat-log **over the enemies** — killed a dead
