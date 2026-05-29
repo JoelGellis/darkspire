@@ -1,8 +1,63 @@
 # DARKSPIRE — Game Design Document
 
 ## Concept
-Darkest Dungeon meets Slay the Spire. Four-hero party, deckbuilding combat,
+Darkest Dungeon meets Slay the Spire. Four-hero party, **positional** deckbuilding combat,
 branching dungeon map, roguelike progression. Browser-based, vanilla JS, single HTML file.
+
+---
+
+## v0.2 DIRECTION — Joel's Vision (2026-05-29)
+
+> Live brain-dump captured during a working session. This section is the source of truth
+> for current direction; "What EXISTS" below describes the older v0.1 build.
+
+### Identity
+"ROG Slay the Spire meets Darkest Dungeon." Tactical positioning is a core pillar, NOT
+optional. (An earlier Apr-10 experiment removed the position system; that decision is
+**reversed** — positions stay. The removal lives in commit `0bfec58` as a recoverable
+checkpoint; old position code is in `46617c2`.)
+
+### Position System (v2 spec — KEEP IT)
+- Battlefield is **horizontal**, like StS / DD.
+- **Heroes** occupy positions 1–4. **Position 1 = front** (closest to the enemies),
+  **position 4 = back**.
+- **Enemies** occupy positions 1–4. **Enemy position 1 = closest to the player (front)**,
+  position 4 = back.
+- Hard cap: **max 4 enemies** per fight, **4 heroes**.
+- Tactics matter: cards favor positions (front-line melee, back-line casters), heroes can
+  move forward/back, enemies target front/back. (Mechanics to be re-implemented on top of
+  the current improved codebase — see card redesign note below.)
+
+### Gold Economy (single universal currency)
+Gold is THE currency. Earned during runs, **banked back to town** between runs. Spent on:
+1. **Town upgrades** — improve your home/town buildings between runs (meta-progression).
+2. **Town merchant** — a shop in town. **GEAR / physical artifacts only.** No cards, no
+   card-removal service in town. Buying gear here works *exactly* like buying gear on a run.
+3. **On-run merchant** — same as today (cards + card removal + gear). The town merchant is
+   literally the **same merchant** you meet on runs; in town he just sells artifacts/gear.
+
+### Retreat & Permadeath
+- You usually **won't clear the dungeon** on early runs. The Level-0 dungeon has a
+  **randomly rotating boss**.
+- **First run = forgiving tutorial.** If your last hero falls, the game **auto-retreats**;
+  all heroes "miraculously escape," you keep **all** heroes and **all** gains. Afterward the
+  game explains: future runs require a **manual retreat**.
+- **Later runs:** you must **manually retreat** to bank a **percentage** of what you gained
+  on that run (gold, weapons, armor).
+- **Damned heroes:** a hero who **dies in combat is lost** — not revived, not retreated with.
+  Their **equipped gear is lost too**. Only surviving heroes (and their gear) come home.
+
+### Loadout & Equipment (run setup)
+- Starting a run = build a **loadout**: select your **heroes**, give them **equipment**, and
+  pick a few **party-wide artifacts**.
+- **Equipment affects the starting deck.** Some equipment items exist *just* to inject a card
+  into your deck — equipment is a primary way to **customize your cards**.
+- Equipment can also be **passive** or **triggered** (on-hit, on-turn, etc.), not only deck-shaping.
+- Party-wide artifacts *could* add cards too, but that feels "a little weird" — lean against it.
+- **Design north star:** cards should feel like **actions performed by your heroes**, not
+  abstract resources. Hero identity drives the deck; equipment flavors/extends it.
+
+*(More vision incoming — Joel is still dictating. Append, don't overwrite.)*
 
 ---
 
@@ -15,12 +70,12 @@ branching dungeon map, roguelike progression. Browser-based, vanilla JS, single 
 - Turn structure: play cards → end turn → enemy actions → poison ticks → new turn
 
 ### Heroes (4, fixed party)
-| Hero    | HP | Role                         |
-|---------|----|------------------------------|
-| Fighter | 52 | Tank — block, melee damage   |
-| Rogue   | 38 | DPS — multi-hit, poison      |
-| Cleric  | 34 | Support — heals, shields     |
-| Wizard  | 26 | AoE — spells, card draw      |
+| Hero    | HP | Pos | Role                         |
+|---------|----|-----|------------------------------|
+| Fighter | 52 | 1   | Tank — block, melee damage   |
+| Rogue   | 38 | 2   | DPS — multi-hit, poison      |
+| Cleric  | 34 | 3   | Support — heals, shields     |
+| Wizard  | 26 | 4   | AoE — spells, card draw      |
 
 ### Cards (32 total: 4 per hero × 2 tiers)
 - **Starter cards** (16): 4 per hero, 2 copies each = 32-card starting deck
