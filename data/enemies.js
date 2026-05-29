@@ -421,13 +421,13 @@ DS.Enemies = {
     // Boss 2: The Iron Golem — block-heavy solo boss, rewards multi-hit strategies
     [
       {
-        name: 'Iron Golem', icon: '\uD83E\uDD16', maxHp: 110, isBoss: true,
+        name: 'Iron Golem', icon: '\uD83E\uDD16', maxHp: 120, isBoss: true,
         intents: [
-          { name: 'Smash', type: 'attack', dmg: 16, desc: 'ATK 16', targeting: 'front' },
+          { name: 'Smash', type: 'attack', dmg: 17, desc: 'ATK 17', targeting: 'front' },
           { name: 'Iron Guard', type: 'defend', block: 18, desc: 'DEF 18' },
-          { name: 'Quake', type: 'attack_all', dmg: 7, desc: 'ATK 7 ALL', targeting: 'all' },
+          { name: 'Quake', type: 'attack_all', dmg: 8, desc: 'ATK 8 ALL', targeting: 'all' },
           { name: 'Rust', type: 'weaken', turns: 2, desc: 'WEAK 2', targeting: 'random' },
-          { name: 'Fortify', type: 'defend', block: 12, desc: 'DEF 12' },
+          { name: 'Crush', type: 'attack', dmg: 13, desc: 'ATK 13', targeting: 'front' },
           { name: 'Overcharge', type: 'buff', desc: 'BUFF +3', buffAmt: 3 }
         ]
       }
@@ -438,7 +438,7 @@ DS.Enemies = {
       {
         name: 'Spider Queen', icon: '\uD83D\uDD77\uFE0F', maxHp: 90, isBoss: true,
         intents: [
-          { name: 'Venomous Bite', type: 'attack_poison', dmg: 10, poison: 3, desc: 'ATK 10 + PSN 3', targeting: 'front' },
+          { name: 'Venomous Bite', type: 'attack_poison', dmg: 10, poison: 2, desc: 'ATK 10 + PSN 2', targeting: 'front' },
           { name: 'Web Trap', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' },
           { name: 'Fang Barrage', type: 'attack_multi', dmg: 4, hits: 4, desc: 'ATK 4\u00D74', targeting: 'random' },
           { name: 'Cocoon', type: 'defend', block: 12, desc: 'DEF 12' }
@@ -446,7 +446,6 @@ DS.Enemies = {
       },
       {
         name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10,
-        deathEffect: 'poison_random_2',
         intents: [
           { name: 'Bite', type: 'attack_poison', dmg: 3, poison: 1, desc: 'ATK 3 + PSN 1', targeting: 'random' },
           { name: 'Spit', type: 'poison', poison: 2, desc: 'PSN 2', targeting: 'random' }
@@ -454,7 +453,6 @@ DS.Enemies = {
       },
       {
         name: 'Spiderling', icon: '\uD83D\uDD77\uFE0F', maxHp: 10,
-        deathEffect: 'poison_random_2',
         intents: [
           { name: 'Bite', type: 'attack_poison', dmg: 3, poison: 1, desc: 'ATK 3 + PSN 1', targeting: 'random' },
           { name: 'Spit', type: 'poison', poison: 2, desc: 'PSN 2', targeting: 'random' }
