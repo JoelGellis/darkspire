@@ -16,7 +16,14 @@ DS.UI.renderSummary = function(root) {
 
   var stats = DS.State.stats;
   var run = DS.State.run;
+
+  // Outcome: victory (boss down) / retreat (manual) / autoRetreat (first-run
+  // tutorial escape after a wipe) / defeat (party wipe, run 2+)
   var isVictory = stats.floorsCleared >= 7;
+  var outcome = isVictory ? 'victory'
+    : (run && run._retreated) ? 'retreat'
+    : (run && run._autoRetreat) ? 'autoRetreat'
+    : 'defeat';
 
   // Count alive/dead heroes
   var aliveCount = 0;
@@ -43,7 +50,13 @@ DS.UI.renderSummary = function(root) {
 
   // Gold calculations
   var runGold = (run && run.gold) || 0;
-  var goldAwarded = isVictory ? runGold : Math.floor(runGold / 2);
+  var runGains = Math.max(0, runGold - ((run && run.startGold) || 0));
+  var retreatRate = (DS.Meta && DS.Meta.RETREAT_BANK_RATE) || 0.5;
+  var goldAwarded =
+    outcome === 'victory' ? runGold :
+    outcome === 'autoRetreat' ? runGold :                      // tutorial: keep everything
+    outcome === 'retreat' ? Math.floor(runGains * retreatRate) :
+    Math.floor(runGold / 2);                                    // defeat salvage
 
   // Calculate score
   var score = DS.UI._summaryCalcScore(stats, runGold, relicCount, aliveCount, isVictory);
@@ -52,15 +65,33 @@ DS.UI.renderSummary = function(root) {
   DS.UI._summaryRecordHighScore(stats, runGold, relicCount, score, isVictory);
 
   // ===== BANNER =====
+  var bannerCfg = {
+    victory:     { cls: 'summary-victory', text: 'VICTORY',
+                   flavor: 'You have conquered the Spire... for now.' },
+    retreat:     { cls: 'summary-retreat', text: 'RETREAT',
+                   flavor: 'Live to fight another day. The survivors carry what they can.' },
+    autoRetreat: { cls: 'summary-retreat', text: 'MIRACULOUS ESCAPE',
+                   flavor: 'Against all odds, every hero staggers home alive.' },
+    defeat:      { cls: 'summary-defeat', text: 'DEFEAT',
+                   flavor: 'The darkness claims all... but the town endures.' }
+  }[outcome];
   var bannerHtml =
-    '<div class="summary-banner ' + (isVictory ? 'summary-victory' : 'summary-defeat') + '">' +
-      '<div class="summary-banner-text">' + (isVictory ? 'VICTORY' : 'DEFEAT') + '</div>' +
-      '<div class="summary-flavor">' +
-        (isVictory
-          ? 'You have conquered the Spire... for now.'
-          : 'The darkness claims all... but the town endures.') +
-      '</div>' +
+    '<div class="summary-banner ' + bannerCfg.cls + '">' +
+      '<div class="summary-banner-text">' + bannerCfg.text + '</div>' +
+      '<div class="summary-flavor">' + bannerCfg.flavor + '</div>' +
     '</div>';
+
+  // First-run tutorial note: explain how retreat works from now on
+  var tutorialHtml = '';
+  if (outcome === 'autoRetreat') {
+    tutorialHtml =
+      '<div class="summary-tutorial">' +
+        'That was your one free escape. From now on, <b>RETREAT from the map</b> before ' +
+        'your party falls — a retreat banks ' + Math.round(retreatRate * 100) + '% of the gold you gained, and ' +
+        'surviving heroes come home. Heroes who die stay dead, and a full party wipe ' +
+        'costs half your treasury.' +
+      '</div>';
+  }
 
   // ===== STATS =====
   var statsHtml =
@@ -80,8 +111,11 @@ DS.UI.renderSummary = function(root) {
     run.heroes.forEach(function(h) {
       var heroDef = DS.Heroes[h.heroIdx];
       var color = heroDef ? heroDef.colors.primary : '#888';
-      // On defeat ALL heroes shown as dead regardless of hp
-      var alive = isVictory && h.hp > 0;
+      // victory/retreat: whoever has HP survives · autoRetreat: everyone escapes ·
+      // defeat: ALL heroes shown as dead regardless of hp
+      var alive = outcome === 'autoRetreat' ? true
+        : (outcome === 'victory' || outcome === 'retreat') ? h.hp > 0
+        : false;
 
       if (alive) {
         heroesHtml +=
@@ -106,13 +140,25 @@ DS.UI.renderSummary = function(root) {
 
   // ===== REWARDS =====
   var rewardsHtml = '<div class="summary-rewards">';
-  if (isVictory) {
+  if (outcome === 'victory') {
     rewardsHtml +=
       '<div class="summary-reward-line summary-reward-gold">Gold Secured: +' + goldAwarded + '</div>' +
       '<div class="summary-reward-line">Veterans Returning: ' + aliveCount + '</div>';
     if (deadCount > 0) {
       rewardsHtml += '<div class="summary-reward-line summary-reward-loss">Heroes Lost: ' + deadCount + '</div>';
     }
+  } else if (outcome === 'retreat') {
+    rewardsHtml +=
+      '<div class="summary-reward-line summary-reward-gold">Gold Banked: +' + goldAwarded +
+        ' <span class="summary-reward-note">(' + Math.round(retreatRate * 100) + '% of ' + runGains + ' gained)</span></div>' +
+      '<div class="summary-reward-line">Survivors Returning: ' + aliveCount + '</div>';
+    if (deadCount > 0) {
+      rewardsHtml += '<div class="summary-reward-line summary-reward-loss">Heroes Lost: ' + deadCount + '</div>';
+    }
+  } else if (outcome === 'autoRetreat') {
+    rewardsHtml +=
+      '<div class="summary-reward-line summary-reward-gold">Gold Kept: +' + goldAwarded + '</div>' +
+      '<div class="summary-reward-line">All ' + run.heroes.length + ' heroes escape alive.</div>';
   } else {
     rewardsHtml +=
       '<div class="summary-reward-line summary-reward-gold">Gold Salvaged: +' + goldAwarded + '</div>' +
@@ -126,26 +172,33 @@ DS.UI.renderSummary = function(root) {
   // ===== BUTTON =====
   var btnHtml = '<button class="btn summary-btn-return" id="btn-summary-return">RETURN TO TOWN</button>';
 
-  screen.innerHTML = bannerHtml + statsHtml + heroesHtml + rewardsHtml + highScoresHtml + btnHtml;
+  screen.innerHTML = bannerHtml + tutorialHtml + statsHtml + heroesHtml + rewardsHtml + highScoresHtml + btnHtml;
   root.appendChild(screen);
 
   // ===== WIRE UP RETURN =====
   document.getElementById('btn-summary-return').onclick = function() {
-    DS.UI._summaryApplyResults(isVictory, run, goldAwarded);
+    DS.UI._summaryApplyResults(outcome, run, goldAwarded);
   };
 };
 
 // ===== APPLY RUN RESULTS TO META =====
 
-DS.UI._summaryApplyResults = function(isVictory, run, goldAwarded) {
+DS.UI._summaryApplyResults = function(outcome, run, goldAwarded) {
   var rosterIndices = DS.UI._summaryGetRosterMap(run);
 
-  if (isVictory) {
+  if (outcome === 'victory') {
     // applyVictoryRewards(goldEarned, runHeroRosterIndices, aliveFlags)
     var aliveFlags = run.heroes.map(function(h) { return h.hp > 0; });
     DS.Meta.applyVictoryRewards(goldAwarded, rosterIndices, aliveFlags);
     // Check for new unlocks
     DS.State._pendingUnlocks = DS.Meta.checkUnlocks();
+  } else if (outcome === 'retreat') {
+    var aliveFlags = run.heroes.map(function(h) { return h.hp > 0; });
+    DS.Meta.applyRetreatOutcome(goldAwarded, rosterIndices, aliveFlags);
+  } else if (outcome === 'autoRetreat') {
+    // Tutorial escape: everyone lives, everything banks
+    var allAlive = run.heroes.map(function() { return true; });
+    DS.Meta.applyRetreatOutcome(goldAwarded, rosterIndices, allAlive);
   } else {
     // applyDefeatPenalty(runHeroRosterIndices)
     var validIndices = rosterIndices.filter(function(idx) { return idx !== -1; });
@@ -291,6 +344,9 @@ DS.UI._injectSummaryStyles = function() {
     '.summary-banner-text { font-size:52px; font-weight:900; letter-spacing:10px; text-transform:uppercase; }',
     '.summary-victory .summary-banner-text { color:var(--gold); text-shadow:0 0 30px rgba(212,168,67,0.5), 0 0 60px rgba(212,168,67,0.2); }',
     '.summary-defeat .summary-banner-text { color:var(--crimson); text-shadow:0 0 30px rgba(196,60,60,0.4), 0 0 60px rgba(196,60,60,0.15); }',
+    '.summary-retreat .summary-banner-text { color:#a8b8c8; text-shadow:0 0 30px rgba(168,184,200,0.35), 0 0 60px rgba(168,184,200,0.12); }',
+    '.summary-tutorial { background:var(--bg-panel); border:2px solid var(--gold); border-radius:8px; padding:14px 20px; max-width:420px; font-size:13px; color:var(--text-bright); line-height:1.5; }',
+    '.summary-reward-note { font-size:12px; color:var(--text-dim); font-weight:400; }',
     '.summary-flavor { font-size:14px; color:var(--text-dim); font-style:italic; margin-top:8px; letter-spacing:1px; }',
 
     // Stats box

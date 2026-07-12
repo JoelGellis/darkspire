@@ -177,6 +177,33 @@ DS.Game = {
   },
 
   onCombatDefeat: function() {
+    // First run is a forgiving tutorial: the party "miraculously escapes" with
+    // all heroes and all gains, then the game explains manual retreat.
+    if (DS.Meta && DS.Meta.runCount === 0 && DS.State.run) {
+      DS.State.run._autoRetreat = true;
+    }
+    DS.State.screen = 'summary';
+    DS.UI.render();
+  },
+
+  // ===== MANUAL RETREAT (from the map, between fights) =====
+  // Banks a fraction of run GAINS; surviving heroes come home, dead stay dead.
+  retreat: function() {
+    var run = DS.State.run;
+    if (!run || DS.State.screen !== 'map') return;
+
+    var rate = (DS.Meta && DS.Meta.RETREAT_BANK_RATE) || 0.5;
+    var gains = Math.max(0, (run.gold || 0) - (run.startGold || 0));
+    var banked = Math.floor(gains * rate);
+    var deadCount = run.heroes.filter(function(h) { return h.hp <= 0; }).length;
+
+    var msg = 'Retreat to town?\n\n' +
+      'You bank ' + banked + ' gold (' + Math.round(rate * 100) + '% of the ' + gains + ' gained this run).' +
+      (deadCount > 0 ? '\n' + deadCount + ' fallen hero' + (deadCount > 1 ? 'es are' : ' is') + ' lost forever.' : '') +
+      '\nSurviving heroes return home.';
+    if (!window.confirm(msg)) return;
+
+    run._retreated = true;
     DS.State.screen = 'summary';
     DS.UI.render();
   },

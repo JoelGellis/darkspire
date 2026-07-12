@@ -115,6 +115,7 @@ DS.UI = {
         '</div>' +
         '<div class="map-header-right">' +
           DS.UI.buildRelicIcons(run.relics) +
+          '<button class="btn btn-retreat" id="btn-map-retreat" title="End the run: bank a share of gold gained, survivors come home">RETREAT</button>' +
         '</div>' +
       '</div>';
 
@@ -132,6 +133,10 @@ DS.UI = {
 
     document.getElementById('btn-map-deck').onclick = function() {
       DS.UI.showDeckViewer();
+    };
+
+    document.getElementById('btn-map-retreat').onclick = function() {
+      DS.Game.retreat();
     };
 
     // Render the canvas map
@@ -1478,6 +1483,8 @@ DS.UI = {
     style.textContent = [
       '.map-header-left { display:flex; align-items:center; gap:16px; }',
       '.map-header-right { display:flex; align-items:center; gap:8px; }',
+      '.btn-retreat { padding:6px 14px; font-size:11px; letter-spacing:2px; background:rgba(60,40,40,0.6); border:1px solid var(--crimson-dim); color:#c8a8a8; cursor:pointer; border-radius:4px; }',
+      '.btn-retreat:hover { background:rgba(90,50,50,0.8); color:#fff; }',
       '.map-gold { font-size:15px; }',
       '.map-body { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; position:relative; overflow:hidden; min-height:0; }',
       '.map-footer { padding:16px 24px; border-top:1px solid rgba(80,60,30,0.3); background:linear-gradient(0deg,rgba(16,10,6,0.9),rgba(14,8,16,0.6)); }',

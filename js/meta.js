@@ -217,6 +217,35 @@ DS.Meta = {
 
   // ===== RUN TRANSITIONS =====
 
+  // Fraction of run GAINS (gold above starting gold) banked on a manual retreat.
+  // TODO(Joel): open balance param — DESIGN.md says "a percentage", ~50% is the default guess.
+  RETREAT_BANK_RATE: 0.5,
+
+  // Manual retreat (or first-run auto-retreat): bank goldBanked, survivors come
+  // home (+1 runsSurvived), dead heroes go to the graveyard. No victory credit.
+  applyRetreatOutcome: function(goldBanked, runHeroRosterIndices, aliveFlags) {
+    DS.Meta.addGold(goldBanked);
+
+    var kills = [];
+    for (var i = 0; i < runHeroRosterIndices.length; i++) {
+      var idx = runHeroRosterIndices[i];
+      if (idx === -1) continue;
+      if (aliveFlags[i]) {
+        DS.Meta.heroSurvivedRun(idx);
+      } else {
+        kills.push(idx);
+      }
+    }
+    kills.sort(function(a, b) { return b - a; });
+    kills.forEach(function(idx) {
+      DS.Meta.killHero(idx);
+    });
+
+    DS.Meta.runCount++;
+    DS.Meta.welfareCheck();
+    DS.Meta.save();
+  },
+
   applyDefeatPenalty: function(runHeroRosterIndices) {
     // Kill all heroes that were in the run (defeat = total party kill)
     // Sort descending so splice doesn't shift indices

@@ -64,7 +64,13 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
 3. ✅ Gold economy + town merchant (gear-only)  — `6398af0`. Town merchant = same merchant,
    GEAR ONLY (no cards/removal). Banked `DS.Meta.gold`, `DS.Meta.ownedGear` persists w/ save
    backfill, placeholder `DS.Gear.catalog`. **Phase-5 TODOs:** gear effects, loadout wiring, salvage.
-4. ⬜ Retreat + damned-hero permadeath
+4. ✅ Retreat + damned-hero permadeath — manual RETREAT button on map (banks 50% of gold GAINED
+   above starting gold — gains-based to block the graveyard-bonus instant-retreat farm; survivors
+   +1 runsSurvived, dead → graveyard, no victory credit). First run = forgiving auto-retreat on
+   party wipe (all heroes escape, keep all gold, tutorial box explains the real rules). Summary
+   screen now 4 outcomes: victory/retreat/autoRetreat/defeat. `DS.Meta.RETREAT_BANK_RATE = 0.5`
+   is the open param flagged for Joel. Files: state.js (startGold), meta.js, main.js, summary.js,
+   ui.js. Parse-checked via cscript JScript (node-portable got wiped from Temp).
 5. ⬜ Loadout + equipment economy (lean start, salvage, take-home)
 
 ## Tooling landed (2026-05-29, three-window fan-out)

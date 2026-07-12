@@ -22,6 +22,7 @@ DS.State = {
       deck: [],
       relics: [],
       gold: graveyardGold,
+      startGold: graveyardGold,  // baseline for retreat banking — only GAINS above this bank
       floor: 0,
       currentNode: null,
       map: null,
@@ -227,6 +228,7 @@ DS.State = {
         run: {
           heroes: run.heroes,
           gold: run.gold,
+          startGold: run.startGold || 0,
           floor: run.floor,
           currentNode: run.currentNode,
           map: run.map,
@@ -285,6 +287,7 @@ DS.State = {
       DS.State.run = {
         heroes: data.run.heroes,
         gold: data.run.gold || 0,
+        startGold: data.run.startGold || 0,
         floor: data.run.floor || 0,
         currentNode: data.run.currentNode || null,
         map: data.run.map || null,
