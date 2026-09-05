@@ -23,6 +23,7 @@
   `;
   html = html.replace('<head>', '<head><base href="../"><script>' + bootstrap + '<' + '/script>');
   html = html.replace('<script src="js/main.js">', '<script src="tests/campfire-fixture-state.js"><' + '/script><script src="js/main.js">');
+  html = html.replace('</body>', '<script src="tests/world-fixture.js"><' + '/script></body>');
   document.open(); document.write(html); document.close();
 })().catch(error => { document.getElementById('fixture-loading').textContent = error.message; });
 </script></body></html>

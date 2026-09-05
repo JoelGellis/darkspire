@@ -19,6 +19,8 @@ The runtime must never depend on Downloads, an editor-specific file, or a raw AI
 
 The campfire export recipe is `assets/source/vector/export-campfire.py` (offline Python with `resvg-py==0.5.0`). It applies the editable environment scrims and grade, then crops and grades eight alpha sprites. The checked-in PNGs require no exporter, Python, network access, or build step to play. Review decisions and generation prompts live in `assets/source/ai-reference/campfire-art-review.md`.
 
+The shared-world recipe is `assets/source/vector/export-world.py`, using the same offline exporter. Two SVG masters grade and frame the hamlet/dungeon plates; the editable sprite recipe extracts eight reviewed enemy archetypes. Exact prompts and acceptance notes are in `assets/source/ai-reference/world-art-review.md`. Heroes are reused as full-body actors and portrait crops in CSS, avoiding duplicate runtime art. Dynamic card-image URLs resolve against `document.baseURI` so they work both through HTTP and direct `index.html` opening.
+
 Use Blender to create gothic rooms, towers, altars, weapons, statues, chains, candles, fog, boss silhouettes, and lighting reference. For this browser 2D game, export transparent PNGs, sprite sheets, background plates, or optimized web-ready models only where the existing runtime can use them.
 
 ## Export conventions

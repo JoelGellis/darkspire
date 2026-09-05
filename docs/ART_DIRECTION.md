@@ -6,6 +6,8 @@ Darkspire is gothic, dangerous, ancient, and beautiful: a cursed vertical fortre
 
 Outside a run, evoke Darkest Dungeon: torchlit, painterly, gothic town and campfire scenes. Inside a run, retain Slay-the-Spire-like tactical clarity: party and enemy ranks, cards, intent, and targets must read instantly.
 
+Joel's 2026-09-05 refinement: these are close **layout references**, not merely palette references. Campfire selection uses Diablo-like full-body selectable figures; town follows the Darkest Dungeon hamlet arrangement (painted buildings, roster on the right, embark below); runs follow Slay the Spire's parchment routes, overhead intent, bottom card hand, left energy/draw and right end-turn/discard. Reuse Darkspire's own character and environment exports across the whole loop. Do not fabricate extra mechanics or empty controls just to mimic a reference screenshot.
+
 ## Visual pillars
 
 1. **Gothic verticality.** Tall arches, towers, stairs, spires, chains, narrow bridges, shafts, and moonlit silhouettes.

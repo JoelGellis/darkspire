@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <filter id="grade"><feColorMatrix type="saturate" values=".82"/></filter>
+    <linearGradient id="edge" x2="0" y2="1"><stop stop-color="#10131c" stop-opacity=".35"/><stop offset=".15" stop-color="#10131c" stop-opacity="0"/><stop offset=".8" stop-color="#10131c" stop-opacity="0"/><stop offset="1" stop-color="#10131c" stop-opacity=".3"/></linearGradient>
+  </defs>
+  <image xlink:href="../ai-reference/hamlet-raw.png" width="1600" height="900" preserveAspectRatio="xMidYMid slice" filter="url(#grade)"/>
+  <path d="M0 0H1600V900H0Z" fill="url(#edge)"/>
+</svg>

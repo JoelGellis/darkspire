@@ -1,5 +1,44 @@
 # Current State — 2026-09-05
 
+## Latest milestone: shared campfire / hamlet / run interface
+
+Joel expanded the scope after the campfire-only checkpoint: closely follow Diablo's selectable character lineup, Darkest Dungeon's hamlet composition and Slay the Spire's map/combat/card placement, using the same Darkspire assets throughout. This supersedes the old campfire-only scope below.
+
+- Built `js/visual-system.js` and `css/game-theme.css`, loaded after the existing modules. No engine, framework, build step or runtime dependency was added. Presentation adapters preserve the underlying mechanics and saved data.
+- Campfire controls are now full-body figures in the environment, not separate roster tiles below an introductory banner. Selected figures light up and carry rank badges; veteran/recruit/wound labels remain readable. Ordered party slots, descent, town, resume, help and an expandable graveyard remain live. Desktop composition is tightened; narrow layouts use two-column figures.
+- Town is a full-width painted hamlet with five building labels anchored over their locations, persistent hero roster at right and a crimson assembly action below. Visiting an upgrade building opens a dialog with current benefits and an explicit price before purchase. Blacksmith and merchant still use their real existing actions.
+- Map is now parchment with ink SVG routes and semantic HTML node buttons, preserving generated connections and legal next nodes. Party portraits/ranks remain visible; current/completed/available nodes are distinct; deck and retreat controls sit in the top HUD. No map animation loop is needed in this renderer.
+- Battles share the eight campfire hero illustrations and eight reviewed enemy archetypes. Intent is overhead, HP/ranks/move actions below each figure, energy/draw at left, hand at bottom, and end-turn/discard at right. Cards, reward cards and deck/pile viewers share framed portraits, readable parchment descriptions and energy gems. Small screens use a horizontally scrollable hand rather than wrapping hidden cards.
+- Rest, train, purge, events, shops, boss intros and summaries receive the common world backgrounds and frame treatment. Rest and summary heroes reuse the same portraits. Added keyboard activation to playable cards, valid targets, map nodes, building controls and applicable shop items.
+- Added a short in-game How to Play dialog. Retreat uses a native HTML dialog, retaining the original confirmation text and original engine action. Its adapter intercepts only the synchronous `confirm` call, restores it in `finally`, then calls the original action after the player's explicit confirmation. No browser-native blocking prompt is left in that path.
+
+### Production assets
+
+- New plates: `assets/exported/renders/hamlet-environment.png` and `dungeon-environment.png` (1600 × 900).
+- New archetype sprites: `assets/exported/sprites/enemy-{sentinel,goblin,occultist,wraith,slime,fungus,beast,spider}.png` (360 × 500, alpha).
+- Raw generated layers are in `assets/source/ai-reference/`; SVG grading/scrim masters and `export-world.py` are in `assets/source/vector/`. Reviewed crops retain genuine alpha; source grade and framing are editable. Prompts, visual references and acceptance notes are in `assets/source/ai-reference/world-art-review.md`.
+- Enemy families deliberately reuse archetypes; this is not bespoke artwork for every named enemy. Individual attack-card paintings, enemy variants, richer event illustrations and character animation are remaining art work.
+
+### Verification for this milestone
+
+- Portable Node parse checks for the presentation and fixture scripts; `tests/campfire-smoke.js` passes with the actual entry-point script order. It covers selection/ranks/recruits/embark/save/resume/death/refill/wipe/corrupt saves.
+- `tests/world-smoke.js` passes: 100 independently generated route maps have exactly the engine's available nodes, valid geometry and one semantic button per node; every existing enemy resolves to an exported archetype; hero art, fallen state, escaped names, direct-file card URLs and runtime asset boundary are checked.
+- Chrome inspection at normal desktop (~1530 × 686), 1440 × 900, 820 × 900 and 390 × 844. Fixed inherited town max-width, hidden card-art URLs resolving relative to CSS, an old log panel covering a hero, move-button positioning, and ID-specific hand wrapping. Inspected mobile hand reports 818 px of scrollable cards in a 390 px container, with no page-level horizontal overflow.
+- Browser exercised Space/click party selection, removing rank II and closing the gap, then descending with Fighter/Wizard/Ranger/Paladin in order. A route node started combat. Magic Missile reduced Bone Archer HP 14→8 and energy 3→2; ending turn resolved attacks and redrew at turn 2 with 3 energy.
+- In isolated fixtures: Chapel purchase changed gold 185→135 and added 3 preview HP; merchant opened; in-run card purchase changed gold 185→126 and displayed SOLD; rest healed Fighter 40→57 and returned to map; reward grew deck 32→33; event choice resolved and continued; retreat confirmation reached summary and banked 92 of 185 gained gold. Fixtures never read or overwrite normal campaign storage.
+- Browser console had no unexpected errors/warnings in the inspected normal flows. There is no configured build, linter or type checker. Combat data/balance was not changed, so the earlier simulation checkpoint was not rerun.
+- Saved-run fixture resumed the expected four-hero map with 43 gold; deck viewer used the same framed portrait cards. Inspected solo boss scale, eight-class campfire, and the How to Play dialog. Mobile layout intentionally favors scrolling and compact tactical figures; desktop remains the primary play surface.
+
+### Worktree boundary and remaining gameplay issues
+
+The prior August gameplay wave is still uncommitted and is not included in this presentation milestone. It was not refactored or checkpointed. Only the new visual CSS/JS, own tests/docs/assets and two new index includes are staged for this milestone; the older gear/intro includes remain unstaged. The incomplete rolled-kit handoff, injury penalty application, equipment/loadout UI, flee and temporary-power work remain separate. A clean release still needs that gameplay wave finished and honestly committed; do not discard it or mistake these presentation commits for a complete release branch.
+
+---
+
+## Previous checkpoint notes — campfire-only milestone (historical)
+
+The following records the earlier `bfb6c39` milestone. Its statements about combat/map remaining unchanged apply to that earlier checkpoint, not the latest shared visual pass above.
+
 ## What works
 
 - Darkspire is a vanilla JavaScript browser roguelike; open `index.html` directly.

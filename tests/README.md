@@ -1,5 +1,13 @@
 # Campfire verification
 
+## Shared-world interface checks
+
+Also run `C:\Users\joel\tools\node-portable\node.exe tests/world-smoke.js`. This checks 100 map generations, available-node rendering, every enemy's art mapping, shared hero exports, escaped/dead party labels, direct-file card-art URLs and runtime asset boundaries. It is a small DOM-contract harness, not a substitute for browser layout checks.
+
+The same isolated fixture URL now also accepts `town`, `map`, `combat`, `boss`, `reward`, `rest`, `train`, `purge`, `shop`, `event` and `summary`. `world-fixture.js` starts real engine state at those destinations after the normal boot, and is never loaded by production. `boss` opens an Iron Golem combat. Reloading resets the in-memory campaign. Visual checks and manually exercised flows are recorded in `.agent/STATE.md`.
+
+## Original campfire checks
+
 Run from the repository root:
 
 ```powershell
