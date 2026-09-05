@@ -15,6 +15,9 @@ The runtime must never depend on Downloads, an editor-specific file, or a raw AI
 - Krita originals: `assets/source/krita/`; exports: `assets/exported/renders/` or `assets/exported/ui/`.
 - Blender originals: `assets/source/blender/`; renders/models: `assets/exported/renders/` or `assets/exported/models/`.
 - Audio sessions: `assets/source/audio/`; runtime audio: `assets/exported/audio/`.
+- Browser composites and sprite extraction recipes: `assets/source/vector/`; raster exports remain under `assets/exported/renders/` and `assets/exported/sprites/`. SVG masters may reference repo-local raw source layers; those references never enter runtime code.
+
+The campfire export recipe is `assets/source/vector/export-campfire.py` (offline Python with `resvg-py==0.5.0`). It applies the editable environment scrims and grade, then crops and grades eight alpha sprites. The checked-in PNGs require no exporter, Python, network access, or build step to play. Review decisions and generation prompts live in `assets/source/ai-reference/campfire-art-review.md`.
 
 Use Blender to create gothic rooms, towers, altars, weapons, statues, chains, candles, fog, boss silhouettes, and lighting reference. For this browser 2D game, export transparent PNGs, sprite sheets, background plates, or optimized web-ready models only where the existing runtime can use them.
 

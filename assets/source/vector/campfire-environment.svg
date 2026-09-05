@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1980" height="792" viewBox="0 0 1980 792">
+  <!-- Editable production composite: reviewed raw painting + separate grading,
+       left text scrim, ground fade. Exported PNG is the only runtime input. -->
+  <defs>
+    <linearGradient id="text-scrim"><stop stop-color="#080e19" stop-opacity=".6"/><stop offset=".4" stop-color="#080e19" stop-opacity="0"/></linearGradient>
+    <linearGradient id="ground-fade" x2="0" y2="1"><stop offset=".78" stop-color="#0b1016" stop-opacity="0"/><stop offset="1" stop-color="#0b1016" stop-opacity=".85"/></linearGradient>
+    <filter id="plate-grade"><feColorMatrix type="saturate" values=".74"/></filter>
+  </defs>
+  <image xlink:href="../ai-reference/campfire-environment-raw.png" width="1980" height="792" filter="url(#plate-grade)"/>
+  <path d="M0 0H1980V792H0Z" fill="url(#text-scrim)"/>
+  <path d="M0 0H1980V792H0Z" fill="url(#ground-fade)"/>
+</svg>

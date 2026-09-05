@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Darkspire campfire fixtures</title></head>
+<body><p id="fixture-loading">Loading isolated campfire fixture…</p>
+<script>
+// Development only. Same entry point and script order as production, with an
+// in-memory Storage implementation installed BEFORE game scripts execute.
+// No test action reads, deletes or overwrites the player's localStorage.
+(async function() {
+  const scenario = new URLSearchParams(location.search).get('state') || 'returning';
+  const response = await fetch('../index.html');
+  if (!response.ok) throw new Error('Could not load game entry point');
+  let html = await response.text();
+  const bootstrap = `
+    const memory = new Map();
+    Object.defineProperty(window, 'localStorage', {value: {
+      getItem(key) {return memory.has(key) ? memory.get(key) : null;},
+      setItem(key, value) {memory.set(key, String(value));},
+      removeItem(key) {memory.delete(key);}
+    }});
+    window.fixtureScenario = ${JSON.stringify(scenario)};
+    window.fixtureErrors = [];
+    window.addEventListener('error', e => window.fixtureErrors.push(e.message));
+  `;
+  html = html.replace('<head>', '<head><base href="../"><script>' + bootstrap + '<' + '/script>');
+  html = html.replace('<script src="js/main.js">', '<script src="tests/campfire-fixture-state.js"><' + '/script><script src="js/main.js">');
+  document.open(); document.write(html); document.close();
+})().catch(error => { document.getElementById('fixture-loading').textContent = error.message; });
+</script></body></html>
