@@ -45,3 +45,17 @@ The command must finish with all suites green before Mendel publishes. The gener
 - New release artifact: `.release/4d19090c47245ca5`, version `incremental-4d19090c47245ca5`, 63 runtime files, publication label generated at build time as `2026-09-10 1414` (the release timestamp is `2026-09-10T18:14:20.129Z`; the label uses local HHMM).
 - The local source server is `C:\Users\joel\darkspire`, PID 29444, at `http://127.0.0.1:4173/`; `curl` byte comparison confirms served `index.html` matches source and the served `state.js` contains the five-hero migration gate. Refreshing this origin preserves its localStorage.
 - Mendel publication input and command: publish only `.release/4d19090c47245ca5` after integrated checks; rebuild with `$env:RELEASE_PUBLISHED_AT=(Get-Date).ToString('o'); & C:\Users\joel\tools\node-portable\node.exe scripts\build-release.js`. No external deployment was executed by this workstream.
+
+## Progression migration coordination — Heisenberg scope correction
+
+- Progression owner Heisenberg is replacing birth-time kit variants with stable base-class identity and three meaningful player-chosen subclasses per class, each offering randomized skill options. Larger subclass pools are deferred.
+- Legacy migration contract: do not infer or force a subclass from an old kit/signature/variant label. Preserve learned effects when they remain compatible with the new class tree; filter retired IDs; leave incompatible effects unassigned or reset only where the new schema requires it. Preserve hero level, gear, wounds, roster membership, and campaign progress.
+- Bacon/state boundary: `state.js` continues to preserve run hero power/block/build snapshots and tolerant card migration; it must not select subclasses or rewrite progression trees. Mendel should integrate party-four/roster expansion with Heisenberg's final progression schema, then rerun the full build before same-URL publication.
+
+## Subclass progression correction — 2026-09-10
+
+- DONE in source: recruits are base-class identities only; starter kits still roll mechanically, but kit signatures are not shown as birth variants.
+- DONE in source: every class exposes three distinct subclass paths through its skill tree. The first skill-point spend selects a path; later points are limited to that subclass. Skill node choices remain randomized within the class/path structure.
+- DONE and tested: `tests/progression.js` covers null recruit subclass, three paths per class, first-choice selection, alternate-path lockout, kit variation, and persistence.
+- DEFERRED by scope: larger recruit rolling pools and multiple simultaneous subclass options per hero beyond the three progression paths.
+- PUBLISH STATUS: this correction is built locally and awaits the same-origin deployment below.

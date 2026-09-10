@@ -86,7 +86,7 @@
             (rank !== -1 ? ', rank ' + (rank + 1) + ', remove from party' : ', select for party')) + '">' +
           '<span class="cf-portrait-frame">' + portrait(entry, 'cf-card-portrait') + '</span>' +
           '<span class="cf-hero-info"><span class="cf-status">' + escape(entry.source === 'recruit' ? 'Stagecoach recruit · Select to muster' : status(entry)) + '</span>' +
-          '<strong>' + escape(name) + '</strong><span class="cf-class">' + escape(entry.heroClass) + ' · ' + escape(entry.variant || 'standard') + '</span>' +
+          '<strong>' + escape(name) + '</strong><span class="cf-class">' + escape(entry.heroClass) + ' · base class</span>' +
           '<span class="cf-stats">Level ' + (entry.level || 1) + ' <span>·</span> ' + camp._effectiveMaxHp(entry) + ' max HP' +
           (entry.xp ? ' <span>·</span> ' + entry.xp + ' XP' : '') + '</span>' +
           '<span class="cf-trait' + (wound ? ' cf-wound' : '') + '">' + escape(wound || roles[entry.heroClass]) + '</span></span>' +

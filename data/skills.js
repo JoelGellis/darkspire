@@ -54,7 +54,7 @@ DS.Skills = (function () {
 
   function generate(cls) {
     var names = branchNames[cls] || ['Discipline', 'Instinct', 'Mastery'];
-    var tree = { version: 1, branches: [] };
+    var tree = { version: 2, branches: [] };
     for (var b = 0; b < 3; b++) {
       var picked = candidates(cls, b);
       picked = picked.slice(0, 3);
@@ -62,7 +62,7 @@ DS.Skills = (function () {
         node.requires = index ? picked[index - 1].id : null;
         node.unlocked = false;
       });
-      tree.branches.push({ id: cls + '_branch_' + b, name: names[b], nodes: picked });
+      tree.branches.push({ id: cls + '_branch_' + b, subclassId: cls + '_subclass_' + b, name: names[b], nodes: picked });
     }
     return tree;
   }
@@ -75,7 +75,8 @@ DS.Skills = (function () {
     });
   }
   function repair(tree, cls) {
-    tree.branches.forEach(function(b, bi) { b.nodes.forEach(function(n, i) {
+    tree.version = 2;
+    tree.branches.forEach(function(b, bi) { b.subclassId = b.subclassId || cls + '_subclass_' + bi; b.nodes.forEach(function(n, i) {
       n.requires = i ? b.nodes[i - 1].id : null;
       if (n.kind !== 'card') n.amount = n.kind === 'maxHp' ? 4 : 1;
       if (n.kind === 'card' && !(DS.Cards[cls] || []).some(function(c) { return c.id === n.cardId; })) {
@@ -85,5 +86,13 @@ DS.Skills = (function () {
       }
     }); });
   }
-  return { generate: generate, valid: valid, repair: repair };
+  function subclasses(cls) {
+    var names = branchNames[cls] || ['Discipline', 'Instinct', 'Mastery'];
+    return names.map(function(name, i) { return { id: cls + '_subclass_' + i, name: name }; });
+  }
+  function nameFor(cls, id) {
+    var found = subclasses(cls).find(function(s) { return s.id === id; });
+    return found ? found.name : null;
+  }
+  return { generate: generate, valid: valid, repair: repair, subclasses: subclasses, nameFor: nameFor };
 }());

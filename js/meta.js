@@ -156,21 +156,14 @@ DS.Meta = {
       power: 0,
       blockBonus: 0,
       skillCards: [],
+      subclass: null,
       upgradedCards: [],
       gear: DS.Meta._emptyGearSlots()
     };
   },
 
-  // Variant label for a roster entry's rolled signature (for UI display).
+  // Starting kits vary mechanically; recruits retain only their base class.
   getKitVariant: function(rosterHero) {
-    if (!rosterHero || !rosterHero.kit) return null;
-    var spec = DS.Meta.CLASS_KITS[rosterHero.heroClass];
-    if (!spec) return null;
-    for (var i = 0; i < spec.signatures.length; i++) {
-      if (rosterHero.kit.indexOf(spec.signatures[i].id) !== -1) {
-        return spec.signatures[i].variant;
-      }
-    }
     return null;
   },
 
@@ -184,6 +177,7 @@ DS.Meta = {
     if (typeof h.level !== 'number') h.level = 1;
     if (typeof h.xp !== 'number') h.xp = 0;
     if (h.injury === undefined) h.injury = null;
+    if (h.subclass === undefined) h.subclass = null;
     if (!Array.isArray(h.kit) || !h.kit.length) {
       var cards = DS.Cards[h.heroClass] || [];
       h.kit = cards.slice(0, 4).map(function(c) { return c.id; });
@@ -456,12 +450,15 @@ DS.Meta = {
     DS.Meta._backfillRosterEntry(hero);
     if (hero.skillPoints < 1) return false;
     var found = null;
+    var foundBranch = null;
     for (var b = 0; b < hero.skillTree.branches.length; b++) {
       var nodes = hero.skillTree.branches[b].nodes;
-      for (var n = 0; n < nodes.length; n++) if (nodes[n].id === nodeId) found = { node: nodes[n], nodes: nodes, index: n };
+      for (var n = 0; n < nodes.length; n++) if (nodes[n].id === nodeId) { found = { node: nodes[n], nodes: nodes, index: n }; foundBranch = hero.skillTree.branches[b]; }
     }
     if (!found || found.node.unlocked) return false;
+    if (hero.subclass && foundBranch.subclassId !== hero.subclass) return false;
     if (found.node.requires && (!found.nodes[found.index - 1] || !found.nodes[found.index - 1].unlocked)) return false;
+    if (!hero.subclass) hero.subclass = foundBranch.subclassId;
     found.node.unlocked = true;
     if (hero.firstLevelGains && DS.Meta.progressionTutorial) DS.Meta.progressionTutorial = { completed: true };
     hero.skillPoints--;

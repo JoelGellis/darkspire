@@ -24,13 +24,13 @@
       var needed = DS.Meta.xpToNext(h.level);
       var options = offer.map(function(entry,i) { return '<option value="'+i+'" '+(entry===e?'selected':'')+'>'+esc(entry.name)+' — '+esc(entry.heroClass)+' '+(entry.source==='recruit'?'(recruit)':'(hero '+(entry.rosterIdx+1)+')')+'</option>'; }).join('');
       dialog.innerHTML = '<div class="skill-tree-panel"><header><h2 id="skill-title">Hero skills</h2><button class="btn skill-tree-close">Close</button></header><label>Choose hero <select id="skill-hero">'+options+'</select></label>'+
-        '<p>Level '+h.level+' · '+(needed===null?'Maximum level':h.xp+' / '+needed+' XP')+' · '+h.skillPoints+' skill points</p><p>Level growth: +2 max HP, +1 attack power and 1 skill point per level. One kit card upgrades automatically while any remain.</p>'+
+        '<p>Class: '+esc(h.heroClass)+' · '+(h.subclass ? 'Subclass: '+esc(DS.Skills.nameFor(h.heroClass,h.subclass)) : 'Choose one of three subclasses with your first skill point')+'</p><p>Level '+h.level+' · '+(needed===null?'Maximum level':h.xp+' / '+needed+' XP')+' · '+h.skillPoints+' skill points</p><p>Level growth: +2 max HP, +1 attack power and 1 skill point per level. One kit card upgrades automatically while any remain.</p>'+ 
         '<p>Progression bonuses: +'+h.maxHpBonus+' max HP · +'+h.power+' attack power · +'+h.blockBonus+' Block per gain. Changes apply to the next expedition.</p>'+
         (tutorialFor(h)?'<aside class="skill-tutorial" role="status">'+esc(gainsText(h))+' Choose an available first node below to spend one point.<button class="btn" id="skill-dismiss">Dismiss guide</button></aside>':'')+
         (e.source==='recruit'?'<p>Recruit preview. This rolled kit and tree join your roster when you embark with this hero.</p>':'')+
         '<p>Starting kit: '+h.kit.map(function(id) { var c=DS.Cards[h.heroClass].find(function(c){return c.id===id;});return esc(c.name)+(h.upgradedCards.indexOf(id)>=0?'+':''); }).join(', ')+'</p><div class="skill-branches">'+h.skillTree.branches.map(function(b) {
-          return '<section class="skill-branch"><h3>'+esc(b.name)+'</h3>'+b.nodes.map(function(n,i) {
-            var ready = !n.unlocked && (!i || b.nodes[i-1].unlocked) && h.skillPoints>0 && e.source==='roster';
+          return '<section class="skill-branch"><h3>'+esc(b.name)+'</h3><small>'+(h.subclass && h.subclass===b.subclassId?'Chosen subclass':'Three class paths; choose one to begin')+'</small>'+b.nodes.map(function(n,i) {
+            var ready = !n.unlocked && (!i || b.nodes[i-1].unlocked) && h.skillPoints>0 && e.source==='roster' && (!h.subclass || h.subclass===b.subclassId);
             return '<button class="skill-node '+(n.unlocked?'skill-node-unlocked':'')+'" data-node="'+esc(n.id)+'" '+(ready?'':'disabled')+'><strong>'+esc(n.name)+'</strong><span>'+esc(n.desc)+'</span><small>'+(n.unlocked?'Learned':i&&!b.nodes[i-1].unlocked?'Learn the previous node first':h.skillPoints<1?'Requires 1 skill point':'Spend 1 point')+'</small></button>';
           }).join('')+'</section>';
         }).join('')+'</div></div>';

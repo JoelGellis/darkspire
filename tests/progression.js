@@ -6,6 +6,9 @@ DS.Meta.heroRoster=DS.Heroes.map(h=>DS.Meta.rollRecruit(h.cls));
 for(const [idx,h] of DS.Meta.heroRoster.entries()) {
   const def=id=>DS.Cards[h.heroClass].find(c=>c.id===id);
   assert.equal(h.kit.length,4);assert.ok(h.kit.every(def));
+  assert.equal(h.subclass,null,'recruits start as base class with no subclass');
+  assert.equal(DS.Skills.subclasses(h.heroClass).length,3,'each class has three progression subclasses');
+  assert.equal(DS.Meta.getKitVariant(h),null,'starter-kit variation is not a birth subclass label');
   const variants=new Set(Array.from({length:40},()=>DS.Meta.rollKit(h.heroClass).join(',')));
   assert.ok(variants.size>=2,h.heroClass+' has varied starting kits');
   const trees=new Set(Array.from({length:25},()=>JSON.stringify(DS.Skills.generate(h.heroClass))));
@@ -16,6 +19,8 @@ for(const [idx,h] of DS.Meta.heroRoster.entries()) {
   assert.equal(h.level,2);assert.equal(h.maxHpBonus,2);assert.equal(h.power,1);assert.equal(h.skillPoints,1);
   const b=h.skillTree.branches[0];assert.equal(DS.Meta.spendSkillPoint(idx,b.nodes[1].id),false);
   assert.equal(DS.Meta.spendSkillPoint(idx,b.nodes[0].id),true);
+  assert.equal(h.subclass,b.subclassId,'first skill choice selects the subclass');
+  assert.equal(DS.Meta.spendSkillPoint(idx,h.skillTree.branches[1].nodes[0].id),false,'subclass choice locks the other paths');
   assert.equal(DS.Meta.spendSkillPoint(idx,b.nodes[0].id),false);
   DS.Meta.addXp(idx,28);assert.equal(h.level,4);
   assert.ok(DS.Meta.spendSkillPoint(idx,b.nodes[1].id));assert.ok(DS.Meta.spendSkillPoint(idx,b.nodes[2].id));
