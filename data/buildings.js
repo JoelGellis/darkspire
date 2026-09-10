@@ -59,7 +59,7 @@ DS.Buildings = {
   tavern: {
     id: 'tavern',
     name: 'Tavern',
-    desc: 'Expand the caravan. +1 hero offered per level.',
+    desc: 'Expand the company. Your first town upgrade opens a fifth expedition slot.',
     icon: '\uD83C\uDF7A',
     type: 'upgrade',
     maxLevel: 2,

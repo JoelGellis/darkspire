@@ -44,6 +44,37 @@ DS.UI = {
     return html;
   },
 
+  // Party artifacts are gear, not relics. Keep them visible beside relics so
+  // buying or carrying one has an obvious, inspectable result in every run.
+  buildArtifactIcons: function(artifactIds) {
+    if (!artifactIds || !artifactIds.length || !DS.Gear) return '';
+    var items = artifactIds.map(function(id) { return DS.Gear.getById(id); }).filter(function(item) { return !!item; });
+    if (!items.length) return '';
+    return '<button class="artifact-strip" id="btn-artifacts" type="button" title="View carried artifacts">' +
+      '<span class="artifact-strip-label">ARTIFACTS</span>' + items.map(function(item) {
+        return '<span class="artifact-strip-icon" title="' + item.name + ': ' + item.desc + '">' + item.icon + '</span>';
+      }).join('') + '</button>';
+  },
+
+  showArtifactViewer: function() {
+    var run = DS.State.run;
+    if (!run || !DS.Gear) return;
+    var old = document.getElementById('artifact-viewer');
+    if (old) old.remove();
+    var dialog = document.createElement('dialog');
+    dialog.id = 'artifact-viewer';
+    dialog.className = 'ds-dialog artifact-viewer';
+    var items = (run.artifacts || []).map(function(id) { return DS.Gear.getById(id); }).filter(function(item) { return !!item; });
+    dialog.innerHTML = '<div class="artifact-viewer-header"><h2>Carried artifacts</h2><button class="btn" type="button">Close</button></div>' +
+      (items.length ? items.map(function(item) {
+        return '<article class="artifact-detail"><div class="artifact-detail-icon">' + item.icon + '</div><div><h3>' + item.name + '</h3><p>' + item.desc + '</p><small>' + item.rarity + ' · party-wide</small></div></article>';
+      }).join('') : '<p>No artifacts are being carried.</p>');
+    document.body.appendChild(dialog);
+    dialog.querySelector('button').onclick = function() { dialog.close(); dialog.remove(); };
+    dialog.addEventListener('close', function() { if (dialog.parentNode) dialog.remove(); });
+    dialog.showModal();
+  },
+
   // ===== HERO STATUS BAR HTML (for map/event/shop) =====
   buildPartyBar: function() {
     var run = DS.State.run;
@@ -75,7 +106,8 @@ DS.UI = {
         '<div class="title-content">' +
           '<div class="title-icon">\u2620\uFE0F</div>' +
           '<h1 class="title-text">DARKSPIRE</h1>' +
-          '<div class="title-sub">Descend into darkness. Draw your cards. Survive.</div>' +
+          '<div class="title-sub">' + (DS.Lore ? DS.Lore.subtitle : 'Descend into darkness. Draw your cards. Survive.') + '</div>' +
+          '<div class="title-lore"><p>There is a necklace at the top of the tower.</p><p>The archmage Tyrhung has it. He is, regrettably, still alive.</p><small>' + (DS.Lore ? DS.Lore.oath : '') + '</small></div>' +
           (hasSave ? '<button class="btn btn-new-run" id="btn-continue">CONTINUE</button>' : '') +
           '<button class="btn btn-new-run" id="btn-new-game">NEW GAME</button>' +
         '</div>' +
@@ -117,6 +149,7 @@ DS.UI = {
         '</div>' +
         '<div class="map-header-right">' +
           DS.UI.buildRelicIcons(run.relics) +
+          DS.UI.buildArtifactIcons(run.artifacts) +
           '<button class="btn btn-retreat" id="btn-map-retreat" title="End the run: bank a share of gold gained, survivors come home">RETREAT</button>' +
         '</div>' +
       '</div>';
@@ -132,6 +165,9 @@ DS.UI = {
 
     screen.innerHTML = headerHtml + mapHtml + '<div class="map-footer">' + partyHtml + deckHtml + '</div>';
     root.appendChild(screen);
+
+    var mapArtifactButton = root.querySelector('#btn-artifacts');
+    if (mapArtifactButton) mapArtifactButton.onclick = DS.UI.showArtifactViewer;
 
     document.getElementById('btn-map-deck').onclick = function() {
       DS.UI.showDeckViewer();
@@ -167,12 +203,13 @@ DS.UI = {
         '<div class="combat-top-bar">' +
           '<div class="top-bar-left">' +
             '<span class="floor-tag">FLOOR ' + run.floor + '</span>' +
-            relicHtml +
+          relicHtml +
+          DS.UI.buildArtifactIcons(run.artifacts) +
           '</div>' +
           '<div class="top-bar-center">' +
             '<span class="turn-phase-indicator" id="turn-phase">' +
               (combat.animating ? 'ENEMY TURN' : 'YOUR TURN') +
-            '</span>' +
+            '</span><small class="combat-lore-line">' + (DS.Lore ? DS.Lore.combat(combat.enemies) : '') + '</small>' +
           '</div>' +
           '<div class="top-bar-right">' +
             '<span class="gold-tag">\uD83D\uDCB0 <span id="gold-count">' + run.gold + '</span></span>' +
@@ -217,6 +254,9 @@ DS.UI = {
         '</div>';
       root.appendChild(screen);
 
+    var artifactButton = root.querySelector('#btn-artifacts');
+    if (artifactButton) artifactButton.onclick = DS.UI.showArtifactViewer;
+
       document.getElementById('btn-end-turn').onclick = function() {
         DS.Combat.endTurn();
       };
@@ -226,6 +266,7 @@ DS.UI = {
       document.getElementById('btn-discard-pile').onclick = function() {
         DS.UI.showPileViewer('Discard Pile', DS.State.combat.discardPile);
       };
+      DS.UI.bindCombatKeyboard();
     }
 
     DS.UI.renderEnergy();
@@ -242,6 +283,34 @@ DS.UI = {
       phaseEl.textContent = isEnemyTurn ? 'ENEMY TURN' : 'YOUR TURN';
       phaseEl.className = 'turn-phase-indicator' + (isEnemyTurn ? ' enemy-phase' : ' player-phase');
     }
+  },
+
+  bindCombatKeyboard: function() {
+    if (DS.UI._combatKeyboardBound) return;
+    DS.UI._combatKeyboardBound = true;
+    document.addEventListener('keydown', function(event) {
+      if (DS.State.screen !== 'combat' || DS.State.combat.animating) return;
+      var tag = event.target && event.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      var key = event.key.toLowerCase();
+      if (key === 'e' || key === 'enter') {
+        event.preventDefault();
+        var end = document.getElementById('btn-end-turn');
+        if (end && !end.disabled) { end.classList.add('keyboard-activated'); setTimeout(function() { end.classList.remove('keyboard-activated'); }, 260); end.click(); }
+        return;
+      }
+      if (/^[1-9]$/.test(key)) {
+        var idx = Number(key) - 1;
+        var card = DS.State.combat.hand[idx];
+        if (!card) return;
+        event.preventDefault();
+        DS.Combat.selectCard(idx);
+        setTimeout(function() {
+          var el = document.querySelector('[data-hand-idx="' + idx + '"]');
+          if (el) { el.classList.add('keyboard-activated'); setTimeout(function() { el.classList.remove('keyboard-activated'); }, 260); }
+        }, 0);
+      }
+    });
   },
 
   renderEnergy: function() {
@@ -396,7 +465,8 @@ DS.UI = {
     var ordered = run.heroes.slice().sort(function(a, b) { return b.pos - a.pos; });
     ordered.forEach(function(hero) {
       var dead = hero.hp <= 0;
-      var pct = dead ? 0 : Math.max(0, (hero.hp / hero.maxHp) * 100);
+      var barMax = Math.max(hero.maxHp || 0, hero.block || 0, 1);
+      var pct = dead ? 0 : Math.max(0, (hero.hp / barMax) * 100);
 
       var targetable = false;
       if (combat.selectedCard !== null) {
@@ -418,7 +488,6 @@ DS.UI = {
       }
 
       var statusHtml = '';
-      if (hero.block > 0) statusHtml += '<span class="status-badge status-block">\uD83D\uDEE1\uFE0F ' + hero.block + '</span>';
       if (hero.poison > 0) statusHtml += '<span class="status-badge status-poison">\u2620 ' + hero.poison + '</span>';
       if (hero.weak > 0) statusHtml += '<span class="status-badge status-weak">WK ' + hero.weak + '</span>';
       if (hero.vulnerable > 0) statusHtml += '<span class="status-badge status-vuln">VU ' + hero.vulnerable + '</span>';
@@ -448,7 +517,9 @@ DS.UI = {
         '<div class="entity-pos-badge" title="Position ' + hero.pos + ' (1 = front)">' + hero.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(hero, 'right').outerHTML + '</div>' +
         '<div class="entity-name ' + hero.cls + '">' + hero.name + '</div>' +
-        '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div>' +
+        '<div class="entity-bars">' +
+        (hero.block > 0 ? '<div class="entity-block-bar" aria-label="' + hero.block + ' Block"><div class="entity-block-fill" style="width:' + ((hero.block / barMax) * 100) + '%"></div><span>BLOCK ' + hero.block + '</span></div>' : '') +
+        '<div class="entity-hp-bar"><div class="entity-hp-fill hero-hp" style="width:' + pct + '%"></div></div></div>' +
         '<span class="entity-hp-text">' + (dead ? 'DEAD' : hero.hp + '/' + hero.maxHp) + '</span>' +
         (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '') +
         moveHtml;
@@ -482,12 +553,13 @@ DS.UI = {
     var orderedEnemies = combat.enemies.slice().sort(function(a, b) { return a.pos - b.pos; });
     orderedEnemies.forEach(function(enemy) {
       var dead = enemy.hp <= 0;
-      var pct = dead ? 0 : Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+      var barMax = Math.max(enemy.maxHp || 0, enemy.block || 0, 1);
+      var pct = dead ? 0 : Math.max(0, (enemy.hp / barMax) * 100);
 
       var targetable = false;
       if (combat.selectedCard !== null) {
         var card = combat.hand[combat.selectedCard];
-        if (card && (card.target === 'enemy' || card.target === 'enemy_any') && !dead) targetable = true;
+        if (card && (card.target === 'enemy' || card.target === 'enemy_any') && !dead) targetable = DS.Combat.validTarget(card, enemy);
       }
 
       // Intent display - floats above sprite
@@ -496,10 +568,11 @@ DS.UI = {
         var intent = enemy.currentIntent;
         var intentCls = 'entity-intent';
         var intentIcon = '\u2753';
-        if (intent.type === 'attack' || intent.type === 'attack_multi' || intent.type === 'attack_all' || intent.type === 'attack_poison') {
+        if (intent.type === 'attack' || intent.type === 'attack_lifesteal' || intent.type === 'attack_multi' || intent.type === 'attack_all' || intent.type === 'attack_poison') {
           intentCls += ' intent-attack'; intentIcon = '\u2694\uFE0F';
         } else if (intent.type === 'defend') {
-          intentCls += ' intent-defend'; intentIcon = '\uD83D\uDEE1\uFE0F';
+          // Immediate NPC Block is communicated by the blue bar, not a future icon.
+          intentHtml = '';
         } else if (intent.type === 'buff') {
           intentCls += ' intent-buff'; intentIcon = '\u2B06\uFE0F';
         } else if (intent.type === 'heal_allies') {
@@ -511,18 +584,21 @@ DS.UI = {
         }
         var displayDmg = intent.dmg ? intent.dmg + (enemy.dmgBuff || 0) : null;
         var desc = intent.desc;
-        if (intent.type === 'attack' && displayDmg) {
+        if ((intent.type === 'attack' || intent.type === 'attack_lifesteal') && displayDmg) {
           desc = intent.targeting === 'back' ? displayDmg + '\u2192' : '' + displayDmg;
+          if (intent.type === 'attack_lifesteal') desc += ' + HEAL ' + (intent.heal || displayDmg);
         } else if (intent.type === 'attack_multi' && displayDmg) {
           desc = displayDmg + '\u00D7' + intent.hits;
         } else if (intent.type === 'attack_all' && displayDmg) {
           desc = displayDmg + ' ALL';
+        } else if (intent.type === 'attack_poison' && displayDmg) {
+          desc = displayDmg + ' + PSN ' + (intent.poison || 0);
         }
-        intentHtml = '<div class="' + intentCls + '"><span class="intent-icon">' + intentIcon + '</span> <span class="intent-value">' + desc + '</span></div>';
+        intentHtml = '<div class="' + intentCls + '" data-target-ids="' + (enemy.intentTargets || []).join(',') + '"><span class="intent-icon">' + intentIcon + '</span> <span class="intent-value">' + desc + '</span></div>';
+        if (intent.type === 'defend') intentHtml = '';
       }
 
       var statusHtml = '';
-      if (enemy.block > 0) statusHtml += '<span class="status-badge status-block">\uD83D\uDEE1\uFE0F ' + enemy.block + '</span>';
       if (enemy.poison > 0) statusHtml += '<span class="status-badge status-poison">\u2620 ' + enemy.poison + '</span>';
       if (enemy.weak > 0) statusHtml += '<span class="status-badge status-weak">WK ' + enemy.weak + '</span>';
       if (enemy.vulnerable > 0) statusHtml += '<span class="status-badge status-vuln">VU ' + enemy.vulnerable + '</span>';
@@ -540,6 +616,8 @@ DS.UI = {
       if (targetable) {
         (function(eId) {
           el.onclick = function() { DS.Combat.clickTarget(eId); };
+          el.onmouseenter = function() { combat._previewTargetId = eId; DS.UI.renderHand(); };
+          el.onmouseleave = function() { if (combat._previewTargetId === eId) { combat._previewTargetId = null; DS.UI.renderHand(); } };
         })(enemy.id);
       }
 
@@ -548,7 +626,9 @@ DS.UI = {
         '<div class="entity-pos-badge enemy-pos-badge" title="Position ' + enemy.pos + ' (1 = front)">' + enemy.pos + '</div>' +
         '<div class="entity-sprite-wrap">' + DS.UI.buildSprite(enemy, 'left').outerHTML + '</div>' +
         '<div class="entity-name">' + enemy.name + '</div>' +
-        '<div class="entity-hp-bar"><div class="entity-hp-fill enemy-hp" style="width:' + pct + '%"></div></div>' +
+        '<div class="entity-bars">' +
+        (enemy.block > 0 ? '<div class="entity-block-bar" aria-label="' + enemy.block + ' Block"><div class="entity-block-fill" style="width:' + ((enemy.block / barMax) * 100) + '%"></div><span>BLOCK ' + enemy.block + '</span></div>' : '') +
+        '<div class="entity-hp-bar"><div class="entity-hp-fill enemy-hp" style="width:' + pct + '%"></div></div></div>' +
         '<span class="entity-hp-text">' + (dead ? 'DEAD' : enemy.hp + '/' + enemy.maxHp) + '</span>' +
         (statusHtml ? '<div class="entity-statuses">' + statusHtml + '</div>' : '');
 
@@ -587,7 +667,65 @@ DS.UI = {
         card.prefPos.join('/') + (posHero ? ' (currently ' + posHero.pos + ')' : '') + '">' +
         (posLocked ? '⚠' : '❖') + ' ' + card.prefPos.join('/') + '</div>' : '';
 
+      if (!card.prefPos || !card.prefPos.length) {
+        posBadge = '<div class="card-pos-badge" title="This card can be played from any hero position">â– HERO ANY</div>';
+      }
+
+      // Enemy target reach is always visible, including the combat engine's
+      // default reach when a card has no explicit reach property.
+      var targetBadge = '';
+      if (card.target === 'enemy' || card.target === 'enemy_any') {
+        var reach = DS.Combat.cardReach(card);
+        var reachText = reach.length === 4 ? '1-4' : reach.join('/');
+        targetBadge = '<div class="card-target-badge" title="Can target enemy positions ' + reachText + '">TARGET ' + reachText + '</div>';
+      } else if (card.target === 'all_enemies') {
+        targetBadge = '<div class="card-target-badge">TARGET ALL</div>';
+      } else if (card.target === 'ally' || card.target === 'ally_dead') {
+        targetBadge = '<div class="card-target-badge">TARGET ALLY</div>';
+      } else if (card.target === 'all_allies') {
+        targetBadge = '<div class="card-target-badge">TARGET PARTY</div>';
+      } else if (card.target === 'self') {
+        targetBadge = '<div class="card-target-badge">TARGET SELF</div>';
+      } else {
+        targetBadge = '<div class="card-target-badge">TARGET NONE</div>';
+      }
+
       var artClass = 'card-art-' + card.type;
+      var flatDamage = DS.Combat.cardFlatDamage(card);
+      var previewTarget = combat._previewTargetId ? combat.enemies.find(function(e) { return e.id === combat._previewTargetId; }) : null;
+      var previewBreakdown = previewTarget ? DS.Combat.cardDamageBreakdown(card, previewTarget) : null;
+      var previewDamage = previewTarget ? DS.Combat.cardDamage(card, previewTarget) : null;
+      var cardDesc = card.desc;
+      if (flatDamage !== null) {
+        cardDesc = cardDesc.replace(/(\d+) damage/, flatDamage + ' damage');
+        if (previewDamage !== null && previewTarget.vulnerable > 0) cardDesc += '  → ' + previewDamage + ' vs Vulnerable';
+      }
+      var damageBreakdownHtml = '';
+      if (flatDamage !== null) {
+        var hitMatch = card.desc && card.desc.match(/(\d+)\s+times/i);
+        var hitCount = card.xCost ? (card._energySpent || combat.energy || 0) : (hitMatch ? Number(hitMatch[1]) : 1);
+        var scopeNote = card.target === 'all_enemies' ? 'Per target; other enemies may have different Block.' : '';
+        var hitNote = hitCount > 1 ? 'Up to ' + hitCount + ' hits; Block is consumed hit by hit.' : '';
+        if (previewBreakdown) {
+          damageBreakdownHtml = '<div class="card-damage-breakdown" aria-label="Damage breakdown">' +
+            '<span>BASE ' + previewBreakdown.base + '</span>' +
+            (previewBreakdown.strength ? '<span>STR +' + previewBreakdown.strength + '</span>' : '') +
+            (previewBreakdown.power ? '<span>POWER +' + previewBreakdown.power + '</span>' : '') +
+            (previewBreakdown.weakPenalty < 1 ? '<span>WEAK x0.75</span>' : '') +
+            (previewBreakdown.vulnerableBonus ? '<span>VULN +' + previewBreakdown.vulnerableBonus + '</span>' : '') +
+            '<span>IN ' + previewBreakdown.incoming + '</span>' +
+            '<span>BLOCK -' + previewBreakdown.blockAbsorbed + '</span>' +
+            '<strong>HP -' + previewBreakdown.hpLoss + '</strong>' +
+            '</div>' + (hitNote || scopeNote ? '<div class="card-damage-note">' + [hitNote, scopeNote].filter(Boolean).join(' ') + '</div>' : '');
+        } else {
+          damageBreakdownHtml = '<div class="card-damage-note">BASE ' + flatDamage +
+            (hitNote ? ' · ' + hitNote : '') +
+            (scopeNote ? ' ' + scopeNote : ' Hover an enemy for Block and HP loss.') +
+            '</div>';
+        }
+      }
+      var strength = posHero && card.type === 'attack' ? (posHero.strength || 0) : 0;
+      var strengthClass = strength > 0 ? ' strength-buffed strength-level-' + Math.min(5, strength) : '';
 
       // Fan arc math
       var t = total > 1 ? (idx / (total - 1)) - 0.5 : 0;
@@ -595,7 +733,7 @@ DS.UI = {
       var yOffset = Math.abs(t) * 30;
 
       var el = document.createElement('div');
-      el.className = 'card ' + card.heroCls + (isSelected ? ' selected' : '') + (extraClass ? ' ' + extraClass : '');
+      el.className = 'card ' + card.heroCls + strengthClass + (isSelected ? ' selected' : '') + (extraClass ? ' ' + extraClass : '');
       el.setAttribute('data-hand-idx', idx);
       if (!isSelected) {
         el.style.transform = 'rotate(' + angle + 'deg) translateY(' + yOffset + 'px)';
@@ -612,11 +750,12 @@ DS.UI = {
       el.innerHTML =
         '<div class="card-art ' + artClass + '"></div>' +
         posBadge +
+        targetBadge +
         '<div class="card-header">' +
           '<div class="card-name">' + card.name + upgradedBadge + '</div>' +
           '<div class="card-cost">' + card.cost + '</div>' +
         '</div>' +
-        '<div class="card-effect">' + card.desc + '</div>' +
+        '<div class="card-effect">' + cardDesc + damageBreakdownHtml + '</div>' +
         '<div class="card-footer">' +
           '<div class="card-class">' + card.heroName + '</div>' +
         '</div>';
@@ -662,6 +801,7 @@ DS.UI = {
     screen.innerHTML =
       '<div class="reward-panel">' +
         '<h2 class="reward-title">VICTORY</h2>' +
+        '<div class="lore-reward">' + (DS.Lore ? DS.Lore.reward : '') + '</div>' +
         '<div class="reward-gold">\uD83D\uDCB0 +' + goldReward + ' Gold (Total: ' + run.gold + ')</div>' +
         beggarHtml +
         '<div class="reward-subtitle">Choose a card to add to your deck:</div>' +
@@ -737,7 +877,7 @@ DS.UI = {
           '<button class="btn btn-rest-heal" id="btn-rest-heal">' +
             '<div class="rest-choice-icon">\u2764\uFE0F</div>' +
             '<div class="rest-choice-title">REST</div>' +
-            '<div class="rest-choice-desc">Heal all heroes 30% of max HP</div>' +
+            '<div class="rest-choice-desc">Heal all heroes 20% of max HP</div>' +
           '</button>' +
           '<button class="btn btn-rest-train" id="btn-rest-train">' +
             '<div class="rest-choice-icon">\u2694\uFE0F</div>' +
@@ -757,7 +897,7 @@ DS.UI = {
     document.getElementById('btn-rest-heal').onclick = function() {
       run.heroes.forEach(function(h) {
         if (h.hp > 0) {
-          var healAmt = Math.floor(h.maxHp * 0.3);
+          var healAmt = Math.floor(h.maxHp * 0.2);
           h.hp = Math.min(h.maxHp, h.hp + healAmt);
         }
       });
@@ -977,7 +1117,7 @@ DS.UI = {
       '<div class="event-panel">' +
         '<div class="event-icon">\u2753</div>' +
         '<h2 class="event-title">' + event.name + '</h2>' +
-        '<div class="event-text">' + event.text + '</div>' +
+        '<div class="event-text"><p class="lore-aside">' + (DS.Lore ? DS.Lore.event : '') + '</p>' + event.text + '</div>' +
         '<div class="event-choices" id="event-choices">' + choicesHtml + '</div>' +
         '<div class="event-result" id="event-result" style="display:none;"></div>' +
         '<button class="btn btn-event-continue" id="btn-event-continue" style="display:none;">CONTINUE</button>' +
@@ -1030,6 +1170,7 @@ DS.UI = {
         '<div class="boss-intro-icon">' + boss.icon + '</div>' +
         '<h1 class="boss-intro-name">' + boss.name + '</h1>' +
         '<div class="boss-intro-flavor">' + flavor + '</div>' +
+        '<div class="boss-lore-thread">' + (DS.Lore ? DS.Lore.boss(boss) : '') + '</div>' +
         '<button class="btn btn-boss-fight" id="btn-boss-fight">FIGHT</button>' +
       '</div>';
     root.appendChild(screen);
@@ -1067,7 +1208,7 @@ DS.UI = {
     DS.UI._injectShopStyles();
 
     // Generate shop inventory
-    var shopCards = DS.Cards.getRewardPool(3);
+    var shopCards = DS.Cards.getRewardPool(3, run.heroes.filter(function(h) { return h.hp > 0; }).map(function(h) { return h.cls; }));
     var shopCardPrices = shopCards.map(function() {
       return 50 + Math.floor(Math.random() * 26); // 50-75
     });
@@ -1135,7 +1276,7 @@ DS.UI = {
     var potionHtml =
       '<div class="shop-section"><h3 class="shop-section-title">SERVICES</h3>' +
         '<div class="shop-remove' + (canAffordPotion ? '' : ' shop-unaffordable') + '" id="shop-potion-btn">' +
-          '<div class="shop-remove-label">\u2764\uFE0F Healing Potion — Heal all heroes 15 HP</div>' +
+          '<div class="shop-remove-label">\u2764\uFE0F Healing Potion — Heal all heroes 10 HP</div>' +
           '<div class="shop-price' + (canAffordPotion ? '' : ' shop-price-red') + '">\uD83D\uDCB0 ' + potionPrice + '</div>' +
         '</div>' +
       '</div>';
@@ -1187,6 +1328,9 @@ DS.UI = {
             heroIdx: card.heroIdx,
             heroCls: card.heroCls,
             heroName: card.heroName,
+            prefPos: (card.prefPos || []).slice(),
+            reach: card.reach ? card.reach.slice() : undefined,
+            xCost: !!card.xCost,
             upgraded: false
           };
           run.deck.push(deckCard);

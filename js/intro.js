@@ -16,9 +16,10 @@ window.DS = window.DS || {};
 DS.Campfire = {
   // --- Open balance params — TODO(Joel): tune these ---
   RECRUIT_MIN: 2,     // fresh recruits offered per campfire visit (min)
-  RECRUIT_MAX: 3,     // ...and max (DD stagecoach shows a few newcomers)
+  RECRUIT_MAX: 4,     // ...and max (the first tutorial upgrade fields five)
   RECRUIT_COST: 0,    // recruits are FREE (DD stagecoach). Raise if joining should cost gold.
   ROSTER_CAP: 8,      // max living heroes on the persistent roster
+  PARTY_SIZE: 5,      // the first tavern upgrade is granted immediately
 
   // Transient (per-visit) state — NOT persisted. The roster itself
   // lives in DS.Meta.heroRoster (already saved/loaded by meta.js).
@@ -68,7 +69,7 @@ DS.Campfire = {
     //    One hero per class for now: the engine matches roster heroes by class.
     var span = DS.Campfire.RECRUIT_MAX - DS.Campfire.RECRUIT_MIN;
     var want = DS.Campfire.RECRUIT_MIN + Math.floor(Math.random() * (span + 1));
-    var needed = Math.max(0, 4 - aliveCount);          // always offer enough to field a party
+    var needed = Math.max(0, DS.Campfire.PARTY_SIZE - aliveCount); // always offer enough to field a party
     var count = Math.max(want, needed);
     count = Math.min(count,
       Math.max(0, DS.Campfire.ROSTER_CAP - aliveCount)); // respect the roster cap
@@ -105,14 +106,14 @@ DS.Campfire = {
     if (at !== -1) {
       sel.splice(at, 1);           // deselect — later picks shift up a rank
     } else {
-      if (sel.length >= 4) return; // party is full
+      if (sel.length >= DS.Campfire.PARTY_SIZE) return; // party is full
       sel.push(offerIdx);
     }
   },
 
   // ===== BEGIN THE DESCENT =====
   embark: function() {
-    if (DS.Campfire._selected.length !== 4) return;
+    if (DS.Campfire._selected.length !== DS.Campfire.PARTY_SIZE) return;
 
     var party = [];
     DS.Campfire._selected.forEach(function(offerIdx) {
@@ -161,7 +162,7 @@ DS.Campfire = {
     var chapel = (DS.Meta.getChapelBonus) ? DS.Meta.getChapelBonus() : 0;
     var rh = entry.source === 'roster' ? DS.Meta.heroRoster[entry.rosterIdx] : entry.recruit;
     var gearHp = rh && DS.Gear ? DS.Gear.getEquipped(rh).reduce(function(n, item) { return n + ((item.mods && item.mods.maxHp) || 0); }, 0) : 0;
-    return Math.max(1, entry.heroDef.maxHp + chapel + (entry.runsSurvived || 0) * 5 - DS.Meta.getInjuryPenalty(rh || entry)) + gearHp;
+    return Math.max(1, entry.heroDef.maxHp + chapel + ((rh || entry).maxHpBonus || 0) + (entry.runsSurvived || 0) * 5 - DS.Meta.getInjuryPenalty(rh || entry)) + gearHp;
   },
 
   // Gothic flavor lines, per class
@@ -214,7 +215,7 @@ DS.UI.renderCampfire = function(root) {
       '<div class="fire-log fire-log-r"></div>' +
     '</div>' +
 
-    '<div class="campfire-hint">Choose four — in the order they will stand. The first chosen holds the front.</div>' +
+    '<div class="campfire-hint">Choose five — in the order they will stand. The first chosen holds the front.</div>' +
 
     '<div class="campfire-party" id="campfire-party"></div>' +
 
@@ -317,16 +318,25 @@ DS.UI.renderCampfire = function(root) {
 
   // --- Buttons ---
   var btns = screen.querySelector('#campfire-buttons');
-  var ready = selected.length === 4;
+  var ready = selected.length === 5;
+  var updateNotice = DS.State.migrationNotice || DS.Meta.progressionNotice;
   var btnHtml =
+    (updateNotice ? '<div class="ds-update-notice" role="status"><strong>UPDATED</strong><span>' + updateNotice + '</span><button class="btn ds-update-dismiss" id="btn-dismiss-update">DISMISS</button></div>' : '') +
     '<button class="btn campfire-btn-descend' + (ready ? '' : ' campfire-btn-disabled') + '" id="btn-descend">' +
-      'BEGIN THE DESCENT' + (ready ? '' : ' (' + selected.length + '/4)') +
+      'BEGIN THE DESCENT' + (ready ? '' : ' (' + selected.length + '/5)') +
     '</button>' +
     '<button class="btn campfire-btn-town" id="btn-visit-town">VISIT THE TOWN</button>';
   if (DS.State.hasRunSave && DS.State.hasRunSave()) {
     btnHtml += '<button class="btn campfire-btn-resume" id="btn-resume-expedition">RESUME EXPEDITION</button>';
   }
   btns.innerHTML = btnHtml;
+
+  var dismissUpdate = document.getElementById('btn-dismiss-update');
+  if (dismissUpdate) dismissUpdate.onclick = function() {
+    DS.State.migrationNotice = null;
+    DS.Meta.progressionNotice = null;
+    DS.UI.renderCampfire(root);
+  };
 
   document.getElementById('btn-descend').onclick = function() {
     if (DS.Campfire._selected.length !== 4) return;

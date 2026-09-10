@@ -158,13 +158,22 @@
   function mount() {
     if (!document.body || document.getElementById('run-archive')) return;
     var box = document.createElement('div'); box.id = 'run-archive';
-    box.style.cssText = 'position:fixed;bottom:4px;left:4px;z-index:10000;background:#191714;color:#eee;padding:5px;font:12px sans-serif;max-width:320px';
+    box.style.cssText = 'display:none;position:fixed;bottom:4px;left:4px;z-index:10000;background:#191714;color:#eee;padding:5px;font:12px sans-serif;max-width:320px';
     var button = document.createElement('button'); button.textContent = 'Export run archive';
     button.onclick = T.exportArchive; box.appendChild(button);
     if (DS.PlayerIdentity) { var identify = document.createElement('button'); identify.textContent='Change player';identify.onclick=DS.PlayerIdentity.change;box.appendChild(identify); }
     var info = document.createElement('span');
     info.textContent = T.storageError ? ' STORAGE FULL: export before closing. New events are only in memory.' : ' Saved on this browser. Export to share for analysis.';
     box.appendChild(info); document.body.appendChild(box);
+    if (!window.__darkspireArchiveShortcut) {
+      window.__darkspireArchiveShortcut = true;
+      document.addEventListener('keydown', function (event) {
+        if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'e') {
+          event.preventDefault();
+          box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+      });
+    }
   }
   var newRun = DS.State.newRun;
   DS.State.newRun = function () { var result = newRun.apply(this, arguments); begin(); return result; };

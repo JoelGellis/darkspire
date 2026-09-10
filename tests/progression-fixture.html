@@ -1,0 +1,10 @@
+﻿<!doctype html><html lang="en"><meta charset="utf-8"><title>Progression UI fixture</title><body>Loading isolated progression fixture...
+<script>
+(async function(){
+  var html=await (await fetch('../index.html')).text();
+  var bootstrap='var fixtureMemory=new Map();Object.defineProperty(window,"localStorage",{value:{getItem:k=>fixtureMemory.get(k)||null,setItem:(k,v)=>fixtureMemory.set(k,String(v)),removeItem:k=>fixtureMemory.delete(k)}});';
+  html=html.replace('<head>','<head><base href="../"><script>'+bootstrap+'<'+ '/script>');
+  html=html.replace('</body>','<script src="tests/progression-fixture-state.js"><'+ '/script></body>');
+  document.open();document.write(html);document.close();
+})();
+</script></body></html>

@@ -105,11 +105,35 @@ DS.Combat = {
   },
 
   pickIntent: function(enemy) {
-    enemy.currentIntent = Object.assign({}, enemy.intentPool[Math.floor(DS.Combat.random() * enemy.intentPool.length)]);
+    var intentDef;
+    if (enemy.name === 'Vampire Lord') {
+      // Restore the bat swarm when it is broken, then keep applying pressure.
+      var deadAdds = DS.State.combat.enemies.filter(function(e) { return !e.isBoss && e.hp <= 0; }).length;
+      var liveAdds = DS.State.combat.enemies.filter(function(e) { return !e.isBoss && e.hp > 0; }).length;
+      var summon = enemy.intentPool.find(function(i) { return i.type === 'summon'; });
+      var summonsUsed = enemy._vampireSummonsUsed || 0;
+      if (summon && summonsUsed < 2 && (deadAdds > 0 || liveAdds < 2)) {
+        intentDef = summon;
+        enemy._vampireSummonsUsed = summonsUsed + 1;
+      } else {
+        var attacks = enemy.intentPool.filter(function(i) { return i.type !== 'summon'; });
+        enemy._vampireCycle = (enemy._vampireCycle || 0) + 1;
+        intentDef = attacks[(enemy._vampireCycle - 1) % attacks.length];
+      }
+    } else {
+      intentDef = enemy.intentPool[Math.floor(DS.Combat.random() * enemy.intentPool.length)];
+    }
+    enemy.currentIntent = Object.assign({}, intentDef);
     enemy.intentTargets = [];
+    var intent = enemy.currentIntent;
+    // NPC defense is immediate and replaces the previous shield. The player
+    // reads the blue Block bar as the resolved state, with no future defend
+    // telegraph and no cross-turn stacking.
+    if (intent.type === 'defend') {
+      enemy.block = Math.max(0, intent.block || 0);
+    }
     var alive = DS.Combat.aliveHeroes().sort(function(a,b) { return a.pos-b.pos; });
     if (!alive.length) return;
-    var intent = enemy.currentIntent;
     var count = intent.type === 'attack_multi' ? intent.hits : intent.type === 'attack_all' ? alive.length : 1;
     for (var i=0; i<count; i++) {
       var target = intent.type === 'attack_all' ? alive[i] : intent.targeting === 'front' ? alive[0] : intent.targeting === 'back' ? alive[alive.length-1] : alive[Math.floor(DS.Combat.random()*alive.length)];
@@ -175,6 +199,7 @@ DS.Combat = {
     }
 
     combat.selectedCard = idx;
+    combat._previewTargetId = null;
 
     // Auto-target for self/none/all
     if (card.target === 'none' || card.target === 'self' || card.target === 'all_allies' || card.target === 'all_enemies') {
@@ -238,15 +263,11 @@ DS.Combat = {
       if (combat) combat._lastAttacker = hero;
     }
 
-    // Apply Strength bonus and Weak penalty to attack card value
-    var strengthBonus = 0;
-    var weakPenalty = 1;
+    // Use the same authoritative calculation exposed to the preview. Vulnerable
+    // remains applied by dealDamage so multi-effect cards cannot double it.
     if (card.type === 'attack' && card.value) {
-      strengthBonus = hero.strength || 0;
-      if (hero.weak > 0) weakPenalty = 0.75;
-      if (strengthBonus > 0 || weakPenalty < 1) {
-        card.value = Math.max(1, Math.ceil((card.value + strengthBonus) * weakPenalty));
-      }
+      var damageBreakdown = DS.Combat.cardDamageBreakdown(card, target);
+      card.value = damageBreakdown ? damageBreakdown.preVulnerable : card.value;
     }
 
     card._energySpent = DS.Combat.cardCost(card);
@@ -293,6 +314,7 @@ DS.Combat = {
       combat.discardPile.push(card);
     }
     combat.selectedCard = null;
+    combat._previewTargetId = null;
 
     if (!combat.gameOver) DS.UI.render();
   },
@@ -334,7 +356,6 @@ DS.Combat = {
       // Reset combo tracking
       combat._turnCardsPlayed = [];
       DS.Combat.COMBOS.forEach(function(c) { c._triggered = false; });
-      // Dragon's Heart: decay by 1 instead of full reset
       if (DS.Combat.hasRelicFlag('persistentBlock')) {
         DS.State.run.heroes.forEach(function(h) {
           if (h.block > 0) h.block = Math.max(0, h.block - 1);
@@ -342,7 +363,6 @@ DS.Combat = {
       } else {
         DS.State.run.heroes.forEach(function(h) { h.block = 0; });
       }
-      combat.enemies.forEach(function(e) { if (e.hp > 0) e.block = 0; });
       DS.Combat.fireRelicHook('onTurnStart');
       combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
         DS.Combat.pickIntent(e);
@@ -379,14 +399,23 @@ DS.Combat = {
       // Weak: enemies deal 25% less damage when Weak
       var enemyWeakMult = (enemy.weak > 0) ? 0.75 : 1;
 
-      if (intent.type === 'attack') {
+      if (intent.type === 'attack' || intent.type === 'attack_lifesteal') {
         var alive = DS.Combat.aliveHeroes();
         if (!alive.length) break;
         var target = DS.Combat.intentTarget(enemy, 0);
         var dmg = intent.dmg + (enemy.dmgBuff || 0) + enemyDmgBonus;
         if (enemy.weak > 0) dmg = Math.ceil(dmg * 0.75);
         DS.Combat.logMsg(enemy.name + ' attacks ' + target.name + ' for ' + dmg + '!', 'damage');
+        var hpBeforeDrain = target.hp;
         DS.Combat.dealDamage(target, dmg);
+        if (intent.type === 'attack_lifesteal' && enemy.hp > 0) {
+          var drained = Math.max(0, hpBeforeDrain - target.hp);
+          var recovery = Math.min(intent.heal || drained, drained);
+          if (recovery > 0) {
+            DS.Combat.healTarget(enemy, recovery);
+            DS.Combat.logMsg(enemy.name + ' drinks ' + recovery + ' life.', 'heal');
+          }
+        }
         if (intent.push && target.hp > 0) DS.Combat.displace(target, intent.push);
         await DS.Combat.sleep(600);
 
@@ -437,7 +466,7 @@ DS.Combat = {
         await DS.Combat.sleep(500);
 
       } else if (intent.type === 'defend') {
-        DS.Combat.gainBlock(enemy, intent.block);
+        // Defend was already applied when this intent was rolled.
         await DS.Combat.sleep(500);
 
       } else if (intent.type === 'buff') {
@@ -521,7 +550,8 @@ DS.Combat = {
     combat._turnCardsPlayed = [];
     DS.Combat.COMBOS.forEach(function(c) { c._triggered = false; });
 
-    // Block decay — Dragon's Heart: decay by 1 instead of full reset
+    // Player Block expires fully at the start of the next player turn.
+    // Dragon's Heart remains the progression exception: it decays by 1.
     if (DS.Combat.hasRelicFlag('persistentBlock')) {
       DS.State.run.heroes.forEach(function(h) {
         if (h.block > 0) h.block = Math.max(0, h.block - 1);
@@ -529,8 +559,6 @@ DS.Combat = {
     } else {
       DS.State.run.heroes.forEach(function(h) { h.block = 0; });
     }
-    // Enemies always lose block at player turn start
-    combat.enemies.forEach(function(e) { if (e.hp > 0) e.block = 0; });
 
     // Fire onTurnStart relic hook
     DS.Combat.fireRelicHook('onTurnStart');
@@ -551,7 +579,7 @@ DS.Combat = {
 
   // ===== COMBAT ACTIONS =====
   dealDamage: function(target, amount) {
-    if (!target || target.hp <= 0) return;
+    if (!target || target.hp <= 0) return 0;
     var attacker = DS.State.combat._lastAttackingEnemy;
     if (target.isHero && attacker) target = DS.Combat.guardTarget(target);
     if (!target.isHero && target._marked) { amount += target._markBonus || 3; target._marked = false; target._markBonus = 0; }
@@ -567,7 +595,7 @@ DS.Combat = {
     target.hp = Math.max(0, target.hp - remaining);
 
     if (blocked > 0) {
-      DS.Combat.logMsg(target.name + ' blocks ' + blocked + ' damage.', 'block-log');
+      DS.Combat.logMsg(target.name + ' blocks ' + blocked + ' damage; ' + remaining + ' HP lost.', 'block-log');
     }
 
     DS.Combat.floatText(target, remaining > 0 ? '-' + remaining : 'BLOCK', remaining > 0 ? 'damage' : 'block');
@@ -610,6 +638,7 @@ DS.Combat = {
       DS.Combat.handleDeath(target);
       DS.Combat.checkGameOver();
     }
+    return remaining;
   },
 
   healTarget: function(target, amount) {
@@ -625,6 +654,7 @@ DS.Combat = {
   },
 
   gainBlock: function(target, amount) {
+    if (target.isHero && target.blockBonus) amount += target.blockBonus;
     target.block += amount;
     DS.Combat.logMsg(target.name + ' gains ' + amount + ' Block (total: ' + target.block + ').', 'block-log');
     DS.Combat.floatText(target, '+' + amount + ' BLK', 'block');
@@ -996,6 +1026,29 @@ DS.Combat = {
 };
 // Tactical rules are shared by player input, forecasts and headless playtests.
 Object.assign(DS.Combat, {
+  cardDamageBreakdown: function(card, target) {
+    if (!card || card.type !== 'attack' || card.value === undefined) return null;
+    var hero = DS.State.run && DS.State.run.heroes[card.heroIdx];
+    var base = Number(card.value) || 0;
+    var strength = hero ? Number(hero.strength) || 0 : 0;
+    var power = hero ? Number(hero.power) || 0 : 0;
+    var weakPenalty = hero && hero.weak > 0 ? 0.75 : 1;
+    var preVulnerable = Math.max(1, Math.ceil((base + strength + power) * weakPenalty));
+    var vulnerableBonus = target && !target.isHero && target.vulnerable > 0 ?
+      Math.ceil(preVulnerable * 1.5) - preVulnerable : 0;
+    var incoming = preVulnerable + vulnerableBonus;
+    var blockAbsorbed = target ? Math.min(target.block || 0, incoming) : 0;
+    return { base:base, strength:strength, power:power, weakPenalty:weakPenalty,
+      preVulnerable:preVulnerable, vulnerableBonus:vulnerableBonus,
+      incoming:incoming, blockAbsorbed:blockAbsorbed, hpLoss:incoming-blockAbsorbed };
+  },
+  cardDamage: function(card, target) {
+    var breakdown = DS.Combat.cardDamageBreakdown(card, target);
+    return breakdown ? breakdown.incoming : null;
+  },
+  cardFlatDamage: function(card) {
+    return DS.Combat.cardDamage(card, null);
+  },
   validTargets: function(card) {
     return DS.State.run.heroes.concat(DS.State.combat.enemies).filter(function(target) { return DS.Combat.validTarget(card,target); });
   },

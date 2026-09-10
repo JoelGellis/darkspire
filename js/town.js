@@ -31,7 +31,7 @@ DS.UI.renderTown = function(root) {
     '</div>';
 
   // ===== HERO ROSTER =====
-  var rosterHtml = '<div class="town-roster"><h2 class="town-section-title">HERO ROSTER</h2><div class="town-roster-list">';
+  var rosterHtml = '<div class="town-story-line">' + (DS.Lore ? DS.Lore.town : '') + '</div><div class="town-roster"><h2 class="town-section-title">HERO ROSTER</h2><div class="town-roster-list">';
   meta.heroRoster.forEach(function(hero, i) {
     var heroDef = DS.UI._townFindHeroDef(hero.heroClass);
     var cards = DS.Cards[hero.heroClass] || [];
@@ -121,7 +121,7 @@ DS.UI.renderTown = function(root) {
       '<div class="town-building-name">' + tv.name + '</div>' +
       '<div class="town-building-desc">' + tv.desc + '</div>' +
       '<div class="town-building-level">Level ' + tavernLvl + '/' + tavernMax + '</div>' +
-      '<div class="town-building-bonus">Caravan offers ' + tavernSlots + ' heroes</div>' +
+      '<div class="town-building-bonus">Expedition size: ' + Math.min(5, tavernLvl + 4) + ' · offers ' + tavernSlots + ' heroes</div>' +
       (tavernCost !== null
         ? '<div class="town-building-cost">Upgrade: ' + tavernCost + 'g</div>'
         : '<div class="town-building-cost">MAX LEVEL</div>') +
@@ -185,7 +185,9 @@ DS.UI.renderTown = function(root) {
       '<button class="btn town-btn-newgame" id="btn-new-game">NEW GAME</button>' +
     '</div>';
 
-  screen.innerHTML = headerHtml + rosterHtml + buildingsHtml + unlocksHtml + actionsHtml;
+  var tutorialHtml = (meta.tutorialPerks && (meta.tutorialPerks.freeBlacksmith || meta.tutorialPerks.merchantDiscount))
+    ? '<div class="tutorial-panel"><strong>YOUR FIRST LESSONS</strong><span>Choose a fifth hero at the fire. Your first Blacksmith card upgrade is free, and your first Merchant item is 20% off.</span></div>' : '';
+  screen.innerHTML = headerHtml + tutorialHtml + rosterHtml + buildingsHtml + unlocksHtml + actionsHtml;
   root.appendChild(screen);
 
   // ===== WIRE UP BUILDING CLICKS =====
@@ -271,10 +273,11 @@ DS.UI._townShowBlacksmithHeroPicker = function(root) {
 
   var meta = DS.Meta;
 
+  var tutorialFree = !!(meta.tutorialPerks && meta.tutorialPerks.freeBlacksmith);
   var html =
     '<div class="town-subview">' +
       '<h2 class="town-section-title">BLACKSMITH &mdash; Choose a Hero</h2>' +
-      '<div class="town-sub-desc">Pick a hero to upgrade one of their base cards. Cost: ' + DS.Buildings.blacksmith.useCost + 'g</div>' +
+      '<div class="town-sub-desc">Pick a hero to upgrade one of their base cards. ' + (tutorialFree ? '<strong class="tutorial-callout">Your first upgrade is free.</strong>' : 'Cost: ' + DS.Buildings.blacksmith.useCost + 'g') + '</div>' +
       '<div class="town-gold-display">&#x1F4B0; ' + meta.gold + ' Gold</div>' +
       '<div class="town-hero-picker">';
 
@@ -343,13 +346,13 @@ DS.UI._townShowBlacksmithCards = function(root, rosterIdx) {
   var color = heroDef ? heroDef.colors.primary : '#aaa';
   var cards = DS.Cards[hero.heroClass] || [];
   var upgraded = hero.upgradedCards || [];
-  var useCost = DS.Buildings.blacksmith.useCost;
+  var useCost = meta.tutorialPerks && meta.tutorialPerks.freeBlacksmith ? 0 : DS.Buildings.blacksmith.useCost;
   var canAfford = meta.gold >= useCost;
 
   var html =
     '<div class="town-subview">' +
       '<h2 class="town-section-title">BLACKSMITH &mdash; <span style="color:' + color + '">' + heroName + '</span></h2>' +
-      '<div class="town-sub-desc">Select a card to upgrade (+50% value). Cost: ' + useCost + 'g</div>' +
+      '<div class="town-sub-desc">Select a card to upgrade (+50% value). ' + (useCost === 0 ? '<strong class="tutorial-callout">FREE TUTORIAL UPGRADE</strong>' : 'Cost: ' + useCost + 'g') + '</div>' +
       '<div class="town-gold-display">&#x1F4B0; ' + meta.gold + ' Gold</div>' +
       '<div class="town-card-picker">';
 
@@ -419,7 +422,7 @@ DS.UI._townShowBlacksmithConfirm = function(root, rosterIdx, cardIdx) {
   var card = cards[cardIdx];
   if (!card) { DS.UI.renderTown(root); return; }
 
-  var useCost = DS.Buildings.blacksmith.useCost;
+  var useCost = meta.tutorialPerks && meta.tutorialPerks.freeBlacksmith ? 0 : DS.Buildings.blacksmith.useCost;
   var newValue = Math.ceil(card.value * 1.5);
 
   var html =
@@ -435,7 +438,7 @@ DS.UI._townShowBlacksmithConfirm = function(root, rosterIdx, cardIdx) {
           '<span class="town-confirm-new">' + newValue + '</span>' +
           ' (+50%)' +
         '</div>' +
-        '<div class="town-confirm-cost">Cost: ' + useCost + 'g</div>' +
+        '<div class="town-confirm-cost">' + (useCost === 0 ? 'FREE FIRST UPGRADE' : 'Cost: ' + useCost + 'g') + '</div>' +
       '</div>' +
       '<div class="town-confirm-buttons">' +
         '<button class="btn town-btn-confirm" id="btn-bs-confirm">UPGRADE</button>' +
@@ -457,6 +460,7 @@ DS.UI._townShowBlacksmithConfirm = function(root, rosterIdx, cardIdx) {
     );
     // Also update via Meta for save consistency
     DS.Meta.upgradeHeroCard(rosterIdx, card.id);
+    if (useCost === 0 && DS.Meta.tutorialPerks) DS.Meta.tutorialPerks.freeBlacksmith = false;
     DS.Meta.save();
     DS.UI._townFlash(root, card.name + ' upgraded!');
     // Return to card picker for this hero
@@ -483,6 +487,7 @@ DS.UI._townShowMerchant = function(root) {
   var catalog = (DS.Gear && DS.Gear.getTownStock) ? DS.Gear.getTownStock() : [];
   var merchantLvl = (DS.Gear && DS.Gear.getMerchantLevel) ? DS.Gear.getMerchantLevel() : 0;
   var upgradeCost = (DS.Gear && DS.Gear.getMerchantUpgradeCost) ? DS.Gear.getMerchantUpgradeCost() : null;
+  var tutorialDiscount = meta.tutorialPerks && meta.tutorialPerks.merchantDiscount ? meta.tutorialPerks.merchantDiscount : 0;
 
   var html =
     '<div class="town-subview">' +
@@ -500,8 +505,9 @@ DS.UI._townShowMerchant = function(root) {
   }
 
   catalog.forEach(function(item) {
+    var displayPrice = tutorialDiscount > 0 ? Math.max(1, Math.ceil(item.price * (1 - tutorialDiscount))) : item.price;
     var owned = meta.ownsGear(item.id);
-    var canAfford = meta.gold >= item.price;
+    var canAfford = meta.gold >= displayPrice;
     var cls = 'town-gear-card town-gear-' + item.rarity;
     if (owned) cls += ' town-gear-owned';
     else if (!canAfford) cls += ' town-gear-unaffordable';
@@ -514,7 +520,7 @@ DS.UI._townShowMerchant = function(root) {
         '<div class="town-gear-desc">' + item.desc + '</div>' +
         (owned
           ? '<div class="town-gear-status town-gear-status-owned">OWNED</div>'
-          : '<div class="town-gear-price' + (canAfford ? '' : ' town-gear-price-red') + '">&#x1F4B0; ' + item.price + 'g</div>') +
+          : '<div class="town-gear-price' + (canAfford ? '' : ' town-gear-price-red') + '">&#x1F4B0; ' + displayPrice + 'g' + (tutorialDiscount > 0 ? ' <small class="tutorial-discount">FIRST ITEM -20%</small>' : '') + '</div>') +
       '</div>';
   });
 
@@ -530,9 +536,11 @@ DS.UI._townShowMerchant = function(root) {
   catalog.forEach(function(item) {
     var el = root.querySelector('[data-gear-id="' + item.id + '"]');
     if (!el) return;
+    var displayPrice = tutorialDiscount > 0 ? Math.max(1, Math.ceil(item.price * (1 - tutorialDiscount))) : item.price;
     el.style.cursor = 'pointer';
     el.onclick = function() {
-      if (DS.Meta.buyGear(item.id, item.price)) {
+      if (DS.Meta.buyGear(item.id, displayPrice)) {
+        if (DS.Meta.tutorialPerks && DS.Meta.tutorialPerks.merchantDiscount) DS.Meta.tutorialPerks.merchantDiscount = 0;
         DS.UI._townFlash(root, 'Bought ' + item.name + '!');
         DS.UI._townShowMerchant(root);   // re-render: gold deducts, item flips to OWNED
       } else {

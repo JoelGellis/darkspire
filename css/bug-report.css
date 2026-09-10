@@ -1,0 +1,39 @@
+.ds-bug-report-launcher {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 12000;
+  padding: 7px 10px;
+  border: 1px solid rgba(201, 160, 86, .55);
+  border-radius: 4px;
+  background: rgba(24, 20, 18, .86);
+  color: #e9d9b0;
+  font: 600 12px/1.2 Georgia, serif;
+  cursor: pointer;
+}
+.ds-bug-report-launcher:hover, .ds-bug-report-launcher:focus-visible { background: #3a2920; color: #fff4d2; }
+.ds-bug-report-panel {
+  position: fixed;
+  right: 12px;
+  bottom: 48px;
+  z-index: 12001;
+  width: min(360px, calc(100vw - 24px));
+  padding: 14px;
+  border: 1px solid #8b6b3f;
+  border-radius: 6px;
+  background: #211b18;
+  color: #eadfc8;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, .45);
+  font: 14px/1.4 Georgia, serif;
+}
+.ds-bug-report-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ds-bug-report-header h2 { margin: 0; color: #f1d18a; font-size: 18px; }
+.ds-bug-report-close { border: 0; background: transparent; color: #eadfc8; font-size: 22px; cursor: pointer; }
+.ds-bug-report-copy { margin: 8px 0 12px; color: #cbbda2; font-size: 12px; }
+.ds-bug-report-panel label { display: block; margin-bottom: 5px; }
+.ds-bug-report-panel label span { color: #a99b85; font-size: 12px; }
+.ds-bug-report-panel textarea { box-sizing: border-box; width: 100%; resize: vertical; padding: 8px; border: 1px solid #66523a; background: #141211; color: #f5ecd8; font: inherit; }
+.ds-bug-report-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ds-bug-report-actions .btn { padding: 7px 9px; }
+.ds-bug-report-status { min-height: 1.3em; margin: 9px 0 0; color: #b8d99e; font-size: 12px; }
+@media (max-width: 520px) { .ds-bug-report-launcher { right: 8px; bottom: 8px; } .ds-bug-report-panel { right: 8px; bottom: 44px; } }

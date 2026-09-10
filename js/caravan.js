@@ -252,7 +252,7 @@ DS.UI.renderCaravan = function(root) {
   var partyHtml = DS.UI._buildCaravanPartyBar(pool, selected);
 
   // === BUTTONS ===
-  var canEmbark = selected.length === 4 && DS.Caravan.canAfford();
+  var canEmbark = selected.length === 5 && DS.Caravan.canAfford();
   var totalCost = DS.Caravan.getSelectionCost();
   var buttonsHtml =
     '<div class="caravan-buttons">' +
@@ -280,7 +280,7 @@ DS.UI.renderCaravan = function(root) {
   var embarkBtn = document.getElementById('caravan-embark');
   if (embarkBtn) {
     embarkBtn.onclick = function() {
-      if (selected.length !== 4 || !DS.Caravan.canAfford()) return;
+      if (selected.length !== 5 || !DS.Caravan.canAfford()) return;
       DS.Caravan.embark();
     };
   }
@@ -346,7 +346,7 @@ DS.UI._buildCaravanPartyBar = function(pool, selected) {
   var totalCost = DS.Caravan.getSelectionCost();
   var html = '<div class="caravan-party-bar">' +
     '<div class="caravan-party-header">' +
-      '<h3 class="caravan-party-title">Selected Party (' + selected.length + '/4)</h3>' +
+      '<h3 class="caravan-party-title">Selected Party (' + selected.length + '/5)</h3>' +
       (totalCost > 0 ? '<span class="caravan-party-cost">Total: \uD83D\uDCB0 ' + totalCost + 'g</span>' : '') +
     '</div>' +
     '<div class="caravan-party-slots">';

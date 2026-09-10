@@ -40,11 +40,17 @@ for(const file of sorted) {
   const target=path.join(output,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,runtimeBytes(file));
 }
 const version='incremental-'+build;
-const injection='<script>window.DS=window.DS||{};window.DS.VERSION='+JSON.stringify(version)+';</script>';
+const publication=process.env.RELEASE_PUBLISHED_AT || new Date().toISOString();
+const publicationDate=new Date(publication);
+if(Number.isNaN(publicationDate.getTime())) throw Error('Invalid RELEASE_PUBLISHED_AT');
+const publishedLabel=publicationDate.getFullYear()+'-'+String(publicationDate.getMonth()+1).padStart(2,'0')+'-'+String(publicationDate.getDate()).padStart(2,'0')+' '+String(publicationDate.getHours()).padStart(2,'0')+String(publicationDate.getMinutes()).padStart(2,'0');
+const injection='<script>window.DS=window.DS||{};window.DS.VERSION='+JSON.stringify(version)+';window.DS.RELEASE_META='+JSON.stringify({version,build,publishedAt:publication,publicationLabel:publishedLabel})+';</script>';
 const label='<div style="position:fixed;bottom:4px;right:4px;z-index:9998;color:#c9b58b;background:#191714;padding:4px;font:11px sans-serif">Incremental demo · '+build+' · Round 1 in progress</div>';
-fs.writeFileSync(path.join(output,'index.html'),html.replace('<!-- Data -->',injection+'\n<!-- Data -->').replace('</body>',label+'\n</body>'));
+const releaseLabel='<div style="position:fixed;bottom:4px;left:4px;z-index:9998;color:#e7d4ae;background:rgba(25,23,20,.62);border:1px solid rgba(201,181,139,.35);padding:3px 6px;font:11px Georgia,serif;pointer-events:none">'+version+' · published '+publishedLabel+' · Round 1 in progress</div>';
+const releaseNotice='<script>(function(){function show(){var meta=window.DS&&DS.RELEASE_META;if(!meta)return;var key="darkspire_last_release_version",previous=null;try{previous=localStorage.getItem(key);localStorage.setItem(key,meta.version);}catch(e){}if(!(previous&&previous!==meta.version||DS.State&&DS.State.migrationNotice))return;var box=document.createElement("div");box.id="ds-release-notice";box.style.cssText="position:fixed;right:12px;bottom:12px;z-index:9999;max-width:360px;color:#f3e6c8;background:rgba(25,23,20,.88);border:1px solid rgba(201,181,139,.6);padding:9px 30px 9px 11px;font:12px/1.35 Georgia,serif;box.innerHTML=\"<strong>What changed</strong><br>New demo version loaded\"+(DS.State&&DS.State.migrationNotice?\"<br>\"+DS.State.migrationNotice:\"\")+\"<button type=button aria-label=Dismiss>×</button>\";box.querySelector(\"button\").onclick=function(){box.remove();};document.body.appendChild(box);}if(document.readyState===\"loading\")document.addEventListener(\"DOMContentLoaded\",show);else show();})();</script>';
+fs.writeFileSync(path.join(output,'index.html'),html.replace('<!-- Data -->',injection+'\n<!-- Data -->').replace('</body>',releaseNotice+'\n'+releaseLabel+'\n'+label+'\n</body>'));
 const commit=cp.spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).stdout.trim();
-const manifest={schema:1,version,build,sourceCommit:commit,status:'Incremental; full 100-improvement round is incomplete',
+const manifest={schema:2,version,build,publishedAt:publication,publicationLabel:publishedLabel,saveSchema:3,sourceCommit:commit,status:'Incremental; full 100-improvement round is incomplete',
   tests:suites,sourceFiles:entries,artifactFiles:sorted.map(file=>({file,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(output,file))).digest('hex')}))};
 fs.writeFileSync(path.join(output,'release-manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 fs.writeFileSync(path.join(output,'.nojekyll'),'');

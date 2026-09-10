@@ -79,6 +79,7 @@ DS.UI.renderSummary = function(root) {
     '<div class="summary-banner ' + bannerCfg.cls + '">' +
       '<div class="summary-banner-text">' + bannerCfg.text + '</div>' +
       '<div class="summary-flavor">' + bannerCfg.flavor + '</div>' +
+      '<div class="summary-lore-thread">' + (DS.Lore ? DS.Lore.ending(isVictory) : '') + '</div>' +
     '</div>';
 
   // First-run tutorial note: explain how retreat works from now on

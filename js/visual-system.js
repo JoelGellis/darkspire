@@ -30,7 +30,7 @@
     dialog.querySelector('.ds-cancel').focus();
   }
   function help() {
-    modal('Welcome to Darkspire', '<p>Four heroes. One shared deck. A road that may not bring everyone home.</p><ol><li><b>Gather your company.</b> Choose four heroes at the fire. Your first choice takes rank I, at the front.</li><li><b>Prepare in town.</b> Visit buildings to improve your estate and browse equipment.</li><li><b>Choose a path.</b> Follow the marked routes through battles, merchants, mysteries and rest sites.</li><li><b>Fight with cards.</b> Spend energy, choose a valid target, then end your turn. Enemy symbols show their next action. Rank badges tell you where a card can be used.</li><li><b>Know when to return.</b> Retreat from the map to bank a share of your gains. Fallen veterans do not come home.</li></ol>', null);
+    modal('Welcome to Darkspire', '<p>' + (DS.Lore ? DS.Lore.premise : 'Five heroes. One shared deck. A road that may not bring everyone home.') + '</p><ol><li><b>Gather your company.</b> Choose five heroes at the fire. Your first choice takes rank I, at the front.</li><li><b>Prepare in town.</b> Your first Blacksmith upgrade is free, and the first Merchant item is discounted.</li><li><b>Choose a path.</b> Follow the marked routes through battles, merchants, mysteries and rest sites.</li><li><b>Fight with cards.</b> Spend energy, choose a valid target, then end your turn. Enemy symbols show their next action. Rank badges tell you where a card can be used.</li><li><b>Find the necklace.</b> Reach the top of the Dark Spire and take back what Tyrhung stole.</li></ol>', null);
   }
   // Intercept only the existing synchronous retreat confirmation, retaining its
   // actual text and all original effects. Never replace window.confirm globally.
@@ -56,7 +56,7 @@
     gathering.remove();
     scene.appendChild(root.querySelector('.cf-rosters'));
     root.querySelector('#cf-scene-title').textContent = 'Choose your company';
-    root.querySelector('.cf-scene-copy > p:last-child').textContent = 'Choose four heroes in marching order. The first stands at the front.';
+    root.querySelector('.cf-scene-copy > p:last-child').textContent = 'Choose five heroes in marching order. The first stands at the front.';
     root.querySelector('.cf-scene-caption').remove();
     var helpButton = document.createElement('button');
     helpButton.className = 'cf-text-button ds-help'; helpButton.textContent = 'How to play'; helpButton.onclick = help;
@@ -65,6 +65,7 @@
     if(recruits){
       var coach=document.createElement('button');coach.className='ds-world-coach';coach.type='button';coach.innerHTML='<img src="assets/exported/ui/stagecoach.svg" alt=""><span>Stagecoach</span><small>'+recruits.querySelectorAll('.cf-hero').length+' waiting</small>';scene.appendChild(coach);
       var coachDialog=document.createElement('dialog');coachDialog.className='ds-dialog ds-coach-dialog';coachDialog.setAttribute('aria-label','The stagecoach');
+      var coachTitle=document.createElement('div');coachTitle.className='ds-coach-header';coachTitle.innerHTML='<div><h2>Stagecoach</h2><p>Click a hero card to choose them for the fire. They join your permanent roster when you begin the descent. Equipment is optional and can be handled separately.</p></div>';coachDialog.appendChild(coachTitle);
       var back=document.createElement('button');back.textContent='Return to the fire';back.className='btn';back.onclick=function(){coachDialog.close();};coachDialog.appendChild(back);coachDialog.appendChild(recruits);root.appendChild(coachDialog);coach.onclick=function(){coachDialog.showModal();};
     }
     var memorial = root.querySelector('.cf-memorial');
@@ -162,9 +163,11 @@
       var canGo = available.some(function(a) { return (typeof a === 'string' ? a : a.id) === n.id; });
       return '<button class="ds-map-node ds-node-' + n.type + (canGo ? ' is-available' : '') + (n.id === run.currentNode ? ' is-current' : '') + (n.completed ? ' is-complete' : '') + '" style="left:' + x(n) + '%;top:' + y(n) + '%" data-node="' + n.id + '" aria-label="' + labels[n.type] + ', floor ' + n.floor + (canGo ? ', travel here' : n.completed ? ', completed' : ', unavailable') + '"' + (canGo ? '' : ' disabled') + '>' + icon(n.type) + '<span>' + labels[n.type] + '</span></button>';
     }).join('');
-    root.innerHTML = '<main class="screen ds-map"><header class="ds-run-hud"><b>DARKSPIRE</b><span>Floor ' + run.floor + ' / 6</span><span class="ds-gold">◇ ' + run.gold + ' gold</span>' + UI.buildRelicIcons(run.relics) + '<button class="btn" id="btn-map-deck">Deck · ' + run.deck.length + '</button><button class="btn" id="btn-map-retreat">Retreat</button></header><div class="ds-map-layout"><aside class="ds-map-party"><h2>The company</h2>' + UI.buildPartyBar() + '<p>Rank I holds the front.<br>Only the living return.</p></aside><section class="ds-chart" aria-label="Dungeon route"><h1>The Hollow Ascent</h1><p class="ds-chart-sub">Choose a marked path. Reach the guardian.</p><div class="ds-route"><svg class="ds-paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + paths + '</svg>' + nodes + '</div></section><aside class="ds-map-key"><h2>Map legend</h2>' + ['combat','elite','rest','event','shop','boss'].map(function(t) { return '<div>' + icon(t) + '<span>' + labels[t] + '</span></div>'; }).join('') + '<p>Gold spent on upgrades lasts beyond this run.</p></aside></div></main>';
+    root.innerHTML = '<main class="screen ds-map"><header class="ds-run-hud"><b>DARKSPIRE</b><span>Floor ' + run.floor + ' / 6</span><span class="ds-gold">◇ ' + run.gold + ' gold</span>' + UI.buildRelicIcons(run.relics) + UI.buildArtifactIcons(run.artifacts) + '<button class="btn" id="btn-map-deck">Deck · ' + run.deck.length + '</button><button class="btn" id="btn-map-retreat">Retreat</button></header><div class="ds-map-layout"><aside class="ds-map-party"><h2>The company</h2>' + UI.buildPartyBar() + '<p>Rank I holds the front.<br>Only the living return.</p></aside><section class="ds-chart" aria-label="Dungeon route"><h1>The Hollow Ascent</h1><p class="ds-chart-sub">' + (DS.Lore ? DS.Lore.map(run) : 'Choose a marked path. Reach the guardian.') + '</p><div class="ds-route"><svg class="ds-paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + paths + '</svg>' + nodes + '</div></section><aside class="ds-map-key"><h2>Map legend</h2>' + ['combat','elite','rest','event','shop','boss'].map(function(t) { return '<div>' + icon(t) + '<span>' + labels[t] + '</span></div>'; }).join('') + '<p>Gold spent on upgrades lasts beyond this run.</p></aside></div></main>';
     root.querySelectorAll('[data-node]:not(:disabled)').forEach(function(button) { button.onclick = function() { DS.Game.selectNode(button.dataset.node); }; });
     root.querySelector('#btn-map-deck').onclick = function() { UI.showDeckViewer(); };
+    var artifactButton = root.querySelector('#btn-artifacts');
+    if (artifactButton) artifactButton.onclick = UI.showArtifactViewer;
     root.querySelector('#btn-map-retreat').onclick = function() { DS.Game.retreat(); };
   };
 

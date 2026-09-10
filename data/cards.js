@@ -116,8 +116,8 @@ DS.Cards = {
       type: 'heal',
       target: 'self',
       prefPos: [],
-      desc: 'Heal 6 HP. Exhaust.',
-      value: 6,
+      desc: 'Heal 5 HP. Exhaust.',
+      value: 5,
       effect: function(state, hero, target, card) {
         DS.Combat.healTarget(hero, card.value);
         card._exhaust = true;
@@ -193,24 +193,41 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
+      reach: [1, 2],
       prefPos: [],
-      desc: 'Deal 8 damage.',
-      value: 8,
+      desc: 'Deal 11 damage. Hits enemy positions 1-2.',
+      value: 11,
       effect: function(state, hero, target, card) {
         DS.Combat.dealDamage(target, card.value);
       }
     },
     {
       id: 'rogue_evade',
-      name: 'Evade',
+      name: 'Backstep',
       cost: 1,
       type: 'block',
       target: 'self',
-      prefPos: [],
-      desc: 'Gain 6 Block.',
+      prefPos: [1, 2, 3],
+      desc: 'Gain 6 Block, then move backward 1.',
       value: 6,
       effect: function(state, hero, target, card) {
         DS.Combat.gainBlock(hero, card.value);
+        DS.Combat.moveBackward(hero);
+      }
+    },
+    {
+      id: 'rogue_shadow_step',
+      name: 'Shadow Step',
+      cost: 1,
+      type: 'attack',
+      target: 'enemy',
+      reach: [1, 2],
+      prefPos: [2, 3],
+      desc: 'Deal 5 damage to enemy positions 1-2, then move forward 1.',
+      value: 5,
+      effect: function(state, hero, target, card) {
+        DS.Combat.dealDamage(target, card.value);
+        DS.Combat.moveForward(hero);
       }
     },
     {
@@ -220,24 +237,10 @@ DS.Cards = {
       type: 'attack',
       target: 'enemy_any',
       prefPos: [],
-      desc: 'Deal 5 damage. Hits any enemy.',
+      desc: 'Deal 5 damage. Hits any enemy position.',
       value: 5,
       effect: function(state, hero, target, card) {
         DS.Combat.dealDamage(target, card.value);
-      }
-    },
-    {
-      id: 'rogue_shadow_step',
-      name: 'Shadow Step',
-      cost: 1,
-      type: 'attack',
-      target: 'enemy',
-      prefPos: [2, 3],
-      desc: 'Deal 4 damage + move forward 1.',
-      value: 4,
-      effect: function(state, hero, target, card) {
-        DS.Combat.dealDamage(target, card.value);
-        DS.Combat.moveForward(hero);
       }
     },
     // --- Reward-only cards (indices 4-7) ---
@@ -396,8 +399,8 @@ DS.Cards = {
       type: 'heal',
       target: 'ally',
       prefPos: [],
-      desc: 'Heal ally 8 HP.',
-      value: 8,
+      desc: 'Heal ally 6 HP.',
+      value: 6,
       effect: function(state, hero, target, card) {
         DS.Combat.healTarget(target, card.value);
       }
@@ -584,8 +587,8 @@ DS.Cards = {
       type: 'attack',
       target: 'all_enemies',
       prefPos: [4],
-      desc: 'Deal 4 damage to ALL enemies. Pos 4 only.',
-      value: 4,
+      desc: 'Deal 6 damage to ALL enemies. Pos 4 only.',
+      value: 6,
       effect: function(state, hero, target, card) {
         DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
           DS.Combat.dealDamage(e, card.value);
@@ -789,6 +792,7 @@ DS.Cards.buildStartingDeck = function(heroList) {
           cost: cardDef.cost,
           type: cardDef.type,
           target: cardDef.target,
+          reach: cardDef.reach ? cardDef.reach.slice() : undefined,
           prefPos: cardDef.prefPos.slice(),
           desc: cardDef.desc,
           value: cardDef.value,
@@ -804,6 +808,27 @@ DS.Cards.buildStartingDeck = function(heroList) {
         }
         deck.push(card);
       }
+    });
+    (entry.skillCards || []).forEach(function(baseId) {
+      var skillDef = cards.find(function(c) { return c.id === baseId; });
+      if (!skillDef) return;
+      deck.push({
+        id: skillDef.id + '_skill_' + runIdx,
+        baseId: skillDef.id,
+        name: skillDef.name,
+        cost: skillDef.cost,
+        type: skillDef.type,
+        target: skillDef.target,
+        reach: skillDef.reach ? skillDef.reach.slice() : undefined,
+        prefPos: skillDef.prefPos.slice(),
+        desc: skillDef.desc,
+        value: skillDef.value,
+        effect: skillDef.effect,
+        heroIdx: runIdx,
+        heroCls: entry.cls,
+        heroName: heroName,
+        upgraded: false
+      });
     });
   });
   return deck;
@@ -833,7 +858,10 @@ DS.Cards.isBaseKitCard = function(cardId) {
 // activeClasses: optional array of class strings to filter by (e.g. ['fighter', 'ranger'])
 DS.Cards.getRewardPool = function(count, activeClasses) {
   count = count || 3;
-  var classes = activeClasses || DS.Heroes.map(function(h) { return h.cls; });
+  var classes = activeClasses || (DS.State && DS.State.run && DS.State.run.heroes ?
+    DS.State.run.heroes.filter(function(h) { return h.hp > 0; }).map(function(h) { return h.cls; }) :
+    DS.Heroes.map(function(h) { return h.cls; }));
+  classes = classes.filter(function(cls, idx) { return classes.indexOf(cls) === idx; });
 
   // Collect owned card baseIds to deprioritize duplicates
   var ownedIds = {};
@@ -893,7 +921,7 @@ DS.Cards.getRewardPool = function(count, activeClasses) {
         if (!allCards.some(function(c) { return c.baseId === cardDef.id; })) {
           allCards.push({
             id: cardDef.id, baseId: cardDef.id, name: cardDef.name,
-            cost: cardDef.cost, type: cardDef.type, target: cardDef.target,
+            cost: cardDef.cost, type: cardDef.type, target: cardDef.target, reach: cardDef.reach ? cardDef.reach.slice() : undefined,
             prefPos: cardDef.prefPos.slice(), desc: cardDef.desc, value: cardDef.value,
             effect: cardDef.effect, heroIdx: heroIdx, heroCls: cls,
             heroName: heroName, upgraded: false
@@ -916,17 +944,36 @@ DS.Cards.getRewardPool = function(count, activeClasses) {
 // If effect is omitted, the original effect is kept (value bump is often enough).
 DS.Cards.UPGRADE_DEFS = {
   // --- FIGHTER ---
-  fighter_strike: { name: 'Strike+', desc: 'Deal 10 damage.', value: 10 },
+  fighter_strike: { name: 'Strike+', desc: 'Deal 10 damage. Hits enemy positions 1-2.', value: 10, reach: [1, 2] },
   fighter_shield_block: { name: 'Shield Block+', desc: 'Gain 11 Block.', value: 11 },
   fighter_heavy_blow: {
     name: 'Heavy Blow+', desc: 'Deal 18 damage. Pos 1-2.', value: 18, prefPos: [1, 2]
   },
-  fighter_rally: { name: 'Rally+', desc: '6 Block to ALL allies.', value: 6 },
+  fighter_rally: {
+    name: 'Rally+', desc: '6 Block to ALL allies. Draw 1 card.', value: 6,
+    effect: function(state, hero, target, card) {
+      DS.State.run.heroes.filter(function(h) { return h.hp > 0; }).forEach(function(h) { DS.Combat.gainBlock(h, card.value); });
+      DS.Combat.drawCard();
+    }
+  },
   fighter_cleave: { name: 'Cleave+', desc: 'Deal 9 damage to ALL enemies.', value: 9 },
-  fighter_taunt: { name: 'Taunt+', desc: 'Gain 8 Block. Enemies target you.', value: 8 },
+  fighter_taunt: {
+    name: 'Taunt+', desc: 'Gain 8 Block. Enemies target you. Position 1 adds 2 Block.', value: 8,
+    effect: function(state, hero, target, card) {
+      DS.Combat.gainBlock(hero, card.value + (hero.pos === 1 ? 2 : 0));
+      DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) { e.taunted = hero.id; });
+    }
+  },
   fighter_fortify: { name: 'Fortify+', desc: 'Gain Block = half current Block (min 5).', value: 5 },
-  fighter_second_wind: { name: 'Second Wind+', desc: 'Heal 10 HP. Exhaust.', value: 10 },
-  fighter_war_cry: { name: 'War Cry+', desc: 'Gain 3 Strength this combat. Exhaust.', value: 3 },
+  fighter_second_wind: { name: 'Second Wind+', desc: 'Heal 8 HP. Exhaust.', value: 8 },
+  fighter_war_cry: {
+    name: 'War Cry+', desc: 'Gain 3 Strength. Position 1 also gains 4 Block. Exhaust.', value: 3,
+    effect: function(state, hero, target, card) {
+      hero.strength = (hero.strength || 0) + card.value;
+      if (hero.pos === 1) DS.Combat.gainBlock(hero, 4);
+      card._exhaust = true;
+    }
+  },
   fighter_shield_bash: {
     name: 'Shield Bash+', desc: 'Deal 11 damage. Apply 3 Vulnerable.', value: 11,
     effect: function(state, hero, target, card) {
@@ -938,12 +985,36 @@ DS.Cards.UPGRADE_DEFS = {
   fighter_iron_will: { name: 'Iron Will+', desc: 'Gain 16 Block. Exhaust.', value: 16 },
 
   // --- ROGUE ---
-  rogue_backstab: { name: 'Backstab+', desc: 'Deal 11 damage.', value: 11 },
-  rogue_evade: { name: 'Evade+', desc: 'Gain 9 Block.', value: 9 },
-  rogue_throwing_knife: { name: 'Throwing Knife+', desc: 'Deal 8 damage. Hits any enemy.', value: 8 },
-  rogue_shadow_step: { name: 'Shadow Step+', desc: 'Deal 7 damage + move forward 1.', value: 7 },
-  rogue_flurry: { name: 'Flurry+', desc: 'Strike 3 times for 4 damage.', value: 4 },
-  rogue_smoke_bomb: { name: 'Smoke Bomb+', desc: 'Gain 7 Block. Swap positions with an ally.', value: 7 },
+  rogue_backstab: {
+    name: 'Backstab+', desc: 'Deal 15 damage. Hits enemy positions 1-2 and applies 1 Vulnerable.', value: 15, reach: [1, 2],
+    effect: function(state, hero, target, card) { DS.Combat.dealDamage(target, card.value); DS.Combat.applyVulnerable(target, 1); }
+  },
+  rogue_evade: {
+    name: 'Backstep+', desc: 'Gain 9 Block, move backward 1, and draw 1 card.', value: 9,
+    effect: function(state, hero, target, card) { DS.Combat.gainBlock(hero, card.value); DS.Combat.moveBackward(hero); DS.Combat.drawCard(); }
+  },
+  rogue_throwing_knife: {
+    name: 'Throwing Knife+', desc: 'Deal 8 damage. Hits any enemy. Draw 1 card.', value: 8,
+    effect: function(state, hero, target, card) { DS.Combat.dealDamage(target, card.value); DS.Combat.drawCard(); }
+  },
+  rogue_shadow_step: {
+    name: 'Shadow Step+', desc: 'Deal 7 damage to enemy positions 1-2, apply 2 Bleed, then move forward 1.', value: 7, reach: [1, 2],
+    effect: function(state, hero, target, card) { DS.Combat.dealDamage(target, card.value); DS.Combat.applyBleed(target, 2); DS.Combat.moveForward(hero); }
+  },
+  rogue_flurry: {
+    name: 'Flurry+', desc: 'Strike 3 times for 4 damage. The first hit applies 1 Bleed.', value: 4,
+    effect: function(state, hero, target, card) {
+      for (var i = 0; i < 3; i++) { DS.Combat.dealDamage(target, card.value); if (i === 0) DS.Combat.applyBleed(target, 1); }
+    }
+  },
+  rogue_smoke_bomb: {
+    name: 'Smoke Bomb+', desc: 'Gain 7 Block. Swap positions with an ally. Draw 1 card.', value: 7,
+    effect: function(state, hero, target, card) {
+      DS.Combat.gainBlock(hero, card.value);
+      var tmp = hero.pos; hero.pos = target.pos; target.pos = tmp;
+      DS.Combat.drawCard();
+    }
+  },
   rogue_poison_blade: {
     name: 'Poison Blade+', desc: 'Deal 5 damage + 5 Poison.', value: 5,
     effect: function(state, hero, target, card) {
@@ -970,9 +1041,15 @@ DS.Cards.UPGRADE_DEFS = {
   rogue_caltrops: { name: 'Caltrops+', desc: 'Apply 4 Poison to ALL enemies.', value: 4 },
 
   // --- CLERIC ---
-  cleric_smite: { name: 'Smite+', desc: 'Deal 8 damage.', value: 8 },
+  cleric_smite: {
+    name: 'Smite+', desc: 'Deal 8 damage. Apply 1 Weak.', value: 8,
+    effect: function(state, hero, target, card) { DS.Combat.dealDamage(target, card.value); DS.Combat.applyWeak(target, 1); }
+  },
   cleric_divine_shield: { name: 'Divine Shield+', desc: 'Give ally 10 Block.', value: 10 },
-  cleric_heal: { name: 'Heal+', desc: 'Heal ally 12 HP.', value: 12 },
+  cleric_heal: {
+    name: 'Heal+', desc: 'Heal ally 9 HP and give them 3 Block.', value: 9,
+    effect: function(state, hero, target, card) { DS.Combat.healTarget(target, card.value); DS.Combat.gainBlock(target, 3); }
+  },
   cleric_bless: {
     name: 'Bless+', desc: 'All allies: 6 Block + 4 HP. Pos 4 only.', value: 6,
     effect: function(state, hero, target, card) {
@@ -1000,24 +1077,27 @@ DS.Cards.UPGRADE_DEFS = {
       });
     }
   },
-  cleric_cleansing_light: { name: 'Cleansing Light+', desc: 'Heal all allies 5 HP. Remove all Weak.', value: 5 },
-  cleric_martyrdom: { name: 'Martyrdom+', desc: 'Lose 5 HP. Heal all other allies 15 HP.', value: 15 },
+  cleric_cleansing_light: { name: 'Cleansing Light+', desc: 'Heal all allies 4 HP. Remove all Weak.', value: 4 },
+  cleric_martyrdom: { name: 'Martyrdom+', desc: 'Lose 5 HP. Heal all other allies 10 HP.', value: 10 },
   cleric_holy_nova: {
-    name: 'Holy Nova+', desc: 'Deal 7 damage to all enemies. Heal all allies 5 HP.', value: 7,
+    name: 'Holy Nova+', desc: 'Deal 7 damage to all enemies. Heal all allies 4 HP.', value: 7,
     effect: function(state, hero, target, card) {
       DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
         DS.Combat.dealDamage(e, card.value);
       });
       DS.State.run.heroes.filter(function(h) { return h.hp > 0; }).forEach(function(h) {
-        DS.Combat.healTarget(h, 5);
+        DS.Combat.healTarget(h, 4);
       });
     }
   },
 
   // --- WIZARD ---
   wizard_magic_missile: { name: 'Magic Missile+', desc: 'Deal 9 damage. Hits any enemy.', value: 9 },
-  wizard_arcane_ward: { name: 'Arcane Ward+', desc: 'Gain 8 Block.', value: 8 },
-  wizard_fireball: { name: 'Fireball+', desc: 'Deal 7 damage to ALL enemies. Pos 4 only.', value: 7 },
+  wizard_arcane_ward: {
+    name: 'Arcane Ward+', desc: 'Gain 8 Block. Draw 1 card.', value: 8,
+    effect: function(state, hero, target, card) { DS.Combat.gainBlock(hero, card.value); DS.Combat.drawCard(); }
+  },
+  wizard_fireball: { name: 'Fireball+', desc: 'Deal 8 damage to ALL enemies. Pos 4 only.', value: 8 },
   wizard_arcane_intellect: { name: 'Arcane Intellect+', desc: 'Draw 4 cards. Pos 4 only.', value: 4 },
   wizard_chain_lightning: {
     name: 'Chain Lightning+', desc: 'Strike random enemies 5 times for 4 damage.', value: 4,
@@ -1041,7 +1121,15 @@ DS.Cards.UPGRADE_DEFS = {
       });
     }
   },
-  wizard_mana_shield: { name: 'Mana Shield+', desc: 'Convert energy to Block (5 per 1 energy).', value: 5 },
+  wizard_mana_shield: {
+    name: 'Mana Shield+', desc: 'Convert energy to 5 Block per energy. Spending 2+ energy draws 1 card.', value: 5,
+    effect: function(state, hero, target, card) {
+      var spent = DS.State.combat.energy;
+      DS.State.combat.energy = 0;
+      DS.Combat.gainBlock(hero, spent * card.value);
+      if (spent >= 2) DS.Combat.drawCard();
+    }
+  },
   wizard_teleport: {
     name: 'Teleport+', desc: 'Swap two heroes\' positions. Both gain 3 Block. Exhaust.', value: 3,
     effect: function(state, hero, target, card) {
@@ -1157,7 +1245,7 @@ DS.Cards.UPGRADE_DEFS = {
   // --- RANGER ---
   ranger_quick_shot: { name: 'Quick Shot+', desc: 'Deal 9 damage. Hits any enemy.', value: 9 },
   ranger_dodge_roll: { name: 'Dodge Roll+', desc: 'Gain 8 Block.', value: 8 },
-  ranger_aimed_shot: { name: 'Aimed Shot+', desc: 'Deal 13 damage.', value: 13 },
+  ranger_aimed_shot: { name: 'Aimed Shot+', desc: 'Deal 13 damage. Hits enemy positions 2-4.', value: 13, reach: [2, 3, 4] },
   ranger_snare_trap: {
     name: 'Snare Trap+', desc: 'Apply 3 Weak + 3 Vulnerable.', value: 3,
     effect: function(state, hero, target, card) {
@@ -1232,7 +1320,14 @@ DS.Cards.UPGRADE_DEFS = {
   },
   necromancer_shadow_bolt: { name: 'Shadow Bolt+', desc: 'Deal 9 damage. Hits any enemy.', value: 9 },
   necromancer_bone_shield: { name: 'Bone Shield+', desc: 'Gain 8 Block.', value: 8 },
-  necromancer_hex: { name: 'Hex+', desc: 'Apply 3 Weak.', value: 3 },
+  necromancer_hex: {
+    name: 'Hex+', desc: 'Apply 3 Weak. If already Weak, also apply 2 Vulnerable.', value: 3,
+    effect: function(state, hero, target, card) {
+      var wasWeak = target.weak > 0;
+      DS.Combat.applyWeak(target, card.value);
+      if (wasWeak) DS.Combat.applyVulnerable(target, 2);
+    }
+  },
   necromancer_plague_spread: {
     name: 'Plague Spread+', desc: 'If Poisoned, triple it. Otherwise apply 4 Poison.', value: 4,
     effect: function(state, hero, target, card) {
@@ -1304,7 +1399,10 @@ DS.Cards.UPGRADE_DEFS = {
   },
   paladin_shield_of_faith: { name: 'Shield of Faith+', desc: 'Give ally 10 Block.', value: 10 },
   paladin_lay_on_hands: { name: 'Lay on Hands+', desc: 'Heal ally 10 HP.', value: 10 },
-  paladin_righteous_blow: { name: 'Righteous Blow+', desc: 'Deal 11 damage.', value: 11 },
+  paladin_righteous_blow: {
+    name: 'Righteous Blow+', desc: 'Deal 11 damage. Position 1 also gains 3 Block.', value: 11,
+    effect: function(state, hero, target, card) { DS.Combat.dealDamage(target, card.value); if (hero.pos === 1) DS.Combat.gainBlock(hero, 3); }
+  },
   paladin_divine_smite: {
     name: 'Divine Smite+', desc: 'Deal 16 damage. Apply 3 Vulnerable. Pos 1 only.', value: 16,
     effect: function(state, hero, target, card) {
@@ -1388,6 +1486,7 @@ DS.Cards.applyUpgrade = function(card) {
   if (def.cost !== undefined) card.cost = def.cost;
   if (def.effect) card.effect = def.effect;
   if (def.prefPos) card.prefPos = def.prefPos.slice();
+  if (def.reach) card.reach = def.reach.slice();
   if (def.innate !== undefined) card.innate = def.innate;
   if (def.ethereal !== undefined) card.ethereal = def.ethereal;
   card.upgraded = true;
@@ -1411,10 +1510,10 @@ DS.Cards.applyUpgrade = function(card) {
   DS.Cards.tactical=[{id:'tactical_shard',name:'Arcane Shard',cost:0,type:'attack',target:'enemy_any',prefPos:[],value:4,desc:'Deal 4 damage. Ethereal. Exhaust.',ethereal:true,exhaust:true,effect:function(s,h,t,c) { DS.Combat.dealDamage(t,c.value); }}, {id:'tactical_wound',name:'Wound',cost:0,type:'status',target:'none',prefPos:[],value:0,unplayable:true,desc:'Unplayable. Occupies a draw this combat.',effect:function() {}}];
   // Starting-kit construction preserves keyword metadata as well as ordinary values.
   var build=DS.Cards.buildStartingDeck;
-  DS.Cards.buildStartingDeck=function(entries) { return build(entries).map(function(card) { var def=DS.Cards[card.heroCls].find(function(c) { return c.id===card.baseId; }); ['reach','retain','innate','ethereal','exhaust','xCost','unplayable'].forEach(function(key) { if(def[key]!==undefined) card[key]=def[key]; }); return card; }); };
+  DS.Cards.buildStartingDeck=function(entries) { return build(entries).map(function(card) { var def=DS.Cards[card.heroCls].find(function(c) { return c.id===card.baseId; }); ['reach','retain','innate','ethereal','exhaust','xCost','unplayable'].forEach(function(key) { var upgrade=card.upgraded && DS.Cards.UPGRADE_DEFS[card.baseId]; var source=upgrade && upgrade[key]!==undefined ? upgrade : def; if(source[key]!==undefined) card[key]=Array.isArray(source[key]) ? source[key].slice() : source[key]; }); return card; }); };
 })();
 
 (function() {
   var reward=DS.Cards.getRewardPool;
-  DS.Cards.getRewardPool=function(count,classes) { return reward(count,classes).map(function(card) { var def=DS.Cards[card.heroCls].find(function(c) { return c.id===card.baseId; }); ['reach','retain','innate','ethereal','exhaust','xCost','unplayable'].forEach(function(key) { if(def[key]!==undefined) card[key]=def[key]; }); return card; }); };
+  DS.Cards.getRewardPool=function(count,classes) { return reward(count,classes).map(function(card) { var def=DS.Cards[card.heroCls].find(function(c) { return c.id===card.baseId; }); ['reach','retain','innate','ethereal','exhaust','xCost','unplayable'].forEach(function(key) { var upgrade=card.upgraded && DS.Cards.UPGRADE_DEFS[card.baseId]; var source=upgrade && upgrade[key]!==undefined ? upgrade : def; if(source[key]!==undefined) card[key]=Array.isArray(source[key]) ? source[key].slice() : source[key]; }); return card; }); };
 })();

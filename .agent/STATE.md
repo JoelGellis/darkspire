@@ -1,5 +1,20 @@
 # Current State — 2026-09-09
 
+## Combat/card pass — 2026-09-10
+
+- Block correction and combat clarity pass: player Block fully expires at the next player turn unless Dragon's Heart supplies its existing decay exception; NPC defend resolves immediately on intent roll by replacing, not stacking, Block and has no defend telegraph; hero/enemy HP and blue Block bars share a bounded `max(maxHp, block)` scale; attack previews now use authoritative base + Strength + power + Weak/Vulnerable + Block/HP-loss breakdowns and label multi-hit/AOE limits; blocked damage logs include absorbed Block and HP lost. Focused combat suite passes in isolation from the unrelated bug-report DOM stub.
+
+- Implemented always-visible card position/target labels in the hand: hero play rank (including ANY), enemy reach, and target scope for party/self/ally/none cards. Enemy cards outside a card's valid reach are no longer highlighted as clickable.
+- Backstab now costs 1, deals 11 damage, and targets enemy positions 1–2; its upgrade deals 15 and applies 1 Vulnerable. Rogue's active starting set now includes Backstab, Backstep, Shadow Step, and Throwing Knife. Backstep blocks and moves backward; Shadow Step deals 5 to enemy positions 1–2 and moves forward.
+- Enemy defend block now applies immediately and persists into the following player turn until consumed by damage. Reward pools default to the living run party and shops explicitly pass the living class list, preventing off-party class rewards.
+- Starting-kit upgrade pass adds mechanical changes to selected active-kit upgrades: reach, draw, movement, Vulnerable/Weak/Bleed, and heal-plus-block effects. Fireball increased from 4 to 6 base damage and from 7 to 8 upgraded damage.
+- Added combat regressions for Backstab reach/damage, Backstep movement, enemy block persistence/consumption, and active-class reward filtering. Portable Node parse checks, combat-depth, campfire-smoke, and world-smoke pass.
+- Audited all 96 upgrade definitions: 44 numeric-only, 50 mixed, 2 mechanical-only. Converted the weakest clear cases to identity upgrades: Fighter Taunt/War Cry rank-aware defense, Rogue Flurry bleed and Smoke Bomb draw, Wizard Mana Shield draw on larger spends, Ranger Aimed Shot explicit deep reach, Necromancer Hex conditional Vulnerable, and Paladin Righteous Blow front-rank Block. Full release build remains green.
+
+## Bug reporting — 2026-09-10
+
+- Added an isolated local bug reporter (`js/bug-report.js`, `css/bug-report.css`, `tests/bug-report.js`) with minimal index integration. It captures a curated current fight/party/card/recent-action packet, supports an optional note, local download and clipboard copy, and omits player identity, campaign metadata, storage keys, and browser data. No deployment or external transmission.
+
 ## Active 100-improvement round (incomplete)
 
 User objective remains 100 justified major improvements, implementation and verification of every item, updated playable demo, then another round. Keep the root thread for discussion; agents perform implementation/testing. The user additionally requires full run archives, mandatory player identity, cheap repeatable testing and immersive full-screen game presentation.
@@ -109,3 +124,14 @@ The following records the earlier `bfb6c39` milestone. Its statements about comb
 3. Combat/map visual production remains a separate milestone. No combat redesign or balancing was performed here.
 
 See `tests/README.md` for reproducible checks and isolated visual scenarios, and `assets/source/ai-reference/campfire-art-review.md` for asset provenance and acceptance notes.
+- 2026-09-10: Vampire Lord now prioritizes reviving missing bats, cycles damage/lifesteal, and no longer wastes its boss intent on weak debuffs. Added lifesteal combat handling and intent UI.
+- 2026-09-10: Added visible party artifact strip + modal viewer, keyboard combat controls (1-9 cards, E/Enter end turn), keyboard/button feedback, and target hover preview with incoming sword markers; removed clunky Committed labels.
+- 2026-09-10: First tutorial pass: new/legacy saves receive a fifth expedition slot, a free first Blacksmith upgrade, and 20% off the first town Merchant item. Stagecoach instructions now state the recruit flow and equipment is optional.
+- 2026-09-10: Added docs/BUGTRACKER.md with Arcane Barrage and damage-scaling reports. Arcane Barrage shop copies preserve xCost metadata.
+- 2026-09-10: Removed hidden floor-based enemy damage scaling. Card previews now show Strength-adjusted flat damage, target hover previews Vulnerable multipliers, and matching actual play was regression-tested. Strength uses progressively redder card text.
+- 2026-09-10: Added the Tyrhung and Oath Necklace lore thread across title, campfire, map, combat, events, rewards, boss intro, and summary. Hid the telemetry archive panel by default (Ctrl+Shift+E toggles it), simplified the map/combat HUD to transparent minimal chrome, and aligned all party flows to five heroes. Tuned defense: player Block carries half into the next turn; repeated healing sources and recovery sites were reduced. Full release build passes.
+- 2026-09-10: User authorizes tolerant demo save migration: changed cards use current definitions, removed cards may be dropped, and stat resets are acceptable for stat-system overhauls. Preserve compatible campaign/build; do not reject whole saves over removed content. Integration/release/progression agents notified.
+- 2026-09-10: User approved implementation of dismissible update/migration notes, local one-click bug reports, previous recovery checkpoint, accurate damage/Block hover accounting, and first-level skill tutorial. Delegated to release, combat, progression, bug-report owners; Mendel owns integrated verification/publication. These additions are pending, not verified complete.
+
+## Progression � 2026-09-10 integration handoff
+Progression schema v2, persistent randomized three-branch skills, all-hero/recruit skill viewer, exact level-stat HP preview and first-level guided spend are implemented. Existing class kits preserved and verified; fixed empty cloned reach making basic attacks unplayable and upgrade metadata being overwritten. tests/progression.js covers all eight classes, migration/refresh, real combat power/Block, deck skills, prerequisites/cap and mastery reach; progression/party/campfire/world/persistence checks pass. Browser fixture tests/progression-fixture.html awaits integration lead visual check (no browser available here). Full build currently blocked by other-agent bug-report test/module mismatch; details and file ownership in .agent/PROGRESSION.md. No publication or commits by Progression; state/combat/ui and release remain Bacon/Ptolemy/Mendel-owned.

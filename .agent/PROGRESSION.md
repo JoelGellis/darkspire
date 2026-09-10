@@ -1,0 +1,22 @@
+# Progression ownership / integration — 2026-09-10
+Owner: Progression. Lead: Mendel 01a08bb5-b30a-7ca1-b97d-8d14b979cc18.
+Own data/skills.js, js/skill-tree-view.js, js/meta.js, progression-only data/cards.js and js/intro.js edits, tests/progression.js and progression CSS.
+Bacon owns state.js/persistence/release: Progression will NOT edit state.js. Please retain run hero power/blockBonus and roster skillCards handoff. Apply tolerant removed-card filtering to deck AND combat piles, preserve compatible campaign, timestamp/version refresh. Active saved runs keep their snapshot until next expedition unless schema migration requires otherwise.
+Ptolemy owns combat.js/ui.js: retain power damage and blockBonus gain integration and preview parity. Progression does NOT edit these files.
+Migration: versioned roster stats, retain compatible trees/kits/mastery, drop removed IDs. No campaign wipe. Completed findings/tests will be appended here for Mendel; publication remains integration-lead-owned.
+No agent-message tool available in this session; shared file is the coordination channel.
+
+Integration checkpoint: progression/party-equipment/campfire/world tests pass. Full build-release currently fails combat-depth.js during js/bug-report.js mount: panel.querySelector is not a function (new bug-report module vs existing test DOM stub). Please route to bug-report/test owner. Browser tool reports no browser available; lead must visually verify skill dialog desktop/mobile and tutorial before publication.
+Approved first-level tutorial implemented with exact level gains, hero highlight, first skill guide, persistent completion/dismissal. No edits to state.js/combat.js/ui.js. Bacon remains owner of refresh timestamp and removed-card filtering in active save piles.
+
+## Progression handoff — 2026-09-10
+- Completed existing real level gains: levels 1–6, +2 max HP/+1 attack power/+1 skill point per gained level, existing automatic kit mastery retained. Finite XP validation and dead-hero spending guards.
+- data/skills.js: three saved class specializations, each new tree has two randomly selected/ordered stat nodes and its class-specific technique. Fixed nonexistent Paladin Divine Guard to Guardian Stance. Validates/repairs partial legacy trees.
+- js/meta.js: progressionVersion 2 migration derives level/learned-node stats and remaining points; retains compatible kits/mastery/learned skills, filters removed card IDs, persists migrated tree immediately. No gold/gear/campaign wipe. Tutorial gains/pending/completed persist.
+- js/intro.js: HP preview now includes progression maxHpBonus, matching actual run creation including wounds/gear.
+- data/cards.js: starter/skill/reward clones leave unspecified reach undefined (empty arrays had made basic attacks unplayable), preserve upgraded keyword/reach metadata. Existing class-specific three-core + rolled-signature kits retained and verified across eight classes; no new card mechanics.
+- js/skill-tree-view.js: all eight roster heroes and available recruits selectable with duplicate-class labels, three readable prerequisite branches, starting kit/XP/stats, available point spending, next-expedition timing, native accessible dialog/select/focus/keyboard close, responsive stacked branches. First-level guide highlights recipient, lists exact stat/mastery gains, guides spend, persists completion or explicit dismissal.
+- tests/progression.js passes: eight classes, kit/tree variation, growth/cap, prerequisites, skill deck injection, repeated migration/refresh, removed roster cards, preview parity, actual combat damage/Block, upgraded reach. party-equipment, campfire-smoke, world-smoke and Bacon's persistence-migration also pass. Changed JS parse checks pass.
+- tests/progression-fixture.html + progression-fixture-state.js isolate localStorage and exercise all-hero switching/guide targeting/spending/persistence then leave guide visible. Browser execution/visual verification PENDING: this session has no browser surface.
+- Integrated build remains BLOCKED by concurrently edited bug-report work: latest full build fails tests/bug-report.js line 13 (undefined !== 0); combat-depth still fails js/bug-report.js mount (panel.querySelector absent in harness). These files remain their owner's responsibility.
+- No state.js/combat.js/ui.js/release edits, commits or publication by Progression. Bacon handles tolerant active-pile migration and refresh/version timestamp. Mendel must rerun integrated tests and visually inspect fixture before refreshing/publishing newest demo.

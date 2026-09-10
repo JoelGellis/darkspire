@@ -4,8 +4,8 @@
   'use strict';
   if (!DS.Campfire) return;
 
-  var ranks = ['I', 'II', 'III', 'IV'];
-  var positions = ['Front', 'Second', 'Third', 'Rear'];
+  var ranks = ['I', 'II', 'III', 'IV', 'V'];
+  var positions = ['Front', 'Second', 'Third', 'Fourth', 'Rear'];
   var roles = {
     fighter: 'Iron & resolve', cleric: 'Prayer & restoration', rogue: 'Steel & subterfuge',
     wizard: 'Fire & forbidden lore', barbarian: 'Fury & ruin', ranger: 'Arrow & instinct',
@@ -36,7 +36,8 @@
     var selected = camp._selected;
     var dead = DS.Meta.graveyard || [];
     var canResume = DS.State.hasRunSave && DS.State.hasRunSave();
-    var ready = selected.length === 4;
+    var partySize = 5;
+    var ready = selected.length === partySize;
     var active = document.activeElement;
     var focusId = active && root.contains(active) ? active.id : '';
     // Keep a living status region across selection renders, so screen readers
@@ -50,7 +51,7 @@
       '<div class="cf-bank"><span aria-hidden="true">◇</span> ' + DS.Meta.gold + '<small>Banked gold</small></div></header>' +
       '<section class="cf-scene" aria-labelledby="cf-scene-title">' +
       '<div class="cf-scene-copy"><p class="cf-eyebrow">AT THE FOOT OF THE SPIRE</p><h1 id="cf-scene-title">The last light.</h1>' +
-      '<p>The road ends here.<br>Gather those who will face the dark.</p></div>' +
+      '<p>The road ends here.<br>Gather those who will face the dark.</p><p class="campfire-lore-thread">' + (DS.Lore ? DS.Lore.campfire(DS.State.run) : '') + '</p></div>' +
       '<div class="cf-fog" aria-hidden="true"></div><div class="cf-firelight" aria-hidden="true"></div>' +
       '<div class="cf-gathering" aria-hidden="true">';
 
@@ -58,7 +59,7 @@
     // the four figures mirror the ordered party; unfilled ranks stay empty.
     var waiting = offer.map(function(e, i) { return e.source === 'roster' ? i : -1; }).filter(function(i) { return i >= 0; }).slice(0, 4);
     var sceneParty = selected.length ? selected : waiting;
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < partySize; i++) {
       var entry = offer[sceneParty[i]];
       if (i === 2) html += '<div class="cf-fire"><i></i><i></i><i></i><b></b><b></b><span class="cf-embers"></span></div>';
       html += '<div class="cf-figure cf-figure-' + i + (entry ? '' : ' cf-figure-empty') + '">' +
@@ -84,7 +85,7 @@
           '" aria-label="' + escape(name + ', ' + entry.heroClass + ', ' + status(entry) + (wound ? ', ' + wound : '') +
             (rank !== -1 ? ', rank ' + (rank + 1) + ', remove from party' : ', select for party')) + '">' +
           '<span class="cf-portrait-frame">' + portrait(entry, 'cf-card-portrait') + '</span>' +
-          '<span class="cf-hero-info"><span class="cf-status">' + escape(status(entry)) + '</span>' +
+          '<span class="cf-hero-info"><span class="cf-status">' + escape(entry.source === 'recruit' ? 'Stagecoach recruit · Select to muster' : status(entry)) + '</span>' +
           '<strong>' + escape(name) + '</strong><span class="cf-class">' + escape(entry.heroClass) + ' · ' + escape(entry.variant || 'standard') + '</span>' +
           '<span class="cf-stats">Level ' + (entry.level || 1) + ' <span>·</span> ' + camp._effectiveMaxHp(entry) + ' max HP' +
           (entry.xp ? ' <span>·</span> ' + entry.xp + ' XP' : '') + '</span>' +
@@ -95,10 +96,10 @@
     });
 
     html += '</div><section class="cf-muster" aria-labelledby="cf-muster-title"><div class="cf-section-heading">' +
-      '<h2 id="cf-muster-title">The expedition</h2><span id="cf-count">' + selected.length + ' / 4 chosen</span></div>' +
-      '<p class="cf-instruction">Choose four in marching order. Rank I holds the front. Remove a hero to change the order.</p>' +
+      '<h2 id="cf-muster-title">The expedition</h2><span id="cf-count">' + selected.length + ' / ' + partySize + ' chosen</span></div>' +
+      '<p class="cf-instruction">Choose five in marching order. Rank I holds the front. Remove a hero to change the order.</p>' +
       '<div class="cf-departure"><ol class="cf-ranks" aria-label="Party ranks, front to rear">';
-    for (var slot = 0; slot < 4; slot++) {
+    for (var slot = 0; slot < partySize; slot++) {
       var chosen = offer[selected[slot]];
       html += '<li class="cf-rank' + (chosen ? ' is-filled' : '') + '"><span class="cf-rank-number">' + ranks[slot] + '</span>' +
         '<span class="cf-rank-info"><small>' + positions[slot] + '</small><strong>' + (chosen ? escape(chosen.name) : 'Unfilled') + '</strong></span>' +
@@ -139,7 +140,7 @@
     }).join('. ');
 
     function toggle(index, focusTarget) {
-      if (selected.length === 4 && selected.indexOf(index) === -1) {
+      if (selected.length === partySize && selected.indexOf(index) === -1) {
         announcement.textContent = 'The party is full. Remove a chosen hero before selecting another.';
         return;
       }
@@ -154,7 +155,7 @@
     root.querySelectorAll('[data-remove]').forEach(function(button) {
       button.onclick = function() { toggle(Number(button.dataset.remove), 'cf-hero-' + button.dataset.remove); };
     });
-    root.querySelector('#btn-descend').onclick = function() { if (camp._selected.length === 4) camp.embark(); };
+    root.querySelector('#btn-descend').onclick = function() { if (camp._selected.length === partySize) camp.embark(); };
     root.querySelector('#btn-visit-town').onclick = function() {
       camp._offer = null;
       camp._selected = [];

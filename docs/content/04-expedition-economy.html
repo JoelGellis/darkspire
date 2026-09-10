@@ -1,0 +1,306 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>04-expedition-economy.md</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+         max-width: 980px; margin: 24px auto; padding: 0 24px; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1, h2, h3, h4 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; margin-top: 28px; }
+  h1 { font-size: 1.9em; }
+  h2 { font-size: 1.45em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding: 0 16px; margin-left: 0; }
+  .doc-sep { border: none; border-top: 3px double #d0d7de; margin: 48px 0 24px; }
+  .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
+</style>
+</head>
+<body><p class="source-label">Source: docs\content\04-expedition-economy.md</p><h1>Expedition economy — specialist plan 4</h1>
+<p>Status: bounded implementation proposal, not shipped behavior. Sources inspected September 9: DESIGN.md, PIN.md, .agent/STATE.md, IMPROVEMENTS-100, content plans 01–03, js/state.js, main.js, map.js, meta.js, ui.js, excluded expedition.js, data/events.js and gear.js. Accepted DESIGN controls conflicts. All new numbers below are Darkspire hypotheses derived from its prices and route budgets, not reference-game statistics.</p>
+<h2>Contract and unresolved planner conflicts</h2>
+<p>Four heroes, eight classes, no stress, hard rank gates, permanent character death, gear dies with its wearer. Keep four personal slots, at most two equipped items per hero at embark, two party artifacts. Ownership breadth may grow to the proposed 55 definitions (17 existing +32 personal +6 artifacts); embark capacity never grows with merchant level. Finish the other eight slots during expeditions. Free field fitting occurs only between encounters.</p>
+<p>Planner1 proposes one prepared item action per hero; planner2 proposes two. For the first economy experiment use ONE prepared action per hero, with other equipped actions explicitly sheathed, no loss of passives. This is a proposed resolution requiring runtime/UI/save implementation, not a claim about current behavior. It limits the 32-card start to36 with four injected actions. A one-copy payoff has opening visibility5/36=13.89%, versus12.5% at40. Preserve existing saves and show a preparation choice on migration; do not silently erase cards. Cleric remains launch ranks2/3. This plan adds no new class cards or item definitions beyond the specialist catalogs.</p>
+<p>Gold purchases buy lasting ownership, survivor-bound learning or permanent wound removal. Found drafts, potions, blessings and camp preparation can expire. No gold-bought potion, one-fight buff or run-only card. Permanent value is still exposed to the stated death/exit risks. Purchased learning on a surviving hero remains after flee. Flee physical-gear provenance is pending root reconciliation: planner2 loses all run acquisitions, while the expedition implementer retains purchased gear on surviving wearers and loses found unbanked loot. Recommend the latter to preserve gold-purchase and wearer rules; do not implement conflicting outcomes independently. Show the resolved rule before purchase and in flee confirmation.</p>
+<h2>Source audit and exact replacement contracts</h2>
+<table>
+<thead>
+<tr>
+<th>Current evidence</th>
+<th>Conflict or defect</th>
+<th>Required implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ui.js renderShop generates card prices50–75, relic stock and offers during render</td>
+<td>Reopening rerolls; bought card/relic is merely in run state</td>
+<td>Generate immutable node offers once, save before display. Sell a persistent hero lesson or real Gear artifact, never legacy run.relics for gold.</td>
+</tr>
+<tr>
+<td>ui.js shop healing; events wandering merchant30g heal</td>
+<td>Paid rental contradicts DESIGN</td>
+<td>Remove paid healing endpoints, not just their DOM buttons. Healing potions only earned. Town wound treatment remains valid because removal persists.</td>
+</tr>
+<tr>
+<td>events mercenary_camp40g adds3maxHP only to run heroes; oracle15g adds5</td>
+<td>Claims strength persists without durable hero mutation</td>
+<td>Replace with explicit paid training below; no generic purchased maxHP stacking.</td>
+</tr>
+<tr>
+<td>events beggar25g buys delayed relic; gambler gold bets; mercenary60g random relic</td>
+<td>Temporary reward or possible zero lasting value</td>
+<td>Beggar uses earned potion/HP aid; gambler wagers a found supply, never gold; mercenary offers an actual saved compatible Gear item at catalog price.</td>
+</tr>
+<tr>
+<td>ui.js removal75g edits current deck</td>
+<td>Rental thinning</td>
+<td>Paid service grants one persistent preparation slot to its selected hero; current selected draft is also removed. Base kit is never permanently deleted. Details below.</td>
+</tr>
+<tr>
+<td>state.js reward10–19+2*floor via Math.random; map seven rows ending boss6</td>
+<td>A single floor index cannot express three acts reliably</td>
+<td>Separate actIndex, depth, nodeId; explicit reward table, isolated saved RNG streams. Keep old-save migration.</td>
+</tr>
+<tr>
+<td>main.js boss sets floorsCleared7 and summary</td>
+<td>Every boss is final victory</td>
+<td>Only act3 boss settles; acts1/2 enter saved transition. Objective completion uses event facts, never floorsCleared heuristic.</td>
+</tr>
+<tr>
+<td>meta.js applyDefeatPenalty halves bank</td>
+<td>Unrelated treasury loss conflicts with declared wipe stakes</td>
+<td>Preserve bank on wipe; lose deployed heroes/equipment and run gains. No rendering-side penalty.</td>
+</tr>
+<tr>
+<td>excluded expedition.js flee text half-banks; ledger guesses outcomes</td>
+<td>Flee differs from DESIGN; display can disagree with actual mutations</td>
+<td>Do not activate draft unmodified. Flee banks0, loses run acquisitions, survivors return with wounds. Settlement is authoritative transaction consumed by summary.</td>
+</tr>
+<tr>
+<td>gear.js comments call common items consumed; CONSUME_ON_RUN_END false</td>
+<td>Stale language confuses permanence</td>
+<td>All rarities persist under survivor outcome rules; salvage spread is a voluntary trade, not compulsory consumption.</td>
+</tr>
+<tr>
+<td>startGold bonuses and welfare gold</td>
+<td>Repeated empty departures may mint bankable assets</td>
+<td>Starter stipend cannot settle or buy salvageable goods; implement as a once-per-campaign owned35g common voucher instead of repeatable cash. Migrate unspent bonus separately, never count it as earned gold.</td>
+</tr>
+</tbody>
+</table>
+<p>Legacy earned relics must be classified: a durable physical object becomes a Gear artifact with ownership/slot rules; an aura becomes a visibly temporary blessing. Do not retain two independent unlimited party-artifact systems. Map existing IDs through migration; quarantine unknown definitions instead of inventing effects.</p>
+<h2>Three-act route grammar</h2>
+<p>Acts: Broken Watch (act1), Rootbound Ossuary (act2), Ashen Court (act3), matching planner3 pools. Each act has start, seven decision depths, final camp, boss: ten displayed rows including start. All fit a fixed viewport with horizontal/vertical world camera within the map pane if needed; never document scroll. Each depth has2–3 nodes. No backtracking or paid map rerolls. A route chooses one node per depth, with at most one optional inserted treasure stop.</p>
+<table>
+<thead>
+<tr>
+<th>Depth</th>
+<th>Act1</th>
+<th>Act2</th>
+<th>Act3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Normal / normal, two disclosed groups</td>
+<td>Normal / normal</td>
+<td>Normal / normal</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Event / normal</td>
+<td>Event / normal</td>
+<td>Event / normal</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Merchant / normal</td>
+<td>Merchant / normal</td>
+<td>Merchant / normal</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Normal / normal</td>
+<td>Normal / normal</td>
+<td>Normal / normal</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Elite detour / camp</td>
+<td>Elite detour / cleanse camp</td>
+<td>Elite detour / camp</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Normal / event</td>
+<td>Normal / event</td>
+<td>Normal / event</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Merchant / normal</td>
+<td>Merchant / normal</td>
+<td>Merchant / normal</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Final camp, all branches converge</td>
+<td>Final camp</td>
+<td>Final camp</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Visible act boss</td>
+<td>Visible act boss</td>
+<td>Visible final boss</td>
+</tr>
+</tbody>
+</table>
+<p>Standard risk route selects3 normals,1event,2merchants,1elite,1final camp,boss, plus treasure after elite. Safe route replaces elite+treasure with one camp. Combat-rich route can select6normals plus elite and boss. Two mandatory normal depths guarantee early combat; events never replace all pressure. Every map permits both shops, but player may trade either for combat. All nodes must have reachable predecessors/successors; every chosen depth5 branch reaches depth6. Treasure is a single inserted node after elite, so risk route costs one extra stop, not an unlimited detour.</p>
+<p>Act1 offers two early ordinary groups with no support-combo spike. Act2 displays poison pressure and its depth5 recovery alternative before committing. Act3 depth6 event offers finite boss preparation versus gold, making commerce path and recovery path different. Boss name/mechanic appears at act entry; no refresh changes it. Early Level0 act1 boss rotates among existing eligible tutorial-safe bosses on new expedition seed, honoring DESIGN; first new ecosystem boss joins that rotation only after tests. Acts2/3 initially use planner3 authored bosses. No repeated identical encounter in last3fights, no consecutive dominant support mechanic; filter once then deterministic least-recent fallback. Event IDs never repeat within expedition.</p>
+<h2>Reward and purchasing math</h2>
+<p>Preserve existing catalog prices: common25–35, uncommon60–75, rare125–160, legendary280–300; new personal items30–295 and six artifacts70–300 exactly as planner2. Salvage floor(0.55*catalogPrice), never current merchant discount. Do not add discounts in this wave. A35g item returns19, net spend16;70 returns38, net32;140 returns77, net63;290 returns159, net131. Buy/sell always loses gold. Free salvage of a duplicate consumes its single reward entitlement.</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th style="text-align: right;">Act1 gold</th>
+<th style="text-align: right;">Act2 gold</th>
+<th style="text-align: right;">Act3 gold</th>
+<th>Additional finite reward</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal victory</td>
+<td style="text-align: right;">16–24 inclusive</td>
+<td style="text-align: right;">22–30</td>
+<td style="text-align: right;">28–36</td>
+<td>One class-card draft of3 or skip;20% one earned potion</td>
+</tr>
+<tr>
+<td>Elite victory</td>
+<td style="text-align: right;">30–40</td>
+<td style="text-align: right;">42–54</td>
+<td style="text-align: right;">54–68</td>
+<td>One gear choice from3; one earned potion; no ordinary card draft</td>
+</tr>
+<tr>
+<td>Boss victory</td>
+<td style="text-align: right;">45–55</td>
+<td style="text-align: right;">65–75</td>
+<td style="text-align: right;">85–95</td>
+<td>Act1/2 transition choice; act3 one rare-or-better compatible gear choice</td>
+</tr>
+<tr>
+<td>Treasure after elite</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>Choose one: guaranteed uncommon compatible gear / stated salvage cash of that item</td>
+</tr>
+<tr>
+<td>Ordinary event</td>
+<td style="text-align: right;">0 by default</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>Authored choices below, never generic extra automatic payout</td>
+</tr>
+</tbody>
+</table>
+<p>Gold is uniform integer draws from saved reward RNG; quoted means20/26/32 normals,35/48/61 elites,50/70/90 bosses. No gold for summoned enemies or individual kills. Victory transaction pays once. Elite gear rarity distributions C/U/R/L: act1 0/80/20/0; act2 0/50/45/5; act3 0/30/55/15. Each of3 offers is distinct, unowned and compatible with a living owner or available artifact slot. Guarantee at least one personal item; optional higher-rarity artifacts may be other offers. If unowned pool is empty, show three explicit salvage claims at actual selected definition values, claim one. Finite fallback to nearest available lower rarity, logged. No empty retry loop.</p>
+<p>Planner3 ID65 generic common/uncommon floor becomes this guaranteed uncommon floor; ID67 retains elite→treasure bypassing recovery. Treasure is only an uncommon, not another rare draft, to avoid doubling jackpot availability. Final boss rarity R/L=80/20. Boss rewards cannot silently overflow two artifact slots: acquire into expedition stash, choose fitting later.</p>
+<p>Standard risk route raw gold per act =3normal+elite+boss:145,196,247; total588, excluding events, salvage and optional objectives. Safe equivalent=110+148+186=444. Risk delta144gold plus3elite gear choices and3uncommon treasures; it also loses3recovery camps and adds3elite fights. Combat-rich path6normal+elite+boss yields205+274+343=822, but sacrifices all event opportunities and both merchants each act. It therefore carries a larger unspent purse and has fewer opportunities to finish equipment. These are budget identities, not expected player results.</p>
+<p>A first act standard route145 can buy four35g tools or one140g specialist, not both. Two70g uncommons also consume almost everything. Across three acts588 affords a290g legendary +four70g tools=570, leaving18 before events; filling all eight empty slots with70g tools costs560. Guaranteed elite/treasure items reduce purchase pressure, but only if their tools suit the build. Eight commons cost280 and leave308 to bank or invest in a legendary. A new party starts with no expedition cash; its60g initial treasury can buy town gear before departure. Do not transfer the whole bank into each run. Optional expedition purse transfer, if added later, needs explicit debit/provenance/refund rules and a new balance experiment.</p>
+<p>Keep town levels0–3, upgrade costs80/160/240, shelves4/5/6/7, weights65/35/0/0;50/35/15/0;35/40/20/5;25/35/28/12. Town refresh once per settled expedition, not opening town or aborting embark. Dungeon three gear shelves use25/35/28/12; first shelf guarantees a compatible affordable common if one exists at entry, other shelves weighted. Freeze stock even if gold changes. No gold rerolls. Two shops×three shelves×three acts=18gear exposures on merchant route, not18purchases. Log rejected rarity, final offered rarity, affordability and ownership saturation. Catalog exhaustion produces empty shelves and legitimate training services.</p>
+<h2>Cards, training and permanence</h2>
+<p>Free fight drafts remain expedition-only, one chosen owner-specific non-base-kit card from3. Three distinct definitions; no gear/generated/curse/base-kit definitions. At least two living owners represented when available; one offer for least-represented owner's active deck when legal. Each selected card gets stable heroID/source/instance. Duplicate-class heroes require explicit owner selection. Two-copy cap by owner+definition. If insufficient candidates, show fewer and skip, never fake diversity. Print deck-size delta and owner share. No forced reward acceptance.</p>
+<p>Dungeon gold card shelf becomes <strong>lesson license</strong>: common50, uncommon65, rare75. Purchase teaches selected living hero that class-valid non-base action persistently, adds one copy this run, and allows at most ONE learned elective in that hero's next starting stack in place of one ordinary non-signature base action. Original rolled kit is preserved as immutable record; electives cannot overwrite signature identity and can be unequipped at campfire. Known licenses are unlimited; only one elective can be prepared per hero, so capacity limits preparation rather than ownership. No town card sales. License survives with hero, dies with hero, never transfers through gear. Acquisition nonce makes repeat purchase of known license illegal.</p>
+<p>Paid removal75 becomes <strong>Discipline</strong>: one permanent slot per hero permitting one ordinary base action to be left unprepared on future embark; immediately remove one eligible non-signature run card. Maximum one Discipline per hero, no repeated scaling. It may not remove a curse through this endpoint or reduce base prepared stack below7; elective replaces rather than stacks. First run with four disciplined heroes can start28base+4item=32, a300g opportunity cost across four heroes, not free thinning. In-run found curse cleansing stays earned. UI calls this purchased preparation training, explaining future effect.</p>
+<p>Paid mastery50 upgrades one selected eligible base-kit instance on living hero permanently through canonical upgrade definition, once per instance and subject to existing class mastery cap. Learned non-base cards may instead buy persistent upgrade for65 once. Do not stack paid level/mastery bonuses twice. Free camp training remains run-only and is labeled temporary. No free draft laundering into permanent library through upgrade, transformation or item source mutation. Wound treatment remains existing permanent heal-cost service; no purchased expedition HP restore. All persistent learning edits are journaled immediately with heroID and death cleanup, not inferred from final deck.</p>
+<h2>Twelve authored events</h2>
+<p>Offer at most one event at depth2 and one at6; choose from act pool without replacement. All costs/targets/outcomes previewed before irreversible choice, saved node result before transition. HP costs nonlethal unless explicitly stated; no choice is eligible if it would take selected hero below1HP. Conditions inspect actual identity/mastery, never display class name alone.</p>
+<table>
+<thead>
+<tr>
+<th>Event / act</th>
+<th>Concrete choices and delayed state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bell of the Debtor /1–3 (71)</td>
+<td>Take offered rare gear and bind <strong>Debt</strong> curse to chosen survivor; or leave. Debt starts every combat in that owner's discard, unplayable, reshuffles normally; no discard/exhaust payoff. Curse persists with hero after retreat, disappears on hero death. Clear free at final camp instead of its other action. Flee loses item but retains accepted curse; show explicitly.</td>
+</tr>
+<tr>
+<td>Collapsed Shieldwall /1 (72)</td>
+<td>Put Fighter/Paladin at1 and any other living hero at2 before resolution: each pays4HP, earn35g; alternate brace with any two heroes paying7HP each for same35g; or salvage loose buckles for10g. Formation is actual saved order, no combat stat bonus.</td>
+</tr>
+<tr>
+<td>Watch Captain's Ledger /1 (73)</td>
+<td>Survivor with at least2completed expeditions reads orders: choose one of3compatible uncommon gear; fresh party may fight disclosed act1normal patrol for same reward, no ordinary gold/draft; or take15g and leave. Encounter/event reward channels mutually exclusive.</td>
+</tr>
+<tr>
+<td>The Empty Scabbard /1–3 (74)</td>
+<td>Sacrifice selected owned/equipped item; show three same-slot compatible definitions at same rarity, choose one permanently acquired. If none, guaranteed catalog salvage instead, before sacrifice confirmation. No rarity upgrade/free gear duplication; input cannot be offered back.</td>
+</tr>
+<tr>
+<td>Wounded Courier /1–2 (75)</td>
+<td>Give one earned healing potion or pay6HP from each of two chosen heroes. After next normal victory courier gives one displayed uncommon gear (or exact duplicate salvage). Leave for no reward. Unfinished courier gives nothing on exit; no gold donation.</td>
+</tr>
+<tr>
+<td>Buried Pay Chest /1–3 (76)</td>
+<td>Attempt1: chosen hero pays4HP, guaranteed20g. Stop or attempt2: pays7HP, gains30g, adds next-combat two-card <strong>Dust</strong> burden. Stop or attempt3: pays10HP, gains45g and immediately fights disclosed normal group with no normal gold/draft. Cannot flee back into chest; event complete once encounter begins.</td>
+</tr>
+<tr>
+<td>The Blind Copyist /1–3 (77)</td>
+<td>Transform one chosen non-base, non-gear expedition draft into one of3same-owner class-valid alternatives; consume original only on confirm. Free, once. Known permanent lesson remains unchanged; generated/curse/temporary cards ineligible. Or skip.</td>
+</tr>
+<tr>
+<td>Ash Drillmaster /2–3 (78)</td>
+<td>Buy50g persistent mastery on selected eligible base action, or perform free drill: pay5HP to upgrade one expedition-only draft this run, or leave. Eligibility decided before gold deduction.</td>
+</tr>
+<tr>
+<td>The Sealed Apothecary /2</td>
+<td>Break cabinet: choose one of2earned potions; selected hero takes6HP. Burn infection: remove Poison and one curse from selected hero, no potion. Leave. No gold exchange, no purchased healing.</td>
+</tr>
+<tr>
+<td>Prisoner Beneath the Roots /2</td>
+<td>Fight disclosed Nursery group to rescue: earn65g only, no normal payout; sneak with Rogue/Ranger rank3/4: pay8HP, gain one earned disruption flask; leave. The fight's healer budget remains finite.</td>
+</tr>
+<tr>
+<td>Funeral Bridge /3</td>
+<td>Salvage one real item and gain normal55% value plus one boss ward (6block each first boss turn); or keep inventory and train one run-only card; or pass. Salvage event consumes item once, ward does not stack with final camp ward.</td>
+</tr>
+<tr>
+<td>The Regent's Toll /3</td>
+<td>Carry <strong>Royal Claim</strong> curse into boss for90g paid only on boss victory; curse is one innate unplayable card, exhausts at first turn end without payoff. Or relinquish one earned potion to gain8HP on selected survivor now; or decline. Claim does not survive boss/exit, reward is earned risk, no gold rental.</td>
+</tr>
+</tbody>
+</table>
+<p>Excavation deliberately uses deterministic escalating prices instead of a save-scummable slot machine. Total all attempts:21HP +two burdens +fight for95g; one attempt4HP for20g. Upper reward is not free because party accepts combat while depleted and forgoes ordinary payout. Event rewards never combine with an unadvertised standard combat reward.</p>
+<h2>Objectives, contracts, transition and ascension</h2>
+<p>Select at most one optional objective before departure, no entry fee. <strong>Seal the Watch</strong>: defeat act1elite and boss without fleeing, earn permanent Watch Bell if unowned or38g salvage. <strong>Rescue Dispatch</strong>: complete Courier before act2boss, earn60g on successful settlement (retreat halves gold, flee loses it). <strong>Broken Ritual</strong>: interrupt two distinct channels then defeat act2boss, earn one compatible rare gear choice at settlement. <strong>Hold the Line</strong>: defeat all3bosses with at least3survivors, unlock one hero elective license for a surviving eligible hero, no duplicate buyback. Objectives evaluate logged authoritative events and require stated endpoint; progress itself never pays repeatedly. No objective asks for pointless long fights or number-of-clicks grinding.</p>
+<p>Expedition contract progression: <strong>Scouting</strong> available immediately, voluntary retreat allowed anywhere, tutorial protection applies only first departed expedition; <strong>Descent</strong> unlocks after act1boss, enables objective selection; <strong>Crown Hunt</strong> unlocks after first full3act victory and enables ascension. These are campaign unlocks, not fees or mandatory repeat grinds. Scouting may still complete all acts; unlocking does not truncate a run or make act1boss equal full victory.</p>
+<p>Final camp choose exactly one: heal30%maxHP living heroes; free temporary card upgrade; remove one selected persistent curse; or ward6block each first boss turn. No automatic heal after boss, no revival, no resetting equipped-item encounter limits except normal new-combat reset.</p>
+<p>Act1/2 transition choose one next-act-only blessing: <strong>Hasty March</strong>, opening energy+1 but draw-1; <strong>Long Counsel</strong>, opening draw+2 but energy-1; <strong>Triage</strong>, heal each survivor8 now, no blessing. Applies first turn of every combat in next act; discard prior transition blessing. Base3energy/5draw becomes4/4 or2/7 before other explicit bonuses. Individual artifact bonuses then add; hand cap10. Triage does not resurrect. These are earned temporary choices with explicit drawbacks, planner3 ID69 refined. Add a separate permanent reward at each transition: choose one compatible uncommon (act1) /rare (act2) gear from3 or exact salvage; this fulfills powerful permanent build progression without charging gold for aura. Include these two extra gear rewards in availability reporting; raw588gold arithmetic intentionally excludes their salvage value.</p>
+<p>Ascensions cumulative, selected before seed generation: A1 normals maxHP ceil(base*1.10); A2 elites add1total direct damage per enemy action (single hit+1, multihit/AoE one point to first deterministic target/hit, never per-hit multiplication); A3 bosses add3 to their first block-producing action per phase, no new untelegraphed action. Unlock A(n+1) only full expedition win at current highest unlocked n. No rewards multiplier initially, no changed AI information access, no hidden randomness advantage. Modifiers and adjusted intents visible. Higher A4+ is later round, not three copy-pasted HP increases now.</p>
+<h2>Settlement, saves and retained run data</h2>
+<p>One campaign revision transaction has runId+settlementId+outcome, immutable before/after ledger and applied marker. All handlers consume that record; render is pure. Use stable hero IDs, never roster indices after deaths. Snapshot carried gear origin (town/run), final wearer and stash; list each retained/lost/sold definition and reason. Campaign and run stores need a recoverable transaction journal: prepare validated result, persist journal, apply campaign revision idempotently, mark run settled, commit journal. On reload reconcile revision; do not apply outcome twice. If persistence fails, freeze settlement and expose export/retry; do not proclaim rewards saved.</p>
+<p>Gold ledger: treasury is never exposed by departure. Track goldEarned, goldSpent, goldSalvaged, expedition wallet, stipend separately. Victory banks remaining earned wallet; retreat floor(remaining earned wallet*0.5); flee/wipe0. Selling pre-run gear permanently consumes it and credits earned wallet subject to exit rate; no refund of the sold object. Tutorial escape banks full earned wallet and preserves all deployed heroes/gear, including restored casualty records for that one protected run. No stipend is banked. Proposed reconciliation: purchased physical gear retains on victory/retreat and on a surviving wearer after flee, found run loot loses on flee, and all deployed gear loses on wipe; pre-run gear on surviving flee heroes returns, all worn gear on dead heroes is lost. Stashed pre-run gear returns except an explicitly risked/sold item; untaken bank inventory always safe. Party artifacts are deployed assets: wipe loses them, flee retains pre-run only. Character learning persists only on survivors.</p>
+<p>Keep all game diagnostic run events, offered choices, declined choices, transaction attempts and results, build snapshots before/after, purchases/fit/salvage/loss, RNG stream cursors, route and objectives, outcomes and game content version. Player identity mandatory: human name; AI provider/exact model/version/effort with unknown explicit; scripted policy/version and effort not applicable. Full diagnostic RNG is never visible to policy observations. Policy histories retain limits/timeouts/failures. Local archive is not automatic remote collection; do not promise root can see Joel's demo runs until a verified backend/export path exists. Log storage failures rather than silently dropping old runs.</p>
+<h2>Staged ownership and acceptance</h2>
+<ol>
+<li>Economy/settlement runtime agent owns meta/state/summary transaction integration and migration tests (18–20,78,91–94). Eliminate bank wipe and repeated stipend loops first. One owner coordinates these shared files; planners do not edit them.</li>
+<li>Progression agent owns map/main/encounter routing after settlement API lands (61–70). Enemy specialist supplies pools and phases; no concurrent edits of combat core. Persist every act/boss/node/offer before UI reveal.</li>
+<li>Content economy agent owns authored events and reward/shop services (65,67,71–80) against immutable offer and purchase API. Gear specialist owns catalog/hooks, not currency mutation. Current visual lead integrates physical merchant shelves, map branches and final camp actions into bounded in-game panels.</li>
+<li>Independent verifier exercises all exits and interrupted transactions, then full-expedition scripted driver integrates routes/gear/purchases/events; only subsequent live build can count items verified. Root controls .agent/STATE.md and shared log to avoid colliding edits.</li>
+</ol>
+<p>Required tests: repeat purchase/salvage/claim clicks; refresh at offer reveal; reload between charge and ownership; reload each settlement journal stage; repeat summary; kill two same-class owners in one action; salvage worn source then die; swap gear before exit; all four artifacts/inventory provenance combinations; tutorial wipe then second wipe; empty embark abort100times; repeated no-combat retreat does not refresh stock or mint money; catalog exhausted; no compatible living class; insufficient HP/gold; transform canceled after preview; trained hero dies/flees; curse and delayed reward across save; objective event emitted twice; act1/2boss never increments campaign victories; A3 unlock exactly once; event fight never double-pays; summoned deaths never award gold; paid preparation never deletes signature kit; all legendaries obtained cannot cause infinite offer loop.</p>
+<p>Three-act economy experiment: same seed/party with bank-first, cheap-wide, legendary-save and risk-max routes, reporting income/spend/salvage/banked/lost value separately. Log opportunity exposure before judging low purchase rate. Baseline hypothesis: act1 provides at least one reachable affordable tool after two normals (32–48g), surviving merchant route can make one rare-or-two-uncommon choice in act2, legendary remains possible but competes with filling slots. Flag rather than auto-nerf strategies that dominate survival AND retained value at equal starting bank. Test70four-distinct-class parties, sampled duplicate-class parties, fresh/veteran/owned-catalog states and at least30complete seeded expeditions per policy per main economy candidate. Preserve individual failures and uncertainty; scripted play quality is not proof of fun.</p>
+<p>This plan supplies mechanics, prices, route grammar, twelve actual events and verification contracts for18–20 and61–80. It does not mark any backlog item implemented or verified. Art, runtime integration, complete-run evidence and public deployment remain separate work.</p></body></html>

@@ -12,6 +12,7 @@ DS.Meta = {
   ownedGear: [],      // gear/artifact ids the PLAYER owns (see data/gear.js)
   merchantLevel: 0,   // town merchant upgrade tier (0-3) — gates stock quality
   lostGear: [],       // ledger of gear lost to death/wipes: {itemId, heroName, cause, runNumber}
+  tutorialPerks: { freeBlacksmith: true, merchantDiscount: 0.20 },
                       // v1: lost stays lost — the ledger enables a future
                       // "rebuy lost gear from the merchant" softener
 
@@ -43,9 +44,9 @@ DS.Meta = {
     rogue: {
       flavor: 'Strikes from the seams of the fight, then is somewhere else.',
       positions: [2, 3],
-      core: ['rogue_backstab', 'rogue_evade', 'rogue_throwing_knife'],
+      core: ['rogue_backstab', 'rogue_evade', 'rogue_shadow_step'],
       signatures: [
-        { id: 'rogue_shadow_step', variant: 'Shadowdancer' },
+        { id: 'rogue_throwing_knife', variant: 'Knife Dancer' },
         { id: 'rogue_poison_blade', variant: 'Venomblade' }
       ]
     },
@@ -118,6 +119,10 @@ DS.Meta = {
     return spec.core.concat([sig.id]);
   },
 
+  rollSkillTree: function(heroClass) {
+    return DS.Skills ? DS.Skills.generate(heroClass) : { version: 1, branches: [] };
+  },
+
   // Generate a fresh level-1 recruit with a rolled kit. Does NOT push to the
   // roster or save — callers (campfire, caravan) decide what to do with it.
   // Arg forms: undefined -> any unlocked class; string -> that class;
@@ -129,6 +134,10 @@ DS.Meta = {
       var pool = DS.Meta.getUnlockedClasses().filter(function(c) {
         return exclude.indexOf(c) === -1;
       });
+      // The first tutorial expansion adds a fifth slot before five distinct
+      // classes are unlocked. Allow a duplicate base class as the extra body
+      // rather than silently producing too few people at the fire.
+      if (!pool.length) pool = DS.Meta.getUnlockedClasses();
       if (!pool.length) return null;
       cls = pool[Math.floor(Math.random() * pool.length)];
     }
@@ -140,6 +149,13 @@ DS.Meta = {
       xp: 0,
       injury: null,
       kit: DS.Meta.rollKit(cls),
+      skillTree: DS.Meta.rollSkillTree(cls),
+      progressionVersion: 2,
+      skillPoints: 0,
+      maxHpBonus: 0,
+      power: 0,
+      blockBonus: 0,
+      skillCards: [],
       upgradedCards: [],
       gear: DS.Meta._emptyGearSlots()
     };
@@ -163,15 +179,38 @@ DS.Meta = {
   // already had — so nothing changes out from under an existing save.
   _backfillRosterEntry: function(h) {
     if (h.alive === undefined) h.alive = true;
-    if (!h.upgradedCards) h.upgradedCards = [];
+    if (!Array.isArray(h.upgradedCards)) h.upgradedCards = [];
     if (typeof h.runsSurvived !== 'number') h.runsSurvived = 0;
     if (typeof h.level !== 'number') h.level = 1;
     if (typeof h.xp !== 'number') h.xp = 0;
     if (h.injury === undefined) h.injury = null;
-    if (!h.kit || !h.kit.length) {
+    if (!Array.isArray(h.kit) || !h.kit.length) {
       var cards = DS.Cards[h.heroClass] || [];
       h.kit = cards.slice(0, 4).map(function(c) { return c.id; });
     }
+    h.level = Math.max(1, Math.min(6, Number.isFinite(h.level) ? Math.floor(h.level) : 1));
+    h.xp = Number.isFinite(h.xp) && h.xp >= 0 ? h.xp : 0;
+    var validCard = function(id) { return (DS.Cards[h.heroClass] || []).some(function(c) { return c.id === id; }); };
+    h.kit = h.kit.filter(validCard);
+    if (!h.kit.length) h.kit = DS.Meta.rollKit(h.heroClass);
+    h.upgradedCards = h.upgradedCards.filter(validCard);
+    if (!DS.Skills.valid(h.skillTree)) h.skillTree = DS.Meta.rollSkillTree(h.heroClass);
+    DS.Skills.repair(h.skillTree, h.heroClass);
+    // Recompute only progression-owned stats. Gear, wounds, gold and mastery survive.
+    // Also fixes pre-schema leveled heroes and the partially implemented skill saves.
+    var spent = 0, hp = (h.level - 1) * 2, power = h.level - 1, block = 0, cards = [];
+    h.skillTree.branches.forEach(function(branch) { branch.nodes.forEach(function(node) {
+      if (!node.unlocked) return;
+      spent++;
+      if (node.kind === 'maxHp') hp += node.amount;
+      if (node.kind === 'power') power += node.amount;
+      if (node.kind === 'block') block += node.amount;
+      if (node.kind === 'card' && validCard(node.cardId) && cards.indexOf(node.cardId) < 0) cards.push(node.cardId);
+    }); });
+    if (h.progressionVersion !== 2) DS.Meta.progressionNotice = 'Hero progression updated. Compatible kits and learned skills were kept; level stats and points were recalculated.';
+    h.progressionVersion = 2;
+    h.skillPoints = Math.max(0, h.level - 1 - spent);
+    h.maxHpBonus = hp; h.power = power; h.blockBonus = block; h.skillCards = cards;
   },
 
   // ===== SAVE / LOAD =====
@@ -193,7 +232,7 @@ DS.Meta = {
     DS.Meta.victories = 0;
     DS.Meta.buildings = {
       chapel: { level: 0 },
-      tavern: { level: 0 },
+      tavern: { level: 1 },
       graveyard: { level: 0 }
     };
     DS.Meta.graveyard = [];
@@ -201,6 +240,8 @@ DS.Meta = {
     DS.Meta.ownedGear = [];
     DS.Meta.merchantLevel = 0;
     DS.Meta.lostGear = [];
+    DS.Meta.tutorialPerks = { freeBlacksmith: true, merchantDiscount: 0.20 };
+    DS.Meta.progressionTutorial = { completed: false };
     DS.Meta.save();
   },
 
@@ -216,7 +257,9 @@ DS.Meta = {
         unlocks: DS.Meta.unlocks,
         ownedGear: DS.Meta.ownedGear,
         merchantLevel: DS.Meta.merchantLevel,
-        lostGear: DS.Meta.lostGear
+        lostGear: DS.Meta.lostGear,
+        progressionTutorial: DS.Meta.progressionTutorial || { completed: false },
+        tutorialPerks: DS.Meta.tutorialPerks
       };
       localStorage.setItem('darkspire_meta', JSON.stringify(data));
     } catch (e) {
@@ -243,6 +286,8 @@ DS.Meta = {
       DS.Meta.ownedGear = data.ownedGear || [];        // backfills old saves with no gear
       DS.Meta.merchantLevel = data.merchantLevel || 0; // backfills pre-Phase-5 saves
       DS.Meta.lostGear = data.lostGear || [];          // backfills pre-Phase-5 saves
+      DS.Meta.progressionTutorial = data.progressionTutorial || { completed: false };
+      DS.Meta.tutorialPerks = data.tutorialPerks || { freeBlacksmith: true, merchantDiscount: 0.20 };
 
       // Backfill per-hero gear slots on pre-Phase-5 saves; prune dead gear ids
       DS.Meta.heroRoster.forEach(function(h) {
@@ -255,9 +300,11 @@ DS.Meta = {
 
       // Ensure building shape
       if (!DS.Meta.buildings.chapel) DS.Meta.buildings.chapel = { level: 0 };
-      if (!DS.Meta.buildings.tavern) DS.Meta.buildings.tavern = { level: 0 };
+      if (!DS.Meta.buildings.tavern) DS.Meta.buildings.tavern = { level: 1 };
+      if (DS.Meta.buildings.tavern.level < 1) DS.Meta.buildings.tavern.level = 1;
       if (!DS.Meta.buildings.graveyard) DS.Meta.buildings.graveyard = { level: 0 };
 
+      DS.Meta.save(); // Persist rolled migration trees before another refresh.
       return true;
     } catch (e) {
       console.warn('Meta load failed:', e);
@@ -364,7 +411,7 @@ DS.Meta = {
   // { level, upgradedCardId } for each level gained (for UI toasts later).
   addXp: function(rosterIndex, amount) {
     var hero = DS.Meta.heroRoster[rosterIndex];
-    if (!hero || !(amount > 0)) return [];
+    if (!hero || hero.alive === false || !Number.isFinite(amount) || !(amount > 0)) return [];
     DS.Meta._backfillRosterEntry(hero);
     var gains = [];
     hero.xp += amount;
@@ -372,13 +419,44 @@ DS.Meta = {
     while (need !== null && hero.xp >= need) {
       hero.xp -= need;
       hero.level++;
+      hero.skillPoints = (hero.skillPoints || 0) + 1;
+      hero.maxHpBonus = (hero.maxHpBonus || 0) + 2;
+      hero.power = (hero.power || 0) + 1;
       var upgradedId = DS.Meta._autoUpgradeKitCard(hero);
-      gains.push({ level: hero.level, upgradedCardId: upgradedId });
+      gains.push({ level: hero.level, upgradedCardId: upgradedId, skillPoint: 1, maxHp: 2, power: 1 });
       need = DS.Meta.xpToNext(hero.level);
     }
     if (DS.Meta.xpToNext(hero.level) === null) hero.xp = 0;  // capped: no banking
+    var tutorial = DS.Meta.progressionTutorial || (DS.Meta.progressionTutorial = { completed: false });
+    if (gains.length && !tutorial.completed && !tutorial.pending) {
+      hero.firstLevelGains = gains;
+      tutorial.pending = true;
+    }
     DS.Meta.save();
     return gains;
+  },
+
+  spendSkillPoint: function(rosterIndex, nodeId) {
+    var hero = DS.Meta.heroRoster[rosterIndex];
+    if (!hero || hero.alive === false) return false;
+    DS.Meta._backfillRosterEntry(hero);
+    if (hero.skillPoints < 1) return false;
+    var found = null;
+    for (var b = 0; b < hero.skillTree.branches.length; b++) {
+      var nodes = hero.skillTree.branches[b].nodes;
+      for (var n = 0; n < nodes.length; n++) if (nodes[n].id === nodeId) found = { node: nodes[n], nodes: nodes, index: n };
+    }
+    if (!found || found.node.unlocked) return false;
+    if (found.node.requires && (!found.nodes[found.index - 1] || !found.nodes[found.index - 1].unlocked)) return false;
+    found.node.unlocked = true;
+    if (hero.firstLevelGains && DS.Meta.progressionTutorial) DS.Meta.progressionTutorial = { completed: true };
+    hero.skillPoints--;
+    if (found.node.kind === 'maxHp') hero.maxHpBonus = (hero.maxHpBonus || 0) + found.node.amount;
+    if (found.node.kind === 'power') hero.power = (hero.power || 0) + found.node.amount;
+    if (found.node.kind === 'block') hero.blockBonus = (hero.blockBonus || 0) + found.node.amount;
+    if (found.node.kind === 'card' && found.node.cardId && hero.skillCards.indexOf(found.node.cardId) === -1) hero.skillCards.push(found.node.cardId);
+    DS.Meta.save();
+    return true;
   },
 
   // Pick the next un-upgraded kit card and mark it upgraded.

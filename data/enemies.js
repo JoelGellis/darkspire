@@ -1,4 +1,4 @@
-window.DS = window.DS || {};
+﻿window.DS = window.DS || {};
 
 DS.Enemies = {
   normal: [
@@ -465,12 +465,10 @@ DS.Enemies = {
       {
         name: 'Vampire Lord', icon: '\uD83E\uDDDB', maxHp: 82, isBoss: true,
         intents: [
-          { name: 'Blood Drain', type: 'attack', dmg: 11, desc: 'ATK 11', targeting: 'front' },
+          { name: 'Blood Drain', type: 'attack_lifesteal', dmg: 12, heal: 6, desc: 'ATK 12 + HEAL 6', targeting: 'front' },
           { name: 'Crimson Wave', type: 'attack_all', dmg: 5, desc: 'ATK 5 ALL', targeting: 'all' },
           { name: 'Summon Bats', type: 'summon', summon: 'vampire_bat', count: 2, desc: 'SUMMON 2' },
-          { name: 'Dark Feast', type: 'attack', dmg: 13, desc: 'ATK 13\u2192back', targeting: 'back' },
-          { name: 'Blood Pact', type: 'heal_allies', heal: 6, desc: 'HEAL ALL 6' },
-          { name: 'Mesmerize', type: 'weaken', turns: 2, desc: 'WEAK 2', targeting: 'random' }
+          { name: 'Dark Feast', type: 'attack_lifesteal', dmg: 15, heal: 8, desc: 'ATK 15\\u2192back + HEAL 8', targeting: 'back' }
         ]
       },
       {
