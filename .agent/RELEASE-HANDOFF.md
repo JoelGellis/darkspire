@@ -59,3 +59,10 @@ The command must finish with all suites green before Mendel publishes. The gener
 - DONE and tested: `tests/progression.js` covers null recruit subclass, three paths per class, first-choice selection, alternate-path lockout, kit variation, and persistence.
 - DEFERRED by scope: larger recruit rolling pools and multiple simultaneous subclass options per hero beyond the three progression paths.
 - PUBLISH STATUS: this correction is built locally and awaits the same-origin deployment below.
+
+## Subclass release result — 2026-09-10 1820
+
+- LIVE at https://joelgellis.github.io/darkspire/ as `incremental-c1669fcf84a18cb1`, publication label `2026-09-10 1820`, save schema 3, source commit `e61e8d070ee40f7ebe782576228aa6badf97ed3c`.
+- GitHub Actions deployment `34513682807` completed successfully. Live manifest, headless browser DOM, identity gate, four-hero copy, skill runtime, bug-report launcher, version label, and no runtime syntax/reference errors verified.
+- DONE: four-person expeditions and separate roster capacity; base-class recruits with variable starter kits; three progression-selected subclasses per class with randomized class/subclass skill options.
+- DEFERRED: larger recruit rolling pools beyond the fixed three progression paths.
