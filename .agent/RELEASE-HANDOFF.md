@@ -69,3 +69,12 @@ The command must finish with all suites green before Mendel publishes. The gener
 
 ## Final subclass integration handoff (supersedes earlier completion report)
 Progression finished and browser-verified the final mastery/migration/identity/UI fixes AFTER the earlier1820 release. All12 release suites pass; final held artifact incremental-e9ee051fe2a5ca4d (63 files). tests/subclasses.js covers24 paths/72 actual technique plays and meaningful mastery behavior. Desktop and390px native Chrome fixture PASS, chosen class visible, focus returns correctly. See .agent/PROGRESSION.md and docs/SUBCLASSES.md. Ownership released to Mendel. Rebuild/commit/publish same URL with actual HHMM; earlier c1669fcf84a18cb1 must not be claimed to contain these newer local changes. No publication by Progression.
+
+STATUS RECHECK after user gogogo: runtime SHA-256 comparison against tested .release/e9ee051fe2a5ca4d reports ZERO changed runtime files;12 suites and native Chrome desktop/mobile evidence remain valid. No progression code/test blocker. Public release-manifest.json fetched directly still reports incremental-c1669fcf84a18cb1, label2026-09-10 1820, sourcee61e8d070ee40f7ebe782576228aa6badf97ed3c. Final progression edits remain uncommitted in shared worktree. Mendel: integrate/commit final files + new tests/subclasses.js and docs/SUBCLASSES.md; deploy same URL and verify live manifest. No independent publish; prior ownership release stands.
+
+## Final publication — 2026-09-10 1911
+
+- LIVE same origin: https://joelgellis.github.io/darkspire/ — `incremental-e9ee051fe2a5ca4d`, `2026-09-10 1911`, save schema 3, source `d185fbe3891e22c5ecf4ecfc18534e1f9255213f`.
+- Deployment `34518833337` succeeded. All 12 release suites pass. Native Chrome desktop and 390px fixture checks pass per Heisenberg handoff; live headless DOM verifies four-party copy, skill runtime, migration hook, bug reporter, version label, and no runtime errors.
+- Done/live: four-person party, separate roster capacity, base-class birth identity, three explicit player-chosen subclasses per class, randomized in-path skill options, mastery behavior and migration.
+- Deferred/planned: larger recruit rolling pools.
