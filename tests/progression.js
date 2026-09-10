@@ -14,18 +14,18 @@ for(const [idx,h] of DS.Meta.heroRoster.entries()) {
   const trees=new Set(Array.from({length:25},()=>JSON.stringify(DS.Skills.generate(h.heroClass))));
   assert.ok(trees.size>1,'randomized specialization');
   assert.equal(h.skillTree.branches.length,3);
-  for(const b of h.skillTree.branches) {assert.equal(b.nodes.length,3);assert.ok(b.nodes.filter(n=>n.kind==='card').every(n=>def(n.cardId)));}
+  for(const b of h.skillTree.branches) {assert.equal(b.nodes.length,5);assert.ok(b.nodes.filter(n=>n.kind==='card').every(n=>def(n.cardId)));assert.equal(b.nodes[0].requires,null);}
   assert.equal(DS.Meta.addXp(idx,8).length,1);
   assert.equal(h.level,2);assert.equal(h.maxHpBonus,2);assert.equal(h.power,1);assert.equal(h.skillPoints,1);
   const b=h.skillTree.branches[0];assert.equal(DS.Meta.spendSkillPoint(idx,b.nodes[1].id),false);
   assert.equal(DS.Meta.spendSkillPoint(idx,b.nodes[0].id),true);
-  assert.equal(h.subclass,b.subclassId,'first skill choice selects the subclass');
+  assert.equal(h.subclass,b.id,'first skill choice selects the subclass');
   assert.equal(DS.Meta.spendSkillPoint(idx,h.skillTree.branches[1].nodes[0].id),false,'subclass choice locks the other paths');
   assert.equal(DS.Meta.spendSkillPoint(idx,b.nodes[0].id),false);
   DS.Meta.addXp(idx,28);assert.equal(h.level,4);
   assert.ok(DS.Meta.spendSkillPoint(idx,b.nodes[1].id));assert.ok(DS.Meta.spendSkillPoint(idx,b.nodes[2].id));
   const deck=DS.Cards.buildStartingDeck([{cls:h.heroClass,heroIdx:idx,kit:h.kit,upgradedCards:h.upgradedCards,skillCards:h.skillCards}]);
-  assert.equal(deck.length,9);assert.equal(deck.filter(c=>c.baseId===b.nodes[2].cardId).length,h.kit.includes(b.nodes[2].cardId)?3:1);
+  assert.equal(deck.length,10);assert.equal(deck.filter(c=>c.baseId===b.nodes[1].cardId).length,h.kit.includes(b.nodes[1].cardId)?3:1);
   const snapshot=JSON.stringify(h);DS.Meta._backfillRosterEntry(h);assert.equal(JSON.stringify(h),snapshot,'idempotent progression');
 }
 assert.equal(DS.Meta.progressionTutorial.completed,true,'first spend completes tutorial');

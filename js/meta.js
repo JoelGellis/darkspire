@@ -188,8 +188,11 @@ DS.Meta = {
     h.kit = h.kit.filter(validCard);
     if (!h.kit.length) h.kit = DS.Meta.rollKit(h.heroClass);
     h.upgradedCards = h.upgradedCards.filter(validCard);
-    if (!DS.Skills.valid(h.skillTree)) h.skillTree = DS.Meta.rollSkillTree(h.heroClass);
-    DS.Skills.repair(h.skillTree, h.heroClass);
+    if (DS.Skills.migrate) DS.Skills.migrate(h);
+    else {
+      if (!DS.Skills.valid(h.skillTree, h.heroClass)) h.skillTree = DS.Meta.rollSkillTree(h.heroClass);
+      DS.Skills.repair(h.skillTree, h.heroClass);
+    }
     // Recompute only progression-owned stats. Gear, wounds, gold and mastery survive.
     // Also fixes pre-schema leveled heroes and the partially implemented skill saves.
     var spent = 0, hp = (h.level - 1) * 2, power = h.level - 1, block = 0, cards = [];
@@ -456,9 +459,9 @@ DS.Meta = {
       for (var n = 0; n < nodes.length; n++) if (nodes[n].id === nodeId) { found = { node: nodes[n], nodes: nodes, index: n }; foundBranch = hero.skillTree.branches[b]; }
     }
     if (!found || found.node.unlocked) return false;
-    if (hero.subclass && foundBranch.subclassId !== hero.subclass) return false;
+    if (hero.subclass && foundBranch.id !== hero.subclass) return false;
     if (found.node.requires && (!found.nodes[found.index - 1] || !found.nodes[found.index - 1].unlocked)) return false;
-    if (!hero.subclass) hero.subclass = foundBranch.subclassId;
+    if (!hero.subclass) hero.subclass = foundBranch.id;
     found.node.unlocked = true;
     if (hero.firstLevelGains && DS.Meta.progressionTutorial) DS.Meta.progressionTutorial = { completed: true };
     hero.skillPoints--;

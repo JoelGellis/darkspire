@@ -29,8 +29,8 @@
         (tutorialFor(h)?'<aside class="skill-tutorial" role="status">'+esc(gainsText(h))+' Choose an available first node below to spend one point.<button class="btn" id="skill-dismiss">Dismiss guide</button></aside>':'')+
         (e.source==='recruit'?'<p>Recruit preview. This rolled kit and tree join your roster when you embark with this hero.</p>':'')+
         '<p>Starting kit: '+h.kit.map(function(id) { var c=DS.Cards[h.heroClass].find(function(c){return c.id===id;});return esc(c.name)+(h.upgradedCards.indexOf(id)>=0?'+':''); }).join(', ')+'</p><div class="skill-branches">'+h.skillTree.branches.map(function(b) {
-          return '<section class="skill-branch"><h3>'+esc(b.name)+'</h3><small>'+(h.subclass && h.subclass===b.subclassId?'Chosen subclass':'Three class paths; choose one to begin')+'</small>'+b.nodes.map(function(n,i) {
-            var ready = !n.unlocked && (!i || b.nodes[i-1].unlocked) && h.skillPoints>0 && e.source==='roster' && (!h.subclass || h.subclass===b.subclassId);
+          return '<section class="skill-branch"><h3>'+esc(b.name)+'</h3><small>'+(h.subclass && h.subclass===b.id?'Chosen subclass':'Three class paths; choose one to begin')+'</small>'+b.nodes.map(function(n,i) {
+            var ready = !n.unlocked && (!i || b.nodes[i-1].unlocked) && h.skillPoints>0 && e.source==='roster' && (!h.subclass || h.subclass===b.id);
             return '<button class="skill-node '+(n.unlocked?'skill-node-unlocked':'')+'" data-node="'+esc(n.id)+'" '+(ready?'':'disabled')+'><strong>'+esc(n.name)+'</strong><span>'+esc(n.desc)+'</span><small>'+(n.unlocked?'Learned':i&&!b.nodes[i-1].unlocked?'Learn the previous node first':h.skillPoints<1?'Requires 1 skill point':'Spend 1 point')+'</small></button>';
           }).join('')+'</section>';
         }).join('')+'</div></div>';
