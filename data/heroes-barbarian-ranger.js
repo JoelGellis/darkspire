@@ -13,7 +13,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    prefPos: [1, 2],
+    prefPos: [],
     desc: 'Deal 8 damage.',
     value: 8,
     effect: function(state, hero, target, card) {
@@ -26,7 +26,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'block',
     target: 'self',
-    prefPos: [1, 2, 3],
+    prefPos: [],
     desc: 'Gain 6 Block.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -54,7 +54,7 @@ DS.Cards.barbarian = [
     cost: 1,
     type: 'utility',
     target: 'none',
-    prefPos: [1, 2],
+    prefPos: [],
     desc: 'Gain 2 Strength. Lose 4 HP. Exhaust.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -169,7 +169,7 @@ DS.Cards.barbarian = [
     value: 7,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
-      if (target.hp > 0 && Math.random() < 0.30) {
+      if (target.hp > 0 && DS.Combat.random() < 0.30) {
         target.stunned = true;
         DS.Combat.logMsg(target.name + ' is stunned!', 'stun-log');
       }
@@ -206,7 +206,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'attack',
     target: 'enemy_any',
-    prefPos: [1, 2, 3],
+    prefPos: [],
     desc: 'Deal 6 damage. Hits any enemy.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -219,7 +219,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'block',
     target: 'self',
-    prefPos: [1, 2, 3, 4],
+    prefPos: [],
     desc: 'Gain 5 Block.',
     value: 5,
     effect: function(state, hero, target, card) {
@@ -232,7 +232,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    prefPos: [2, 3, 4],
+    prefPos: [],
     desc: 'Deal 9 damage.',
     value: 9,
     effect: function(state, hero, target, card) {
@@ -245,7 +245,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'utility',
     target: 'enemy',
-    prefPos: [2, 3, 4],
+    prefPos: [],
     desc: 'Apply 2 Weak + 2 Vulnerable.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -260,7 +260,7 @@ DS.Cards.ranger = [
     cost: 0,
     type: 'utility',
     target: 'enemy',
-    prefPos: [1, 2, 3, 4],
+    prefPos: [],
     desc: 'Mark target. Next hit deals +3 bonus damage.',
     value: 3,
     effect: function(state, hero, target, card) {
@@ -291,7 +291,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'attack',
     target: 'enemy_any',
-    prefPos: [2, 3, 4],
+    prefPos: [],
     desc: 'Deal 3 damage + 3 Poison.',
     value: 3,
     effect: function(state, hero, target, card) {
@@ -332,7 +332,7 @@ DS.Cards.ranger = [
       for (var i = 0; i < 3; i++) {
         var alive = DS.State.combat.enemies.filter(function(e) { return e.hp > 0; });
         if (alive.length === 0) break;
-        var pick = alive[Math.floor(Math.random() * alive.length)];
+        var pick = alive[Math.floor(DS.Combat.random() * alive.length)];
         DS.Combat.dealDamage(pick, card.value);
       }
     }
@@ -343,7 +343,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'block',
     target: 'self',
-    prefPos: [1, 2, 3, 4],
+    prefPos: [],
     desc: 'Gain 8 Block. Draw 1 card.',
     value: 8,
     effect: function(state, hero, target, card) {
@@ -357,7 +357,7 @@ DS.Cards.ranger = [
     cost: 1,
     type: 'utility',
     target: 'enemy',
-    prefPos: [2, 3, 4],
+    prefPos: [],
     desc: 'Deal 5 damage + 3 Bleed.',
     value: 5,
     effect: function(state, hero, target, card) {

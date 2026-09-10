@@ -186,6 +186,12 @@ DS.UI.renderSummary = function(root) {
 DS.UI._summaryApplyResults = function(outcome, run, goldAwarded) {
   var rosterIndices = DS.UI._summaryGetRosterMap(run);
 
+  // Phase 5: resolve gear take-home / consumption BEFORE roster changes
+  // (Meta.killHero below strips dead heroes' equipped gear).
+  if (DS.Gear && DS.Gear.resolveRunEnd) {
+    DS.Gear.resolveRunEnd(run, outcome, rosterIndices);
+  }
+
   if (outcome === 'victory') {
     // applyVictoryRewards(goldEarned, runHeroRosterIndices, aliveFlags)
     var aliveFlags = run.heroes.map(function(h) { return h.hp > 0; });

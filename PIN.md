@@ -78,8 +78,8 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
   `dnd-5e.md`, `data.json`, `INDEX.md`. Real numbers for balancing. **Use this before tuning.**
 - **`sims/`** (`01807aa`) — headless Monte-Carlo balance harness. Runs the REAL combat engine.
   `node sims/run.js` (1000/encounter), `--n 5000`, `--seed 42`. Output → `sims/REPORT.md`.
-- **node is portable, NOT on PATH:** `C:\Users\joel\AppData\Local\Temp\node-portable\node-v24.16.0-win-x64\node.exe`
-  (in Temp — may get wiped; reinstall/relocate if sims stop running).
+- **node is portable, NOT on PATH:** `C:\Users\joel\tools\node-portable\node.exe` (v24.16.0).
+  Relocated 2026-08-06 out of Temp (the old Temp copy got wiped) — this location is permanent.
 
 ## Balance findings from first sim (starting party, no progression — relative signal only)
 - **Boss variance is the #1 problem:** floor-6 win% spread 74.8% — Spider Queen 13.9% (too hard) vs
@@ -118,7 +118,33 @@ so we **rebuilt them** on top of the (kept) Apr-10 visual overhaul.
   clicks) — canvas now scales to fit (`a5677bb`). Added **hover feedback** (pointer + white ring on
   clickable nodes, shared hit-test w/ click — `3895202`) as a diagnostic + UX win.
 
-## Immediate next steps on unpin
+## ⭐ 2026-08-06 SESSION — massive build wave (supersedes "next steps" below)
+All merged into the main working tree, UNCOMMITTED pending Joel's checkpoint approval. DESIGN.md
+gained five new Joel-dictated sections (aesthetic pillars, campfire=stagecoach, character system,
+gold doctrine, failure rules) — read them; they are the live spec.
+- **Campfire/stagecoach screen** (`js/intro.js` + css): Diablo-style opener, every run; veterans +
+  free recruits, pick 4, click order = positions 1–4; graveyard gravestones; resume-run button
+  moved here (fixes latent unreachable-title-screen bug). Caravan retired (file kept).
+- **Position gate SOFTENED** (Joel's call): moves cost 1 always; ~40 basic cards ungated
+  (`prefPos: []`), 56 signature/mechanic cards keep the hard gate.
+- **Difficulty fixed via enemy pass down** (Joel's call, over the restore-+2-bonus option): late-floor
+  HP/dmg cuts → all 4 bosses in the 20–49% sim zone (22.7/30.9/42.8/45.8, n=2000 seed 42).
+  KNOWN: the sim-vs-hard-gate collapse was actually caused by e52eb68 silently removing the old
+  in-position +2 value bonus — documented, Joel chose enemy tuning instead of restoring it.
+- **Character system** (meta.js/cards.js/state.js/buildings.js): 8 classes each roll base kits
+  (3 core + 1 of 2 signatures = named variants); kit cards excluded from rewards/shops; XP levels
+  1–6 auto-upgrade kit cards (die with the character); lightweight injury system (Wounded −20%
+  maxHP; primary trigger = fleeing, heals by sitting out a run or 15g). NO STRESS SYSTEM (Joel).
+- **Gear economy** (`data/gear.js` + meta/town/summary): 17-item catalog, 4 slots/hero
+  (weapon/armor/2 trinkets), swappable between heroes, passive effects live via relic-pipeline
+  wrappers; salvage 55%; town merchant upgrade track (L0–3, 80/160/240g) vs volatile in-run stock;
+  `lostGear` ledger for future buyback. Loadout UI NOT built yet (DS.Gear.applyLoadout no-ops).
+- **node relocated permanently:** `C:\Users\joel\tools\node-portable\node.exe`.
+- **Next up (task list):** mid-fight FLEE button (calls `DS.Meta.applyFleeInjuries()`), temp-power
+  system (potions + run blessings, never gold-bought), loadout UI on the campfire screen, and JOEL
+  PLAYTESTS — nothing has been human-played since May.
+
+## (superseded 2026-08-06) Immediate next steps on unpin
 1. Joel playtests Phase 1 + Phase 3 (badges 1–4, targeting, reposition cards, move buttons;
    town → Merchant → buy gear → gold banks) + the rebalanced bosses.
 2. Background loop continues the trivial-normals stakes pass (data/enemies.js → sims → compare).

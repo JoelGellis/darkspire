@@ -5,23 +5,23 @@ DS.Enemies = {
     // Pool 1: Skeleton Patrol
     [
       {
-        name: 'Bone Soldier', icon: '\uD83D\uDC80', maxHp: 22,
+        name: 'Bone Soldier', icon: '\uD83D\uDC80', maxHp: 18,
         intents: [
-          { name: 'Attack', type: 'attack', dmg: 8, desc: 'ATK 8', targeting: 'front' },
+          { name: 'Attack', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' },
           { name: 'Defend', type: 'defend', block: 6, desc: 'DEF 6' }
         ]
       },
       {
-        name: 'Bone Captain', icon: '\u2694\uFE0F', maxHp: 28,
+        name: 'Bone Captain', icon: '\u2694\uFE0F', maxHp: 23,
         intents: [
-          { name: 'Attack', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' },
-          { name: 'War Cry', type: 'buff', desc: 'WAR CRY +3', buffAmt: 3 }
+          { name: 'Attack', type: 'attack', dmg: 8, desc: 'ATK 8', targeting: 'front' },
+          { name: 'War Cry', type: 'buff', desc: 'WAR CRY +2', buffAmt: 2 }
         ]
       },
       {
-        name: 'Bone Archer', icon: '\uD83C\uDFF9', maxHp: 16,
+        name: 'Bone Archer', icon: '\uD83C\uDFF9', maxHp: 13,
         intents: [
-          { name: 'Snipe', type: 'attack', dmg: 6, desc: 'ATK 6\u2192back', targeting: 'back' },
+          { name: 'Snipe', type: 'attack', dmg: 5, desc: 'ATK 5\u2192back', targeting: 'back' },
           { name: 'Multi-shot', type: 'attack_multi', dmg: 2, hits: 3, desc: 'ATK 2\u00D73', targeting: 'random' }
         ]
       }
@@ -183,24 +183,24 @@ DS.Enemies = {
     // Pool 8: Shadow Pack
     [
       {
-        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20,
+        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 16,
         intents: [
           { name: 'Frenzy', type: 'attack_multi', dmg: 3, hits: 2, desc: 'ATK 3\u00D72', targeting: 'random' },
-          { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
+          { name: 'Bite', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'front' }
         ]
       },
       {
-        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 20,
+        name: 'Shadow Wolf', icon: '\uD83D\uDC3A', maxHp: 16,
         intents: [
           { name: 'Lunge', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
-          { name: 'Bite', type: 'attack', dmg: 7, desc: 'ATK 7', targeting: 'front' }
+          { name: 'Bite', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'front' }
         ]
       },
       {
-        name: 'Shadow Alpha', icon: '\uD83D\uDC3A', maxHp: 30,
+        name: 'Shadow Alpha', icon: '\uD83D\uDC3A', maxHp: 24,
         intents: [
           { name: 'Howl', type: 'buff', desc: 'BUFF +2', buffAmt: 2 },
-          { name: 'Shadow Strike', type: 'attack_all', dmg: 5, desc: 'ATK 5 ALL', targeting: 'all' }
+          { name: 'Shadow Strike', type: 'attack_all', dmg: 4, desc: 'ATK 4 ALL', targeting: 'all' }
         ]
       }
     ],
@@ -208,25 +208,25 @@ DS.Enemies = {
     // Pool 9: Tomb Guardians — high block, slow but deadly
     [
       {
-        name: 'Tomb Sentinel', icon: '\uD83D\uDDFF', maxHp: 35,
+        name: 'Tomb Sentinel', icon: '\uD83D\uDDFF', maxHp: 30,
         intents: [
-          { name: 'Stone Fist', type: 'attack', dmg: 12, desc: 'ATK 12', targeting: 'front' },
+          { name: 'Stone Fist', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' },
           { name: 'Stone Wall', type: 'defend', block: 10, desc: 'DEF 10' },
-          { name: 'Crush', type: 'attack', dmg: 16, desc: 'ATK 16', targeting: 'front' }
+          { name: 'Crush', type: 'attack', dmg: 13, desc: 'ATK 13', targeting: 'front' }
         ]
       },
       {
-        name: 'Tomb Warden', icon: '\u26B0\uFE0F', maxHp: 30,
+        name: 'Tomb Warden', icon: '\u26B0\uFE0F', maxHp: 26,
         intents: [
           { name: 'Guard', type: 'defend', block: 8, desc: 'DEF 8' },
           { name: 'Entomb', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' },
-          { name: 'Smite', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' }
+          { name: 'Smite', type: 'attack', dmg: 9, desc: 'ATK 9', targeting: 'front' }
         ]
       },
       {
-        name: 'Tomb Priest', icon: '\uD83D\uDD6F\uFE0F', maxHp: 18,
+        name: 'Tomb Priest', icon: '\uD83D\uDD6F\uFE0F', maxHp: 15,
         intents: [
-          { name: 'Death Chant', type: 'buff', desc: 'BUFF +3', buffAmt: 3 },
+          { name: 'Death Chant', type: 'buff', desc: 'BUFF +2', buffAmt: 2 },
           { name: 'Curse', type: 'attack', dmg: 6, desc: 'ATK 6\u2192back', targeting: 'back' }
         ]
       }
@@ -295,17 +295,17 @@ DS.Enemies = {
     // Pool 1: Bone Knight + Bone Mage
     [
       {
-        name: 'Bone Knight', icon: '\uD83D\uDC80', maxHp: 45,
+        name: 'Bone Knight', icon: '\uD83D\uDC80', maxHp: 38,
         intents: [
-          { name: 'Cleave', type: 'attack', dmg: 12, desc: 'ATK 12', targeting: 'front' },
+          { name: 'Cleave', type: 'attack', dmg: 10, desc: 'ATK 10', targeting: 'front' },
           { name: 'Shield Wall', type: 'defend', block: 8, desc: 'DEF 8' }
         ]
       },
       {
-        name: 'Bone Mage', icon: '\u2620\uFE0F', maxHp: 25,
+        name: 'Bone Mage', icon: '\u2620\uFE0F', maxHp: 22,
         intents: [
           { name: 'Dark Wave', type: 'attack_all', dmg: 3, desc: 'ATK 3 ALL', targeting: 'all' },
-          { name: 'Empower', type: 'buff', desc: 'BUFF +5', buffAmt: 5 }
+          { name: 'Empower', type: 'buff', desc: 'BUFF +4', buffAmt: 4 }
         ]
       }
     ],
@@ -394,25 +394,25 @@ DS.Enemies = {
     // Boss 1: The Lich
     [
       {
-        name: 'The Lich', icon: '\uD83D\uDC80', maxHp: 80, isBoss: true,
+        name: 'The Lich', icon: '\uD83D\uDC80', maxHp: 68, isBoss: true,
         intents: [
-          { name: 'Soul Drain', type: 'attack_all', dmg: 10, desc: 'ATK 10 ALL', targeting: 'all' },
-          { name: 'Dark Bolt', type: 'attack', dmg: 15, desc: 'ATK 15\u2192back', targeting: 'back' },
+          { name: 'Soul Drain', type: 'attack_all', dmg: 8, desc: 'ATK 8 ALL', targeting: 'all' },
+          { name: 'Dark Bolt', type: 'attack', dmg: 12, desc: 'ATK 12\u2192back', targeting: 'back' },
           { name: 'Raise Dead', type: 'summon', summon: 'skeleton_guard', count: 2, desc: 'SUMMON 2' },
           { name: 'Dark Shield', type: 'defend', block: 10, desc: 'DEF 10' }
         ]
       },
       {
-        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 15,
+        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 12,
         intents: [
-          { name: 'Strike', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'front' },
+          { name: 'Strike', type: 'attack', dmg: 5, desc: 'ATK 5', targeting: 'front' },
           { name: 'Block', type: 'defend', block: 4, desc: 'DEF 4' }
         ]
       },
       {
-        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 15,
+        name: 'Skeleton Guard', icon: '\uD83D\uDC80', maxHp: 12,
         intents: [
-          { name: 'Strike', type: 'attack', dmg: 6, desc: 'ATK 6', targeting: 'random' },
+          { name: 'Strike', type: 'attack', dmg: 5, desc: 'ATK 5', targeting: 'random' },
           { name: 'Block', type: 'defend', block: 4, desc: 'DEF 4' }
         ]
       }
@@ -421,13 +421,13 @@ DS.Enemies = {
     // Boss 2: The Iron Golem — block-heavy solo boss, rewards multi-hit strategies
     [
       {
-        name: 'Iron Golem', icon: '\uD83E\uDD16', maxHp: 120, isBoss: true,
+        name: 'Iron Golem', icon: '\uD83E\uDD16', maxHp: 110, isBoss: true,
         intents: [
-          { name: 'Smash', type: 'attack', dmg: 17, desc: 'ATK 17', targeting: 'front' },
-          { name: 'Iron Guard', type: 'defend', block: 18, desc: 'DEF 18' },
-          { name: 'Quake', type: 'attack_all', dmg: 8, desc: 'ATK 8 ALL', targeting: 'all' },
+          { name: 'Smash', type: 'attack', dmg: 15, desc: 'ATK 15', targeting: 'front' },
+          { name: 'Iron Guard', type: 'defend', block: 16, desc: 'DEF 16' },
+          { name: 'Quake', type: 'attack_all', dmg: 7, desc: 'ATK 7 ALL', targeting: 'all' },
           { name: 'Rust', type: 'weaken', turns: 2, desc: 'WEAK 2', targeting: 'random' },
-          { name: 'Crush', type: 'attack', dmg: 13, desc: 'ATK 13', targeting: 'front' },
+          { name: 'Crush', type: 'attack', dmg: 12, desc: 'ATK 12', targeting: 'front' },
           { name: 'Overcharge', type: 'buff', desc: 'BUFF +3', buffAmt: 3 }
         ]
       }
@@ -436,12 +436,12 @@ DS.Enemies = {
     // Boss 3: The Spider Queen
     [
       {
-        name: 'Spider Queen', icon: '\uD83D\uDD77\uFE0F', maxHp: 90, isBoss: true,
+        name: 'Spider Queen', icon: '\uD83D\uDD77\uFE0F', maxHp: 70, isBoss: true,
         intents: [
-          { name: 'Venomous Bite', type: 'attack_poison', dmg: 10, poison: 2, desc: 'ATK 10 + PSN 2', targeting: 'front' },
+          { name: 'Venomous Bite', type: 'attack_poison', dmg: 7, poison: 2, desc: 'ATK 7 + PSN 2', targeting: 'front' },
           { name: 'Web Trap', type: 'vulnerable', turns: 2, desc: 'VULN 2', targeting: 'random' },
-          { name: 'Fang Barrage', type: 'attack_multi', dmg: 4, hits: 4, desc: 'ATK 4\u00D74', targeting: 'random' },
-          { name: 'Cocoon', type: 'defend', block: 12, desc: 'DEF 12' }
+          { name: 'Fang Barrage', type: 'attack_multi', dmg: 3, hits: 4, desc: 'ATK 3\u00D74', targeting: 'random' },
+          { name: 'Cocoon', type: 'defend', block: 10, desc: 'DEF 10' }
         ]
       },
       {
@@ -463,13 +463,13 @@ DS.Enemies = {
     // Boss 4: The Vampire Lord — sustain tank with lifesteal flavor, summons bats
     [
       {
-        name: 'Vampire Lord', icon: '\uD83E\uDDDB', maxHp: 100, isBoss: true,
+        name: 'Vampire Lord', icon: '\uD83E\uDDDB', maxHp: 82, isBoss: true,
         intents: [
-          { name: 'Blood Drain', type: 'attack', dmg: 14, desc: 'ATK 14', targeting: 'front' },
-          { name: 'Crimson Wave', type: 'attack_all', dmg: 7, desc: 'ATK 7 ALL', targeting: 'all' },
+          { name: 'Blood Drain', type: 'attack', dmg: 11, desc: 'ATK 11', targeting: 'front' },
+          { name: 'Crimson Wave', type: 'attack_all', dmg: 5, desc: 'ATK 5 ALL', targeting: 'all' },
           { name: 'Summon Bats', type: 'summon', summon: 'vampire_bat', count: 2, desc: 'SUMMON 2' },
-          { name: 'Dark Feast', type: 'attack', dmg: 16, desc: 'ATK 16\u2192back', targeting: 'back' },
-          { name: 'Blood Pact', type: 'heal_allies', heal: 8, desc: 'HEAL ALL 8' },
+          { name: 'Dark Feast', type: 'attack', dmg: 13, desc: 'ATK 13\u2192back', targeting: 'back' },
+          { name: 'Blood Pact', type: 'heal_allies', heal: 6, desc: 'HEAL ALL 6' },
           { name: 'Mesmerize', type: 'weaken', turns: 2, desc: 'WEAK 2', targeting: 'random' }
         ]
       },
@@ -497,3 +497,7 @@ DS.Enemies.pickEncounter = function(tier) {
   if (!pools || pools.length === 0) return DS.Enemies.normal[0];
   return pools[Math.floor(Math.random() * pools.length)];
 };
+
+// Early encounters introduce telegraphed displacement and deck contamination.
+DS.Enemies.normal[0][1].intents.push({name:'Shield Rush',type:'attack',dmg:6,targeting:'front',push:2,desc:'ATK 6 + push victim back 2 ranks'});
+DS.Enemies.normal[1][2].intents.push({name:'Barbed Vial',type:'attack',dmg:3,targeting:'back',statusCard:'tactical_wound',desc:'ATK 3 + Wound into discard'});

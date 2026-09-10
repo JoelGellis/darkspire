@@ -3,12 +3,14 @@ window.DS = window.DS || {};
 DS.Game = {
   // ===== BOOT =====
   init: function() {
+    // The campfire is the game's opening — every session starts at the fire.
+    // Meta is loaded (or seeded) first so roster/graveyard/gold are live.
     if (DS.Meta && DS.Meta.hasSave()) {
       DS.Meta.load();
-      DS.State.screen = 'town';
-    } else {
-      DS.State.screen = 'title';
+    } else if (DS.Meta) {
+      DS.Meta.newGame();
     }
+    DS.State.screen = 'campfire';
     DS.UI.render();
   },
 
@@ -115,6 +117,7 @@ DS.Game = {
           DS.Combat.initCombat(pool);
           DS.Game._applyCombatBuffs();
           DS.State.screen = 'combat';
+    DS.State.save();
           DS.UI.render();
           DS.Combat.logMsg(bossEnemy.name + ' emerges from the darkness.', 'system');
         });
@@ -125,6 +128,7 @@ DS.Game = {
     DS.Combat.initCombat(pool);
     DS.Game._applyCombatBuffs();
     DS.State.screen = 'combat';
+    DS.State.save();
     DS.UI.render();
     DS.Combat.logMsg('A new combat begins. Steel yourself.', 'system');
   },

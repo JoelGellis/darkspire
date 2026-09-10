@@ -84,6 +84,83 @@ damage numbers, dice mechanics, and stats from the source games (D&D / Darkest D
 — structured markdown/JSON in `reference/`, kept official + updated — so real numbers are fast context
 when designing and balancing.
 
+### Aesthetic Pillars — the two guiding gems (Joel, 2026-08-06)
+The look/feel of the game splits cleanly on the run boundary:
+- **Outside a run → Darkest Dungeon.** Campfire, town, recruitment, meta screens: dark gothic,
+  torchlit, oil-painting mood. Elements accessible/laid out like DD's hamlet.
+- **Inside a run → Slay the Spire.** Map and combat look STS; party of multiple heroes lines up
+  left-right (cf. STS2's Osty — same idea, just more of them). Combat interface stays very STS-like.
+- Content (cards, heroes, enemies, numbers) is dictated by Joel, per the sourcing principle above.
+
+### Campfire = Stagecoach (Joel, 2026-08-06)
+The game opens on a **Diablo-style campfire scene** that doubles as DD's stagecoach: seen **every
+run**. Surviving veterans sit at the fire; fresh recruits arrive each visit to replace the dead
+(graveyard heroes are gone for good). You pick your 4-hero party here — selection order sets
+starting positions 1→4 — then descend. Recruit count / roster cap / recruit cost are open params.
+
+### Character System — D&D classes, RPG depth (Joel, 2026-08-06)
+Characters are the persistent RPG layer; runs are STS, characters are DD+D&D.
+- **Classes:** D&D-flavored. *(Correction 2026-08-06: the repo already has 8 — Fighter, Rogue,
+  Cleric, Wizard, Barbarian, Ranger, Necromancer, Paladin — the "4 heroes" note below in v0.1 is
+  stale. v1 = keep the 8, build variety/progression on top; no new classes yet.)*
+- **Rolled base kits:** each recruit ROLLS their base cards from a per-class variant pool — so two
+  Fighters aren't identical ("a couple natural varieties" per class now, flesh out more later).
+  Base-kit cards are **not attainable any other way** (never in shops/rewards) — they're what makes
+  the character the character.
+- **XP level-ups (DD-style upgrades, lost on death):** characters earn XP from runs and level up;
+  level-ups grant **character-dependent upgrades to their base cards** — a nice flat bonus that
+  DIES WITH THE CHARACTER. Card upgrades are bound to the char, not the collection.
+- **Full inventory per character:** equipment slots granting **stats, abilities, AND cards**.
+  Equipment (unlike base kits and level-ups) **swaps freely between characters** and survives per
+  the take-home rules above.
+- **Injury system: yes, but lightweight.** Should not consume the time/money DD's does — cheap to
+  understand, cheap to heal. **Stress system: GONE.** Not building it.
+
+### Growth Curves & Gold Doctrine (Joel, 2026-08-06)
+- **Gold ALWAYS buys permanent upgrades** — in-run or at home, a gold spend is never a rental.
+  Dual-use tension: spend it on the run OR bank it home; both must stay attractive.
+- **In-run shops = high volatility, high rarity ceiling.** Unique/rare stock, jackpot rolls above
+  what home offers — so finds/buys matter even to a stacked party. Expected spend is gamble-y.
+- **Home merchant = safe and gradual.** Upgraded over time BY SPENDING GOLD (DD hamlet-style
+  upgrade track); stock quality rises with merchant level.
+- **Expected player behavior:** spend gold in-run mostly on high-difficulty runs with the top
+  party, or on a run-saver find. Otherwise bank it.
+- **Temporary in-run improvements exist but are a SEPARATE system from gold.** DECIDED (Joel,
+  2026-08-06): BOTH shapes — (a) STS-style consumables (potions from fights/events, rest-node
+  buffs) and (b) run blessings (this-run-only auras picked at events/elites). Found/earned, never
+  gold-bought. Must stay visually/mechanically distinct from permanent relics. Not yet built.
+- Anti-dead-find valve: salvage (see equipment economy) converts weak/duplicate finds to gold,
+  i.e. permanent value — no find is ever worthless.
+
+### Failure Rules (Joel, 2026-08-06)
+Three exits from a run, in descending order of grace:
+1. **Map retreat (exists, unchanged):** between fights, bank 50% of gold GAINED; survivors keep
+   everything else.
+2. **FLEE, mid-fight button (new):** combat action available during a losing fight. Everyone still
+   alive escapes: run ends, **run rewards lost**, survivors likely take **injuries**. The DD
+   cut-your-losses decision — one more turn hoping to stabilize, or flee before the next hero drops.
+3. **Full wipe:** everyone dies → graveyard, all rewards lost, all equipped gear lost.
+- **Gear dies with its wearer — v1 rule, on purpose.** Makes loadout selection a risk decision.
+  Softening mechanics LATER, e.g. merchant buyback of lost gear, or each survivor carries home one
+  piece from the fallen. Build the loss simple now; keep a record of lost gear so buyback is
+  possible later.
+
+### Combat Targeting (Joel playtest feedback, 2026-08-06)
+- **Attacks must have REACH** — not every attack hits every enemy position. Melee reaches the
+  front ranks; ranged/magic reaches deeper. (DD dual model: cards gate on user position AND
+  target position.)
+- **Enemy targeting: intelligent/varied, not uniform.** Different enemies threaten different
+  ranks (bruisers hit front, snipers/casters reach back). Block then matters beyond pos 1
+  because back-liners actually get targeted.
+- **Intent shows the TARGET:** move the damage indicator onto the targeted hero's head, so you
+  can see where the hit will land and block/reposition accordingly.
+- Rogue's "move forward" (Shadow Step) is weak as-is — advancing is rarely desirable; revisit
+  its value once reach exists (getting into reach may redeem it, or redesign).
+- **Card gate UI:** gated cards carry a small ONE-CORNER indicator showing their playable
+  positions ("4", "1-2"); no indicator = playable anywhere. Quiet, always visible.
+- **Cleric = mid-line (pos 2/3) AoE-heal support**, not a back-liner. Gates/kit display updated
+  to match.
+
 *(More vision incoming — Joel is still dictating. Append, don't overwrite.)*
 
 ---
@@ -319,3 +396,6 @@ darkspire/
 6. **Art pass** — replace emoji with pixel art or SVG
 7. **Audio** — ambient + effects
 8. **Town meta** — if the game is fun enough to warrant persistence
+
+### Fullscreen immersion (Joel, 2026-09-09)
+The game is a viewport-filling experience. No document/page scrolling. Campfire, town, map, combat and their actions must fit the available viewport; equipment and other extensive choices use bounded in-game panels with tabs or pages. Never hide essential controls merely to remove overflow. Default target sizes:1366?768,1536?864,1920?1080.

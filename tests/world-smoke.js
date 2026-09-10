@@ -17,7 +17,7 @@ const ctx = {console,URL,setTimeout:()=>0,clearTimeout:noop,requestAnimationFram
 ctx.window=ctx; vm.createContext(ctx);
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 for(const m of html.matchAll(/<script src="([^"]+)"/g)) vm.runInContext(fs.readFileSync(path.join(root,m[1]),'utf8'),ctx,{filename:m[1]});
-const {DS}=ctx; DS.UI.render=noop; DS.Meta.newGame(); DS.Campfire._buildOffer();
+const {DS}=ctx; DS.UI.render=noop; DS.PlayerIdentity.set({type:'scripted',policy:'regression-suite',policyVersion:'1'}); DS.Meta.newGame(); DS.Campfire._buildOffer();
 [0,1,2,3].forEach(DS.Campfire.toggleSelect); DS.Campfire.embark();
 for(let seed=0;seed<100;seed++) {
   const run=DS.State.run; run.map=DS.Map.generate(); run.currentNode=run.map.floors[0][0].id;

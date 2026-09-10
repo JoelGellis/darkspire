@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const {analyze}=require('../sims/analyze-archive');
+const hero={id:'h1',cls:'fighter',hp:20,block:4};
+const enemy={id:'e1',hp:12,block:0};
+const before={run:{heroes:[hero],deck:[]},combat:{enemies:[enemy]}};
+const state={run:{heroes:[{...hero,hp:18,block:0}],deck:[]},combat:{enemies:[enemy]}};
+const reports=analyze({events:[{runId:'r1',seq:1,type:'combat.dealDamage',detail:{args:[hero,6],before},state}]});
+assert.equal(reports[0].damageTaken,2);
+assert.equal(reports[0].blockConsumed,4);
+assert.equal(reports[0].damageDealt,0);
+assert.equal(reports[0].observedDamagePerNetEnergy,null);
+console.log('PASS: archive analysis distinguishes actual HP loss, absorbed block and unavailable efficiency denominator');

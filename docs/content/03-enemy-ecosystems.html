@@ -1,0 +1,360 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>03-enemy-ecosystems.md</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+         max-width: 980px; margin: 24px auto; padding: 0 24px; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1, h2, h3, h4 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; margin-top: 28px; }
+  h1 { font-size: 1.9em; }
+  h2 { font-size: 1.45em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding: 0 16px; margin-left: 0; }
+  .doc-sep { border: none; border-top: 3px double #d0d7de; margin: 48px 0 24px; }
+  .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
+</style>
+</head>
+<body><p class="source-label">Source: C:\Users\joel\darkspire\docs\content\03-enemy-ecosystems.md</p><p>﻿# Enemy ecosystems — specialist plan 3</p>
+<p>Status: executable content proposal, not shipped or balance-certified. Grounded in <code>DESIGN.md</code>, <code>data/enemies.js</code>, <code>js/state.js</code>, <code>js/combat.js</code>, current state/backlog and specialist plans 1–2 on September 9. All numbers are original Darkspire hypotheses. No reference-game statistic is asserted. Preserve eight classes, Cleric launch ranks 2/3, four enemies, shared energy, permanent equipment and no stress.</p>
+<h2>Current implementation audit</h2>
+<p>The current catalog has 11 normal groups, five elite groups and four bosses. Its useful identities include skeleton formation, goblin poison, cult healing, slime death poison, fungi, wraith back attacks, wolves, tomb guards, cursed champions, Bone Knight/Mage, Executioner, Twin Shades, Lich, Golem, Spider Queen and Vampire Lord. Keep their IDs/recognizable silhouettes where possible; the proposal below deepens those roles rather than adding numerous interchangeable names.</p>
+<p>Several descriptions overpromise: Twin Shades have identical random pools, not mirroring logic; Golem block does not intrinsically reward multihit; Vampire Blood Drain is ordinary damage, not lifesteal; Shadow Caster's “Weaken All” selects one random hero. <code>buff</code> permanently increases every living enemy's <code>dmgBuff</code>, including the caster, without a ceiling. <code>summon</code> ignores template/count and revives every dead non-boss at 75% HP. Repeated revival reuses identity. There is no authored phase controller or enemy launch/reach enforcement. <code>State.startCombat</code> copies only a fixed definition field list, so adding phase/guard fields to catalog entries alone does nothing.</p>
+<p>Reusable primitives: direct attacks, committed front/back/random victims, per-hit committed random targets, party AoE, damage+Poison, pure Poison, Weak/Vulnerable, self-block, all-allies healing, player guard/riposte, enemy push via intent, rank closing, Wound generation, seeded combat RNG, combat snapshot persistence. Enemy allied guard, selective healing, finite buffs, rank zones, interruptible channels, conditional phase selection, actual spawn lifecycle and finite summon budgets require hooks. Do not market an existing primitive's name as its missing behavior.</p>
+<h2>Numerical baseline and scaling decision</h2>
+<p>Current heroes include Fighter52, Rogue38, Cleric34 and Wizard26 base HP; equipment/town/veteran modifiers add to these. Shared energy is3; base hand5; four starter stacks contribute32 cards. Typical basic attacks cost1 for roughly5–7 damage. Three basic plays therefore buy roughly15–21 nominal single-target damage while leaving no energy for defense, before AoE, modifiers, draw and constraints. Enemy rear hits must respect the Wizard's26HP rather than balancing against pooled party health.</p>
+<p>Live scaling is HP <code>round(base*(1+.1*floor))</code>, damage <code>base+floor(floor*.5)</code> <strong>per hit and per AoE victim</strong>. Thus a base3×4 barrage becomes5×4 at floor4, and base4 party AoE becomes24 total damage instead of16. This is a large hidden multiplier. Current victory income is10–19+2*floor gold (mean14.5+2f), so a35g common costs about1.7 floor3 wins, a140g rare6.8. Encounters must remain beatable with common/partial gear; a legendary cannot be a mandatory antidote.</p>
+<p>For this three-act catalog, table values are <strong>final ascension0 encounter values</strong>, already expressing act difficulty. Add an explicit <code>scalingProfile: authored_act_v1</code> that bypasses both generic floor scaling and any <code>scaleEncounter</code> wrapper. Legacy encounters retain legacy scaling until converted. Never apply both. This is an intentional bounded replacement for new content, requiring a test that act3's listed4×3 is exactly12 before statuses. Do not inflate every later actor's HP/damage and also compound floor. Later difficulty comes primarily from joint threats and timing.</p>
+<h2>Execution contract</h2>
+<p>Every enemy gets stable definition ID and unique spawn ID. All cycles start at step1 and advance once per completed enemy round; stunned actors skip action but advance the cycle. Explicitly interrupted channels advance to their listed failed recovery. No random initial step. Random target choice uses combat RNG when intent is revealed; it is saved immediately. Enemy policy can inspect current ranks, visible HP/status and its own counters, never player draw order, future RNG or queued player actions.</p>
+<p>Notation: A damage; B self-block (expires on existing normal block timing); P Poison; W Weak turns; V Vulnerable turns; F frontmost living hero; R rearmost; Rand random living; Z2/3 rank-zone strike; All each living hero. <code>A3x2 Rand</code> commits each hit separately. Unless stated, attacks are identity-locked: moving the hero does not cancel them, and guard can intercept. On target death, fizzle that hit; do not secretly reacquire a fragile victim. This fizzle rule differs from any existing fallback and needs deliberate migration/tests. Zone strikes are visibly <strong>rank-locked</strong>, resolve occupants at attack time, and miss empty slots. UI must distinguish name portrait from illuminated rank tiles.</p>
+<p>All ordinary melee attacks launch from enemy ranks1/2 and reach hero1/2; bolt/bow/vial/curse reaches1–4 and launches1–4. Entries marked long melee reach1–4 deliberately. If forced outside launch ranks, the actor instead uses visible <strong>Recover formation: move one toward front, no damage</strong>; refresh intent preview immediately after displacement. This is deterministic counterplay, not a reroll. F selects frontmost reachable target; R rearmost reachable. Pull/push never refresh a victim secretly. Bosses listed anchored cannot be displaced; they still take damage/status. No immunity to poison or entire class engines.</p>
+<p>All heal/buff targets chosen at reveal by most missing absolute HP then lowest rank then spawn ID; visible rings show recipients. Enemy guards intercept first single-target attack on named ally during next player turn, do not intercept AoE/status-only, and expire after that player turn. Guard charges cannot stack. Combat log records original and actual recipient. All caps are instance counters, persisted. No new summon acts until the next enemy round. Four living enemy cap, twelve total spawns per combat safety ceiling, and boss-specific budgets below. Spawned enemies provide no separate gold/card/XP rewards; unique-death player effects remain capped as proposed in plans1–2.</p>
+<h2>Act I — The Broken Garrison</h2>
+<p>Lessons: bypass a protector, recognize a channel, decide when to kill an add. No opening Weak+Vulnerable stack or damage+rear execution combination. Reuse skeleton/cult/goblin/slime art with readable equipment silhouettes.</p>
+<table>
+<thead>
+<tr>
+<th>ID / actor</th>
+<th style="text-align: right;">HP</th>
+<th>Ordered repeating cycle</th>
+<th>Tactical job</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>garrison_shield / Shield Remnant</td>
+<td style="text-align: right;">24</td>
+<td>B6 + guard named rear ally; A6 F; A8 F</td>
+<td>Protects support for one turn; push it behind rank2, AoE, or spend first hit removing guard.</td>
+</tr>
+<tr>
+<td>garrison_archer / Bone Archer</td>
+<td style="text-align: right;">14</td>
+<td>bow A5 R; bow A3x2 Rand; B3</td>
+<td>Rear pressure is survivable and fully named.</td>
+</tr>
+<tr>
+<td>garrison_cantor / Grave Cantor</td>
+<td style="text-align: right;">18</td>
+<td>Channel2: Prepare; Release heal6 to one ally other than self; bolt A5 Rand</td>
+<td>Channel broken by &gt;=8 actual HP damage during preceding player turn OR moving caster out of ranks3/4. Failed release becomes B3. Count channel damage visibly.</td>
+</tr>
+<tr>
+<td>garrison_knife / Goblin Cutpurse</td>
+<td style="text-align: right;">16</td>
+<td>A5 F; long-melee A4 R; B4</td>
+<td>Cheap flexible threat; long dagger icon explicitly shows reach4.</td>
+</tr>
+<tr>
+<td>garrison_vial / Vial Bearer</td>
+<td style="text-align: right;">14</td>
+<td>vial A3+P1 Rand; vial P2 Rand; B3</td>
+<td>Attrition priority; never paired with Cantor in act1.</td>
+</tr>
+<tr>
+<td>garrison_brood / Slime Brood</td>
+<td style="text-align: right;">28</td>
+<td>summon one Droplet if budget remains; A3 All; B5</td>
+<td>Two total summons, at most two Droplets alive; blocked summon becomes B3.</td>
+</tr>
+<tr>
+<td>garrison_drop / Droplet</td>
+<td style="text-align: right;">8</td>
+<td>A3 F; A2 F</td>
+<td>On death mark named random hero for P1 at next enemy round; killing Brood cancels pending marks. Telegraph prevents hidden death tax.</td>
+</tr>
+</tbody>
+</table>
+<p>Normal groups, front-to-back: <strong>Shield Patrol</strong> [Shield, Archer], total38HP; <strong>Chant Detail</strong> [Shield, Knife, Cantor],58HP (late only); <strong>Grave Volley</strong> [Knife, Archer, Archer],44HP (archers start at steps1/3 respectively, authored offset visible); <strong>Vial Ambush</strong> [Knife, Vial],30HP; <strong>Brood Nest</strong> [Brood, Droplet],36HP plus at most16 spawnedHP. Brood stays rank1; newborns append at back. First two combats choose Patrol or Ambush and do not repeat.</p>
+<p>Elites: <strong>The Executioner</strong>,70HP, anchored. Cycle: Measure (commit R portrait, B6); Judgment long-melee A12 to measured identity; A7 F; B4. At &lt;=35HP add+2 to Judgment only beginning the next reveal; no current-intent change. A vulnerable wounded rear hero can be guarded or strengthened; movement alone does not evade an identity-marked execution. <strong>Ragebound Knight</strong>,76HP. Cycle: Windup B5; Cleave A11 F; Overreach A3 F and self V1 for next player turn. Under50%HP windup also shows next Cleave+3, ceiling14. No indefinite damage stacking. Neither elite has adds in act1.</p>
+<p>Boss <strong>The Lich / Bone Regent</strong>,96HP plus two Guards12HP each (A4 F/B3 alternating, offsets1/2). Front-to-back [Guard, Guard, Lich]; Lich launches all ranks, anchored. Phase1 cycle: bolt A7 R; Raise one Guard12HP (two total raises across fight); A3 All; B8. Phase2 at&lt;=48HP replaces future cycle with Soul Claim (visibly mark one living Guard); Consume marked Guard next round, heal boss8 and gain a single +3 bonus on next bolt; bolt A10 R; A4 All. Killing marked Guard denies both gains. No Guard available: Soul Claim becomes B4 and Consume becomes bolt A5 F. At&lt;=24HP enter finale at next reveal: <strong>Last Bell</strong> B0 with countdown; next round A6 All; then alternate A8 F/A4 All. No resurrection in finale. Kill-order dilemma: killing adds denies healing but repeated raises cost time; reaching boss through rank gates requires actual ranged/pull/AoE tools. Party without ranged can remove guards rather than being hard-locked.</p>
+<h2>Act II — The Rootbound Ossuary</h2>
+<p>Lessons: choose between healing prevention and present damage; leave dangerous ranks; manage finite poison. Baseline normals contain at most one control/support actor and three enemies.</p>
+<table>
+<thead>
+<tr>
+<th>ID / actor</th>
+<th style="text-align: right;">HP</th>
+<th>Ordered repeating cycle</th>
+<th>Tactical job</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>root_mauler / Fungal Mauler</td>
+<td style="text-align: right;">34</td>
+<td>A9 F; B7; A6 F + push1</td>
+<td>Front displacement exposes different hero actions; no full party scramble.</td>
+</tr>
+<tr>
+<td>root_mender / Spore Mender</td>
+<td style="text-align: right;">21</td>
+<td>heal7 one other ally, maximum3 heals; spores P2 Rand; bolt A5 Rand</td>
+<td>After three heals first step becomes bolt A6 Rand; no endless sustain.</td>
+</tr>
+<tr>
+<td>root_sprayer / Spore Sprayer</td>
+<td style="text-align: right;">23</td>
+<td>P2 Rand; A3 All; B4</td>
+<td>AoE poison source prioritization; no all-party poison.</td>
+</tr>
+<tr>
+<td>root_stalker / Web Stalker</td>
+<td style="text-align: right;">27</td>
+<td>Mark Z3/4; next round A7 to each marked rank; A6 F</td>
+<td>Marked zones are fixed and allow rank swaps; labels show14 maximum total.</td>
+</tr>
+<tr>
+<td>root_shell / Hollow Carapace</td>
+<td style="text-align: right;">32</td>
+<td>B10; A10 F; B4 + guard Mender if present</td>
+<td>Block timing rewards poison/single large hit; not falsely called multihit counter.</td>
+</tr>
+<tr>
+<td>root_larva / Husk Larva</td>
+<td style="text-align: right;">10</td>
+<td>A3 F; A2+P1 F</td>
+<td>No death effect, no rewards; brood fodder.</td>
+</tr>
+</tbody>
+</table>
+<p>Groups: <strong>Nursery</strong> [Mauler, Mender],55HP; <strong>Spore Crossfire</strong> [Mauler, Sprayer],57HP; <strong>Web Lane</strong> [Stalker, Larva, Sprayer],60HP; <strong>Hollow Hospice</strong> [Shell, Larva, Mender],63HP late-only; <strong>Root Guard</strong> [Shell, Stalker],59HP. Stalker zone Mark is its non-damaging setup round and persists through its next attack; killed/stunned Stalker does not execute it.</p>
+<p>Elite <strong>Formation Hunter</strong>,98HP anchored: Mark Z1/2; A10 each marked rank; Mark Z3/4; A10 each marked rank; A8 F. Moving and blocking are alternatives, not mandatory use of one class. Killing/stunning denies strike. Below49HP marks exactly two nonadjacent zones1/3 then2/4 in alternating cycles, with same damage and full setup. <strong>Plague Choir</strong> [Mauler34, Cantor22, Sprayer23]: Cantor channels one ritual through two complete player turns; at reveal show2→1→0. Interrupt by12 cumulative actual HP damage or moving Cantor outside ranks2/3. Completion grants other enemies +2 damage for next two enemy rounds only, once per fight; failure/finished cantor uses A6 bolt/B4 cycle. Choir never appears before a route with recovery access.</p>
+<p>Boss <strong>Spider Queen / Widow of Roots</strong>,132HP, anchored, with Larva10HP at ranks1/2 and Queen3. Phase1: A7+P2 F; Lay two Larvae (four total across fight, four living cap); Mark Z2/3; A7 each marked rank. At&lt;=66HP phase2: Cocoon B12; Consume oldest living Larva (heal8, cap2 consumes fight); A3x3 Rand; A4 All. Killing larva denies heal, but leaving one occupies a slot and prevents second spawn. At&lt;=33HP finale: visible <strong>Venom Crown</strong> B0; next round A4 All+P1 each; then A9 F/A3 All alternating. Poison applied only on Crown once, never every AoE. Larvae stop spawning in phase2. No damage immunity while cocooned. Existing poison builds keep working; recovery items lessen poison without becoming required.</p>
+<h2>Act III — The Ashen Court</h2>
+<p>Lessons: coordinate owner burst with defense windows; face precise multi-hit threats; prepare a finite finale. Normal pools have no summon and no unbounded buff.</p>
+<table>
+<thead>
+<tr>
+<th>ID / actor</th>
+<th style="text-align: right;">HP</th>
+<th>Ordered repeating cycle</th>
+<th>Tactical job</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ash_sentinel / Cinder Sentinel</td>
+<td style="text-align: right;">40</td>
+<td>B9 + guard named ally; A11 F; A8 F</td>
+<td>Protector costs meaningful damage to remove; guard one charge only.</td>
+</tr>
+<tr>
+<td>ash_standard / Ash Standard</td>
+<td style="text-align: right;">26</td>
+<td>grant named ally+3 next attack only; bolt A7 R; B5</td>
+<td>Bonus expires after next enemy round and never compounds.</td>
+</tr>
+<tr>
+<td>ash_duelist / Hollow Duelist</td>
+<td style="text-align: right;">32</td>
+<td>A4x3 F; B8; long-melee A8 R</td>
+<td>Multihit challenges block but does not multiply additive floor scaling.</td>
+</tr>
+<tr>
+<td>ash_hexer / Mourning Hexer</td>
+<td style="text-align: right;">25</td>
+<td>W1 Rand; bolt A6 R + one Wound into discard; bolt A7 Rand</td>
+<td>Maximum two Wounds per fight; no unbounded deck flood.</td>
+</tr>
+<tr>
+<td>ash_wraith / Mirror Wraith</td>
+<td style="text-align: right;">30</td>
+<td>B8 and one riposte4 for next player turn; bolt A8 R; A3 All</td>
+<td>Attack timing, poison and block answer finite retaliation; AoE hits still trigger one retaliation only.</td>
+</tr>
+<tr>
+<td>ash_hound / Cinder Hound</td>
+<td style="text-align: right;">24</td>
+<td>A7 F; long-melee A5 R; B4</td>
+<td>Efficient pressure that stops support-heavy groups becoming harmless.</td>
+</tr>
+</tbody>
+</table>
+<p>Groups: <strong>Court Escort</strong> [Sentinel, Standard],66HP; <strong>Duel Invitation</strong> [Duelist, Hexer],57HP; <strong>Mirror Hunt</strong> [Hound, Wraith],54HP; <strong>Banner Procession</strong> [Hound, Sentinel, Standard],90HP late-only; <strong>Cursed Audience</strong> [Duelist, Hound, Hexer],81HP late-only. No Wraith+Standard pairing in baseline: buffed retaliation is poorly legible and unnecessary.</p>
+<p>Elites: <strong>Twin Shades</strong>,62HP each. Shared visible beat cycles: round1 left A10 F/right B8; round2 left B8/right bolt A10 R; round3 both A4 All; repeat. Killing one removes its action permanently and surviving twin enters B4 → A12 F → bolt A10 R cycle at next reveal, no immediate revenge. <strong>Iron Bailiff</strong>,125HP anchored: B16; A14 F; Vent B0 and self V1; A5 All. While not venting has two separate shell pips per cycle: first two direct attack cards hitting it each remove one pip, no extra reduction; removing both cancels next B16 (not current block). Thus multihit on one card removes one pip, and multiple owners can cooperate; pip feature is a new explicit hook, not ordinary block. No immunity while shell remains.</p>
+<p>Final boss <strong>Vampire Lord / The Last Regent</strong>,176HP anchored and solo initially. Phase1 cycle: long-melee A12 F, heals half actual HP damage rounded down (max6); Summon two Bats10HP each (A3 Rand/B3 alternation), budget four total; bolt A10 R; A4 All. Phase2 at&lt;=106HP: mark oldest Bat; Consume marked next round grants B12 (no heal); A4x3 Rand; A5 All. If none present, mark/consume collapse into separately telegraphed B4 then A8 F turns; no free skip or hidden attack. At&lt;=44HP finale starts next reveal with <strong>The Last Feast</strong>: one nonattacking round, shows countdown1, cancels unexecuted consumption and summoning. Following round A7 All; then A12 F/A5 All alternation. Bats remain and must still be handled, but no new ones arrive. Boss death ends combat and dismisses summons without bonus kill rewards. Finale gives retained cards, finite defenses and potions a use, with no unavoidable surprise upon crossing HP threshold.</p>
+<h2>Phase, channel and UI invariants</h2>
+<p>Crossing one or several thresholds during a player action queues the deepest phase for <strong>next intent reveal</strong>. The already shown enemy action resolves unless it has been explicitly interrupted by a stated mechanic. Show “Finale next round” immediately beside current intent. Never trigger an immediate extra attack, cleanse poison or clear player block at threshold. Persist phase, pending phase, cycle index, targets/zones, heal/summon budgets, marked add IDs, channel accumulated damage and temporary buffs. Save/reload during phase crossings must produce byte-equivalent authoritative events apart from session identity/timestamps.</p>
+<p>Death and damage hooks are ordered once: resolve hit/block/HP → death → channel damage tally for surviving caster → phase pending → item reactions → next hit. A killed caster cannot complete a ritual later in the same queue. Marked add missing at consumption fizzles its reward. Summon picks lowest vacant position then closes ranks once; unique ID increments even after prior summon death. A player cannot farm repeated death triggers by resurrecting the same spawn; successful genuinely new spawns remain distinct and player payoff caps still apply.</p>
+<p>Battlefield telegraph shows exact attack total, target portrait or lit rank zone, channel/cycle clock, guard tether and bounded charges. Hover/focus inspection has current and next cycle action, source rank gate, reach and phase rule. Use physical icons around figures, no spreadsheet of rectangular tabs. Fullscreen desktop must fit four heroes/four enemies, hand, targets and tooltip without document scrolling. Long descriptions live in an inspection overlay, not a growing combat page.</p>
+<h2>Counters across the eight stacks and item roster</h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Useful encounters and real decisions</th>
+<th>Item support; never mandatory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fighter</td>
+<td>Push Shield out of launch, pull Cantor forward to interrupt, guard measured Executioner victim; timing guard versus own attack is the cost.</td>
+<td>Notched Longsword exposes support; Warden Harness gives finite rescue; Reprisal Nail earns counterdamage only on interception.</td>
+</tr>
+<tr>
+<td>Rogue</td>
+<td>Poison Shell during block, ambush exposed Standard, save zero-cost retreat/discard for rank-zone attack. Identity-locked Judgment still follows Rogue.</td>
+<td>Hook Knife/Seam Ripper convert voluntary movement into offense; Viper Sheath applies bounded poison.</td>
+</tr>
+<tr>
+<td>Cleric (2/3)</td>
+<td>Protect marked victim, remove poison before Crown, maintain midline after Mauler push. Cannot assume a rank4 cleric can cast new gated skills.</td>
+<td>Pilgrim Bell prevention, Mercy Vestment rescue, Dawn Censer finite party cleanse.</td>
+</tr>
+<tr>
+<td>Wizard (3/4)</td>
+<td>Reach Cantor/Standard, AoE finite adds, hold Shards for rage recovery or final bell. Setup consumes shared energy.</td>
+<td>Frost Wand reduces shown attack; Convergence Staff needs owner sequence before burst.</td>
+</tr>
+<tr>
+<td>Barbarian (1/2)</td>
+<td>Burst channel through real HP damage, exploit rage/vent exposure; low-HP build must defend against telegraphed front strike rather than pay HP recklessly.</td>
+<td>Scar Axe actual payment, Defiant Hide low-HP block, Gallows Cleaver finite finish.</td>
+</tr>
+<tr>
+<td>Ranger (2/3/4)</td>
+<td>Focus back support, mark exposed boss, push Stalker to prepare own line; traps reward actual movement but anchored boss remains damageable.</td>
+<td>Barbed Bow mark; Trail Mantle escapes rank zones; Ironwood displacement interrupts a caster.</td>
+</tr>
+<tr>
+<td>Necromancer (3/4)</td>
+<td>Poison through block, spend sacrificial card for defense during finale, use bounded add deaths to increase later AoE. No endless revival payoff.</td>
+<td>Grave Needle attrition; Ossuary Wrap finite defense; Black Reliquary counts capped unique deaths.</td>
+</tr>
+<tr>
+<td>Paladin (1/2)</td>
+<td>Guard rear targets and earn Oath, retain block for telegraphed burst, choose whether spending block on Verdict leaves wearer exposed.</td>
+<td>Wardkeeper Plate interception, Oath Seal bounded payoff, Last Light risk trade.</td>
+</tr>
+</tbody>
+</table>
+<p>No encounter requires a particular cleanse/guard item. Reach-capable ordinary class cards, damage focus, block or killing adds must offer at least two distinct responses. Test all70 four-distinct-class parties, plus duplicate-class legal cases. Do not claim all parties equally strong; reject encounters with legal-action impossibility or routine unavoidable full-health death before a teachable response.</p>
+<h2>Map pools and backlog 51–70 delivery</h2>
+<table>
+<thead>
+<tr>
+<th>Backlog</th>
+<th>Exact delivery and completion evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>51</td>
+<td>Shield Patrol with enemy guard implementation; browser guard tether and AoE/push counter tests.</td>
+</tr>
+<tr>
+<td>52</td>
+<td>Executioner Measure→Judgment; named wounded rear target stays committed through movement/save, guard rescue test.</td>
+</tr>
+<tr>
+<td>53</td>
+<td>Plague Choir two-turn interruptible ritual; damage and displacement interrupt independently verified.</td>
+</tr>
+<tr>
+<td>54</td>
+<td>Brood Nest finite new summons; blocked cap produces B3 and never fifth actor.</td>
+</tr>
+<tr>
+<td>55</td>
+<td>Nursery three-charge selective healer; focus/reach denial and no infinite heal loop.</td>
+</tr>
+<tr>
+<td>56</td>
+<td>Ragebound Knight vulnerable recovery; delaying burst beats spending it into windup in paired fixture.</td>
+</tr>
+<tr>
+<td>57</td>
+<td>Formation Hunter rank zones; actual rank movement changes struck occupant, portrait-target attacks do not.</td>
+</tr>
+<tr>
+<td>58</td>
+<td>All three act bosses threshold/pending cycle implementation; crossing two thresholds and save restoration.</td>
+</tr>
+<tr>
+<td>59</td>
+<td>Lich/Queen/Regent consumption target and finite spawn economy; add kill denies exact benefit.</td>
+</tr>
+<tr>
+<td>60</td>
+<td>All boss finales one full nonattacking tell; preserved limited defenses can mitigate them.</td>
+</tr>
+<tr>
+<td>61</td>
+<td>Three acts carry HP/deck/equipment/identity; no free restore/reset at transition.</td>
+</tr>
+<tr>
+<td>62</td>
+<td>The three separate pools above, including two elites and one boss per act. Alternate bosses are later content, not filler required to claim this catalog.</td>
+</tr>
+<tr>
+<td>63</td>
+<td>Act1 two early safe choices and one late elite fork; act2 poison/recovery branches; act3 two distinct preparation routes converging at camp. Route planner owns exact graph.</td>
+</tr>
+<tr>
+<td>64</td>
+<td>Reveal selected act boss and major mechanic at act entrance, before first node choice; no boss reroll after reload.</td>
+</tr>
+<tr>
+<td>65</td>
+<td>Elite victory guarantees one compatible permanent gear choice from three unowned common/uncommon-or-better options plus normal gold; duplicate-saturated pool gives exact salvage alternative. Economy planner owns final rarity weights.</td>
+</tr>
+<tr>
+<td>66</td>
+<td>No identical group within last three fights; no same dominant support mechanic twice consecutively; deterministic finite filtered selection with least-recent fallback, never reroll forever.</td>
+</tr>
+<tr>
+<td>67</td>
+<td>One optional elite→treasure branch per act that bypasses rest; show encounter tier and reward type before committing; treasure permanent gear/salvage, not gold-bought rental.</td>
+</tr>
+<tr>
+<td>68</td>
+<td>Final camp offers mutually exclusive ordinary rest or finite earned boss ward (6 block each at first boss turn), free choice, no gold; do not introduce stress chores.</td>
+</tr>
+<tr>
+<td>69</td>
+<td>Transition choose earned blessing: +1 opening energy but opening draw4; +2 draw first turn but -1 opening energy; or heal each survivor8 but no blessing. Exact other-effect timing owned by progression implementer; no paid temporary effect.</td>
+</tr>
+<tr>
+<td>70</td>
+<td>First three ascensions: normal enemies HP+10%; then elite direct single-hit+1 (multi/AoE total budget+1 distributed deterministically); then boss first-phase block+3. Cumulative, visible, no hidden target intelligence. Record modifiers separately; unlock only after full expedition victory.</td>
+</tr>
+</tbody>
+</table>
+<h2>Implementation order and acceptance</h2>
+<ol>
+<li>Build authored scaling and explicit enemy instance fields; regression old encounters unchanged. Add cycle/target/zone contracts, saved counters and render previews before content. Implement guard, finite ally heal/buff and channel primitives. Convert Patrol/Executioner/Choir and one representative fullscreen fixture.</li>
+<li>Add real finite summon lifecycle, phase queue and consumption. Convert Brood and Lich; test save at each transition and summon cap. Then add ActII and ActIII definitions using those same hooks, without bespoke alternate combat engines.</li>
+<li>Integrate seeded act pools/history, reward offer persistence and actual full route driver. Commit raw source data locally to private archives; publish only game runtime. Every tester identifies human name, AI exact model/version/effort or scripted policy/version, with unknown metadata explicitly labeled.</li>
+<li>Measure same-seed paired runs across current neutral and proposed class/item builds. Minimum initial smoke: all70 parties × five normals per act ×10 seeds; then500 seeds per elite/boss per representative engine, no-gear/common/specialist loadouts. Run bounded background batches with max turns60, max actions100 per turn, and report guard exhaustion as failure, never victory. Ordinary nodes target median3–6 turns, elites5–9, bosses7–12; investigate95th percentile&gt;15. These are hypothesis thresholds, not evidence of achieved tuning.</li>
+<li>Initial investigation bands: first two normal nodes &lt;5% full-health party wipes under tactician; no full-health Wizard killed by first enemy round absent explicit player HP payment; normal party HP loss median5–18%; elites12–30%; boss20–45%. Report confidence intervals and individual hero loss, not pooled HP alone. High-risk parties may diverge; retain all failed runs and explain outliers rather than deleting them. Beginner/scripted bad-play losses remain valid, attributed evidence rather than balance proof.</li>
+<li>Log encounter/act/seed/build hash, visible observations given policy, all offered/legal actions, chosen action, intent reveal/revision reason, predicted versus actual damage, guard redirects, blocked/HP damage, poison ticks, damage by source/item/owner, phase boundaries, summon/death/consume IDs, lost turns from launch gates, gold/gear outcomes and boss HP when first hero died. Diagnostic full state may include hidden RNG, but policy observation never does. Archive schema distinguishes both.</li>
+<li>Human acceptance is separate: can Joel understand the threatening move without opening a long tooltip; does a saved card produce a satisfying payoff; does changing formation feel worth its energy; does a boss change rhythm visibly? Automated win rate alone proves none of these. A 15–20 minute first-act test follows verified live deployment, with recording identity confirmed and export/collection route explained accurately.</li>
+</ol>
+<p>The plan is complete as a bounded proposal: 19 normal/support definitions (including two summon types), six elite encounters, three multi-phase bosses, fifteen authored normal groups and explicit required hooks. Implementation, balance evidence, art review and live demo verification remain outstanding.</p></body></html>

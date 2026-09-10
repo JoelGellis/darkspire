@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8"><title>Darkspire isolated archive verification</title>
+<script>
+(async function () {
+  const html = await (await fetch('../index.html')).text();
+  const manual = new URLSearchParams(location.search).has('manual');
+  const isolation = `<base href="../"><script>
+    const nativeLocal = localStorage, nativeSession = sessionStorage;
+    const persistentTest = ${manual};
+    window.__archiveTestStore = new Map();
+    const testSession = new Map();
+    if (persistentTest) for(let i=0;i<nativeLocal.length;i++){const key=nativeLocal.key(i);if(key.startsWith('isolated_manual:'))__archiveTestStore.set(key.slice(16),nativeLocal.getItem(key));}
+    Object.defineProperty(window,'sessionStorage',{value:{getItem:k=>persistentTest?nativeSession.getItem('isolated_manual:'+k):testSession.get(k)||null,setItem:(k,v)=>persistentTest?nativeSession.setItem('isolated_manual:'+k,String(v)):testSession.set(k,String(v)),removeItem:k=>persistentTest?nativeSession.removeItem('isolated_manual:'+k):testSession.delete(k)}});
+    Object.defineProperty(window,'localStorage',{value:{get length(){return __archiveTestStore.size},key:i=>[...__archiveTestStore.keys()][i]||null,getItem:k=>__archiveTestStore.get(k)||null,setItem:(k,v)=>{__archiveTestStore.set(k,String(v));if(persistentTest)nativeLocal.setItem('isolated_manual:'+k,String(v));},removeItem:k=>{__archiveTestStore.delete(k);if(persistentTest)nativeLocal.removeItem('isolated_manual:'+k);}}});
+    const nativeOpen = indexedDB.open.bind(indexedDB);
+    indexedDB.open = (name, version)=>nativeOpen(name+'-isolated-test',version);
+  <\/script>`;
+  document.open();
+  document.write(html.replace('<head>','<head>'+isolation).replace('</body>',manual ? '</body>' : '<script src="tests/telemetry-browser.js"><\/script></body>'));
+  document.close();
+})();
+</script>

@@ -3266,3 +3266,410 @@ body {
   cursor: default;
   pointer-events: none;
 }
+
+/* ===== CAMPFIRE (stagecoach / party select) =====
+   Outside-run aesthetic pillar: Darkest Dungeon — near-black, gothic,
+   one warm flickering light source. Heroes arc around the fire;
+   click order = battle positions 1-4. */
+
+.campfire-screen {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px 100px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 62%, rgba(120, 60, 15, 0.18), transparent 70%),
+    radial-gradient(ellipse 120% 90% at 50% 110%, #120a06 0%, transparent 60%),
+    var(--bg-darkest);
+}
+
+/* Vignette — darkness closes in at the edges */
+.campfire-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background: radial-gradient(ellipse 85% 75% at 50% 55%, transparent 55%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+/* Firelight cast over the whole scene — two layers, offset flicker */
+.campfire-glow {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 900px;
+  height: 620px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 50%;
+}
+.campfire-glow-a {
+  background: radial-gradient(circle, rgba(255, 140, 40, 0.14) 0%, rgba(200, 90, 20, 0.06) 40%, transparent 70%);
+  animation: campfire-flicker-a 3.1s ease-in-out infinite;
+}
+.campfire-glow-b {
+  background: radial-gradient(circle, rgba(255, 180, 80, 0.10) 0%, transparent 55%);
+  animation: campfire-flicker-b 2.3s ease-in-out infinite;
+}
+@keyframes campfire-flicker-a {
+  0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+  18%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.05); }
+  43%      { opacity: 0.7;  transform: translate(-50%, -50%) scale(0.96); }
+  61%      { opacity: 0.95; transform: translate(-50%, -50%) scale(1.03); }
+  82%      { opacity: 0.78; transform: translate(-50%, -50%) scale(0.98); }
+}
+@keyframes campfire-flicker-b {
+  0%, 100% { opacity: 0.6; }
+  27%      { opacity: 1; }
+  55%      { opacity: 0.5; }
+  76%      { opacity: 0.9; }
+}
+
+/* Title */
+.campfire-header { position: relative; z-index: 4; text-align: center; margin-bottom: 8px; }
+.campfire-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 16px;
+  margin: 0;
+  color: #d8c8b8;
+  text-shadow:
+    0 0 24px rgba(255, 140, 40, 0.35),
+    0 0 60px rgba(200, 90, 20, 0.2),
+    0 2px 3px #000;
+  animation: campfire-title-glow 4s ease-in-out infinite;
+}
+@keyframes campfire-title-glow {
+  0%, 100% { text-shadow: 0 0 24px rgba(255,140,40,0.35), 0 0 60px rgba(200,90,20,0.2), 0 2px 3px #000; }
+  50%      { text-shadow: 0 0 34px rgba(255,160,60,0.5),  0 0 80px rgba(200,90,20,0.3), 0 2px 3px #000; }
+}
+.campfire-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.campfire-gold {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  z-index: 5;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 1px 2px #000;
+}
+
+/* Hero arc around the fire */
+.campfire-arc {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 26px;
+  max-width: 1100px;
+}
+
+.campfire-hero {
+  position: relative;
+  width: 132px;
+  padding: 12px 10px 10px;
+  border-radius: 8px;
+  border: 2px solid rgba(90, 70, 50, 0.35);
+  background: linear-gradient(180deg, rgba(26, 18, 12, 0.92), rgba(12, 8, 6, 0.95));
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.2s, filter 0.2s;
+  filter: brightness(0.82);
+}
+.campfire-hero:hover {
+  filter: brightness(1);
+  border-color: rgba(200, 140, 60, 0.6);
+}
+.campfire-hero-selected {
+  filter: brightness(1.08);
+  border-color: var(--gold);
+  box-shadow:
+    0 0 18px rgba(255, 150, 50, 0.3),
+    0 0 40px rgba(200, 100, 20, 0.15),
+    inset 0 0 20px rgba(255, 150, 50, 0.06);
+}
+
+.campfire-pos-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f0d080, var(--gold) 50%, #8a6520);
+  border: 2px solid #5a4010;
+  color: #2a1c08;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 22px;
+  z-index: 5;
+  box-shadow: 0 0 10px rgba(255, 180, 80, 0.5);
+}
+
+.campfire-hero-sprite {
+  display: flex;
+  justify-content: center;
+  min-height: 76px;
+  align-items: flex-end;
+  margin-bottom: 6px;
+}
+.campfire-hero-sprite .sprite { animation: none; }
+.campfire-hero-selected .campfire-hero-sprite .sprite { animation: sprite-idle 2.5s ease-in-out infinite; }
+
+.campfire-hero-name { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; }
+.campfire-hero-class {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 3px;
+}
+.campfire-hero-hp { font-size: 12px; color: #b8a890; }
+.campfire-hero-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #6a5a48;
+  margin-top: 3px;
+}
+.campfire-tag-veteran { color: var(--gold-dim); letter-spacing: 2px; }
+.campfire-tag-recruit { color: #7a9a6a; }
+.campfire-hero-flavor {
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: #7a6a58;
+  margin-top: 5px;
+  min-height: 28px;
+}
+
+/* The fire itself */
+.campfire-fire {
+  position: relative;
+  z-index: 2;
+  width: 120px;
+  height: 90px;
+  margin-top: 18px;
+}
+.fire-flame {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%;
+  transform-origin: 50% 100%;
+  filter: blur(2px);
+}
+.fire-flame-back {
+  width: 54px; height: 66px;
+  margin-left: -27px;
+  background: radial-gradient(ellipse at 50% 85%, #ff7a20 0%, #c83c10 55%, transparent 80%);
+  animation: fire-dance 1.7s ease-in-out infinite;
+}
+.fire-flame-mid {
+  width: 38px; height: 52px;
+  margin-left: -19px;
+  background: radial-gradient(ellipse at 50% 85%, #ffb840 0%, #f07018 60%, transparent 82%);
+  animation: fire-dance 1.3s ease-in-out infinite reverse;
+}
+.fire-flame-front {
+  width: 20px; height: 32px;
+  margin-left: -10px;
+  background: radial-gradient(ellipse at 50% 85%, #ffe890 0%, #ffb030 65%, transparent 85%);
+  animation: fire-dance 0.9s ease-in-out infinite;
+}
+@keyframes fire-dance {
+  0%, 100% { transform: scaleY(1) scaleX(1) skewX(0deg); opacity: 0.95; }
+  25%      { transform: scaleY(1.12) scaleX(0.94) skewX(2.5deg); opacity: 1; }
+  50%      { transform: scaleY(0.92) scaleX(1.06) skewX(-2deg); opacity: 0.85; }
+  75%      { transform: scaleY(1.06) scaleX(0.97) skewX(1.5deg); opacity: 1; }
+}
+.fire-log {
+  position: absolute;
+  bottom: 8px;
+  width: 58px;
+  height: 11px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #4a3020, #241408);
+  box-shadow: inset 0 -2px 3px rgba(0,0,0,0.6);
+}
+.fire-log-l { left: 12px; transform: rotate(12deg); }
+.fire-log-r { right: 12px; transform: rotate(-12deg); }
+
+.campfire-hint {
+  position: relative;
+  z-index: 4;
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 14px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* Party order bar */
+.campfire-party {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+.campfire-slot {
+  width: 128px;
+  padding: 8px 10px;
+  border: 2px solid rgba(90, 70, 50, 0.4);
+  border-radius: 6px;
+  background: rgba(14, 10, 8, 0.85);
+  text-align: center;
+}
+.campfire-slot-empty { border-style: dashed; opacity: 0.55; }
+.campfire-slot-pos {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #6a5a48;
+  margin-bottom: 2px;
+}
+.campfire-slot-name { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700; color: #5a4a3a; }
+
+/* Buttons */
+.campfire-buttons {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  gap: 14px;
+  margin-top: 18px;
+  align-items: center;
+}
+.campfire-btn-descend {
+  padding: 14px 44px;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #f0dcb0;
+  background: linear-gradient(180deg, #4a2810, #2a1408);
+  border: 2px solid var(--gold-dim);
+  cursor: pointer;
+}
+.campfire-btn-descend:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(255, 150, 50, 0.35);
+  background: linear-gradient(180deg, #5c3414, #34180a);
+}
+.campfire-btn-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+.campfire-btn-disabled:hover { border-color: var(--gold-dim); background: linear-gradient(180deg, #4a2810, #2a1408); }
+.campfire-btn-town {
+  padding: 11px 26px;
+  font-size: 13px;
+  color: #a89880;
+  background: rgba(20, 14, 10, 0.9);
+  border: 2px solid rgba(90, 70, 50, 0.5);
+  cursor: pointer;
+}
+.campfire-btn-town:hover { border-color: #8a6a40; color: #d8c8a8; }
+.campfire-btn-resume {
+  padding: 11px 26px;
+  font-size: 13px;
+  color: #a8d0a0;
+  background: rgba(14, 24, 12, 0.9);
+  border: 2px solid #2a5e2a;
+  cursor: pointer;
+}
+.campfire-btn-resume:hover { border-color: #3a8e3a; }
+
+/* The Fallen — gravestones at the edge of the light */
+.campfire-graves {
+  position: relative;
+  z-index: 4;
+  margin-top: 26px;
+  text-align: center;
+}
+.campfire-graves-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #4a4050;
+  margin-bottom: 8px;
+}
+.campfire-graves-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: flex-end;
+}
+.campfire-grave { opacity: 0.55; }
+.campfire-grave-stone {
+  width: 26px;
+  height: 34px;
+  margin: 0 auto 4px;
+  border-radius: 13px 13px 2px 2px;
+  background: linear-gradient(180deg, #3a3542, #221e2a);
+  border: 1px solid #4a4455;
+  position: relative;
+}
+.campfire-grave-stone::after {
+  content: '\2020'; /* dagger cross */
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #5a5468;
+}
+.campfire-grave-name {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #4a4455;
+  text-transform: uppercase;
+}
+.campfire-grave-more {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: #4a4455;
+  padding-bottom: 6px;
+}
+
+/* Injury tag slot on campfire hero cards (display-only; logic is a future system) */
+.campfire-hero-injury {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--crimson);
+  border: 1px solid var(--crimson-dim);
+  border-radius: 3px;
+  padding: 1px 6px;
+  display: inline-block;
+  margin-top: 4px;
+}

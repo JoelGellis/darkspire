@@ -3,3 +3,6 @@
 .DS_Store
 assets/source/**/*.tmp
 assets/source/**/*.bak
+.release/
+private-run-data/
+sims/logs/

@@ -47,13 +47,14 @@ DS.State = {
       }
       if (!def) return;
 
-      var veteranBonus = (entry.runsSurvived || 0) * 5;
+      var rosterHero = DS.Meta && entry.rosterIndex !== undefined ? DS.Meta.heroRoster[entry.rosterIndex] : null;
+      var veteranBonus = ((rosterHero || entry).runsSurvived || 0) * 5;
       var chapelBonus = (DS.Meta && DS.Meta.getChapelBonus) ? DS.Meta.getChapelBonus() : 0;
-      var maxHp = def.maxHp + veteranBonus + chapelBonus;
+      var maxHp = Math.max(1, def.maxHp + veteranBonus + chapelBonus - (DS.Meta && DS.Meta.getInjuryPenalty ? DS.Meta.getInjuryPenalty(rosterHero || entry) : 0));
 
       DS.State.run.heroes.push({
         id: 'hero_' + runIdx,
-        name: def.name,
+        name: (rosterHero && rosterHero.name) || def.name,
         cls: def.cls,
         hp: maxHp,
         maxHp: maxHp,
@@ -70,46 +71,16 @@ DS.State = {
       });
     });
 
-    // Build starting deck from run heroes
+    // Resolve the actual selected character, never a different veteran of the same class.
     var heroList = DS.State.run.heroes.map(function(h, i) {
-      return { cls: h.cls, heroIdx: i };
+      var entry = entries[i];
+      var rh = DS.Meta && entry.rosterIndex !== undefined ? DS.Meta.heroRoster[entry.rosterIndex] : entry;
+      return { cls: h.cls, heroIdx: i, kit: rh && rh.kit, upgradedCards: rh && rh.upgradedCards };
     });
     DS.State.run.deck = DS.Cards.buildStartingDeck(heroList);
+    if (DS.Gear) DS.Gear.applyLoadout(DS.State.run, entries.map(function(e) { return e.rosterIndex; }), DS.State._selectedArtifacts || []);
+    DS.State._selectedArtifacts = [];
 
-    // Apply blacksmith upgrades from roster
-    if (DS.Meta && DS.Meta.heroRoster) {
-      entries.forEach(function(entry, runIdx) {
-        var rosterHero = null;
-        if (entry.rosterIndex !== undefined && entry.rosterIndex !== null) {
-          rosterHero = DS.Meta.heroRoster[entry.rosterIndex];
-        } else {
-          // Fallback: match by class
-          for (var r = 0; r < DS.Meta.heroRoster.length; r++) {
-            if (DS.Meta.heroRoster[r].heroClass === entry.heroClass) {
-              rosterHero = DS.Meta.heroRoster[r];
-              break;
-            }
-          }
-        }
-        if (!rosterHero || !rosterHero.upgradedCards || !rosterHero.upgradedCards.length) return;
-
-        DS.State.run.deck.forEach(function(card) {
-          if (card.heroIdx === runIdx && rosterHero.upgradedCards.indexOf(card.baseId) !== -1 && !card.upgraded) {
-            card.upgraded = true;
-            card.name = card.name + '+';
-            if (card.value) {
-              var oldVal = card.value;
-              card.value = Math.ceil(oldVal * 1.5);
-              card.desc = card.desc.replace(String(oldVal), String(card.value));
-              // Rebind effect with upgraded value
-              if (DS.UI && DS.UI.rebindCardEffect) {
-                DS.UI.rebindCardEffect(card, card.value);
-              }
-            }
-          }
-        });
-      });
-    }
   },
 
   // Set up combat state from run heroes + enemy pool
@@ -220,38 +191,18 @@ DS.State = {
     if (!DS.State.run) return;
     try {
       var run = DS.State.run;
+      if (DS.State.combat && (DS.State.combat.animating || DS.State.combat.gameOver)) return false;
+      var serializedRun = Object.assign({}, run, { relics: undefined, relicIds: (run.relics || []).map(function(r) { return r.id; }) });
       var saveData = {
-        version: 1,
-        timestamp: Date.now(),
-        screen: DS.State.screen,
-        stats: DS.State.stats,
-        run: {
-          heroes: run.heroes,
-          gold: run.gold,
-          startGold: run.startGold || 0,
-          floor: run.floor,
-          currentNode: run.currentNode,
-          map: run.map,
-          startTime: run.startTime || Date.now(),
-          visitedEvents: run.visitedEvents || [],
-          // Serialize deck: strip functions, keep what we need to rebuild
-          deck: run.deck.map(function(c) {
-            return {
-              id: c.id,
-              baseId: c.baseId,
-              upgraded: c.upgraded || false,
-              heroIdx: c.heroIdx,
-              heroCls: c.heroCls
-            };
-          }),
-          // Serialize relics: just IDs
-          relicIds: (run.relics || []).map(function(r) { return r.id; })
-        },
-        // Roster mapping for summary screen
+        version: 2, timestamp: Date.now(), screen: DS.State.screen, stats: DS.State.stats,
+        run: serializedRun,
+        combat: DS.State.screen === 'combat' ? DS.State.combat : null,
+        comboTriggers: DS.Combat.COMBOS.map(function(c) { return !!c._triggered; }),
         _runRosterMap: DS.State._runRosterMap || null,
         selectedHeroes: DS.State.selectedHeroes || null
       };
       localStorage.setItem('darkspire_save', JSON.stringify(saveData));
+      return true;
     } catch(e) {
       console.warn('Failed to save:', e);
     }
@@ -277,31 +228,30 @@ DS.State = {
       // Validate shape
       if (!data.run || !data.run.heroes || !data.run.deck) return false;
 
-      // Restore simple state
+      var rehydratePile = function(pile) {
+        if (!Array.isArray(pile)) throw new Error('Invalid saved card pile');
+        return pile.map(function(saved) {
+          var card = DS.State._rehydrateCard(saved);
+          if (!card) throw new Error('Unknown saved card: ' + saved.baseId);
+          return card;
+        });
+      };
+      var restoredRun = Object.assign({}, data.run, { deck: rehydratePile(data.run.deck), relics: [] });
+      var restoredCombat = null;
+      if (data.screen === 'combat') {
+        if (!data.combat || data.combat.animating || data.combat.gameOver || !Array.isArray(data.combat.enemies)) return false;
+        restoredCombat = Object.assign({}, data.combat);
+        ['hand','drawPile','discardPile','exhaustPile'].forEach(function(pile) { restoredCombat[pile] = rehydratePile(data.combat[pile]); });
+        if (restoredCombat._lastAttacker) restoredCombat._lastAttacker = restoredRun.heroes.find(function(h) { return h.id === restoredCombat._lastAttacker.id; }) || null;
+        restoredCombat._lastAttackingEnemy = null;
+      }
       DS.State.screen = data.screen || 'map';
       DS.State.stats = data.stats || { floorsCleared: 0, enemiesSlain: 0, cardsCollected: 0 };
       DS.State._runRosterMap = data._runRosterMap || null;
       DS.State.selectedHeroes = data.selectedHeroes || null;
-
-      // Restore run
-      DS.State.run = {
-        heroes: data.run.heroes,
-        gold: data.run.gold || 0,
-        startGold: data.run.startGold || 0,
-        floor: data.run.floor || 0,
-        currentNode: data.run.currentNode || null,
-        map: data.run.map || null,
-        startTime: data.run.startTime || Date.now(),
-        visitedEvents: data.run.visitedEvents || [],
-        deck: [],
-        relics: []
-      };
-
-      // Rehydrate deck — rebuild card objects from definitions
-      data.run.deck.forEach(function(saved) {
-        var card = DS.State._rehydrateCard(saved);
-        if (card) DS.State.run.deck.push(card);
-      });
+      DS.State.run = restoredRun;
+      DS.State.combat = restoredCombat;
+      DS.Combat.COMBOS.forEach(function(c,i) { c._triggered = !!(data.comboTriggers && data.comboTriggers[i]); });
 
       // Rehydrate relics — look up full objects from DS.Relics
       (data.run.relicIds || []).forEach(function(relicId) {
@@ -310,7 +260,7 @@ DS.State = {
       });
 
       // Clear the save (mid-run saves are consumed on load — roguelike)
-      DS.State.deleteRunSave();
+      // Retain the durable checkpoint until another settled action replaces it.
 
       return true;
     } catch(e) {
@@ -326,7 +276,7 @@ DS.State = {
     if (!heroCls || !baseId) return null;
 
     // Find the card definition
-    var cardDefs = DS.Cards[heroCls];
+    var cardDefs = baseId.indexOf('tactical_') === 0 ? DS.Cards.tactical : DS.Cards[heroCls];
     if (!cardDefs) return null;
 
     var def = null;
@@ -345,7 +295,7 @@ DS.State = {
     }
 
     // Clone the card
-    var card = {
+    var card = Object.assign({}, saved, {
       id: saved.id,
       baseId: def.id,
       name: def.name,
@@ -360,22 +310,11 @@ DS.State = {
       heroCls: heroCls,
       heroName: heroDef ? heroDef.name : heroCls,
       upgraded: false
-    };
+    });
 
-    // Re-apply upgrade if it was upgraded
-    if (saved.upgraded) {
-      card.upgraded = true;
-      card.name = card.name + '+';
-      if (card.value) {
-        var oldVal = card.value;
-        card.value = Math.ceil(oldVal * 1.5);
-        card.desc = card.desc.replace(String(oldVal), String(card.value));
-        // Rebind effect with upgraded value
-        if (DS.UI && DS.UI.rebindCardEffect) {
-          DS.UI.rebindCardEffect(card, card.value);
-        }
-      }
-    }
+    ['reach','innate','retain','ethereal','unplayable','exhaust','xCost','temporary'].forEach(function(key) { if (def[key] !== undefined) card[key] = def[key]; });
+    ['_turnCost','_combatCost'].forEach(function(key) { if (saved[key] !== undefined) card[key] = saved[key]; });
+    if (saved.upgraded) DS.Cards.applyUpgrade(card);
 
     return card;
   },

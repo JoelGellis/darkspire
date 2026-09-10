@@ -1,0 +1,30 @@
+name: Verified incremental game demo
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: darkspire-pages
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check and assemble allowlisted game
+        id: build
+        run: node scripts/build-release.js
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.build.outputs.path }}
+      - name: Deploy verified artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

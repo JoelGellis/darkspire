@@ -23,7 +23,7 @@ const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
 for (const script of scripts) vm.runInContext(fs.readFileSync(path.join(root,script),'utf8'),context,{filename:script});
 const {DS} = context;
 DS.UI.render = noop;
-DS.Meta.newGame();
+DS.PlayerIdentity.set({type:'scripted',policy:'regression-suite',policyVersion:'1'}); DS.Meta.newGame();
 DS.Campfire._buildOffer();
 const offer = DS.Campfire._offer;
 assert.ok(offer.length >= 4, 'fresh campaign can field four');

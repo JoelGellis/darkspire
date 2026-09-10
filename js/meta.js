@@ -9,7 +9,11 @@ DS.Meta = {
   buildings: {},
   graveyard: [],
   unlocks: [],
-  ownedGear: [],   // gear/artifacts bought from the merchant; equipping is Phase 5 (loadout)
+  ownedGear: [],      // gear/artifact ids the PLAYER owns (see data/gear.js)
+  merchantLevel: 0,   // town merchant upgrade tier (0-3) — gates stock quality
+  lostGear: [],       // ledger of gear lost to death/wipes: {itemId, heroName, cause, runNumber}
+                      // v1: lost stays lost — the ledger enables a future
+                      // "rebuy lost gear from the merchant" softener
 
   // Building config (not persisted — reference only)
   _buildingConfig: {
@@ -18,14 +22,173 @@ DS.Meta = {
     graveyard: { maxLevel: 3, costs: [40, 80, 120] }
   },
 
+  // ===== CHARACTER SYSTEM: CLASS KITS =====
+  // Every recruit ROLLS their base kit: 3 CORE cards (always the same) +
+  // 1 SIGNATURE card rolled from the class's signature pool. The starting
+  // deck carries 2 copies of each kit card (8 cards), same size as before.
+  // Kit cards are the character's identity — they are NEVER offered in
+  // rewards or shops (see DS.Cards.isBaseKitCard / getRewardPool).
+  // `positions` is informational (for campfire/roster UI), derived from the
+  // class's card prefPos ranges — it does not gate anything itself.
+  CLASS_KITS: {
+    fighter: {
+      flavor: 'An iron wall with a sword arm. Holds the line so others can work.',
+      positions: [1, 2],
+      core: ['fighter_strike', 'fighter_shield_block', 'fighter_heavy_blow'],
+      signatures: [
+        { id: 'fighter_rally', variant: 'Warlord' },
+        { id: 'fighter_taunt', variant: 'Bulwark' }
+      ]
+    },
+    rogue: {
+      flavor: 'Strikes from the seams of the fight, then is somewhere else.',
+      positions: [2, 3],
+      core: ['rogue_backstab', 'rogue_evade', 'rogue_throwing_knife'],
+      signatures: [
+        { id: 'rogue_shadow_step', variant: 'Shadowdancer' },
+        { id: 'rogue_poison_blade', variant: 'Venomblade' }
+      ]
+    },
+    cleric: {
+      flavor: 'Mends flesh and turns wrath aside. The party lives while the cleric stands.',
+      positions: [3, 4],
+      core: ['cleric_smite', 'cleric_divine_shield', 'cleric_heal'],
+      signatures: [
+        { id: 'cleric_bless', variant: 'Shepherd' },
+        { id: 'cleric_holy_fire', variant: 'Zealot' }
+      ]
+    },
+    wizard: {
+      flavor: 'Fragile, brilliant, catastrophic. Keep the enemy far away and the spells flowing.',
+      positions: [4],
+      core: ['wizard_magic_missile', 'wizard_arcane_ward', 'wizard_fireball'],
+      signatures: [
+        { id: 'wizard_arcane_intellect', variant: 'Scholar' },
+        { id: 'wizard_frost_nova', variant: 'Frostcaller' }
+      ]
+    },
+    barbarian: {
+      flavor: 'Pain is fuel. The lower the blood runs, the harder the axe falls.',
+      positions: [1],
+      core: ['barbarian_savage_strike', 'barbarian_tough_skin', 'barbarian_reckless_charge'],
+      signatures: [
+        { id: 'barbarian_blood_rage', variant: 'Berserker' },
+        { id: 'barbarian_rampage', variant: 'Ravager' }
+      ]
+    },
+    ranger: {
+      flavor: 'Reads the field like a trail. Every shot is placed, every trap is waiting.',
+      positions: [2, 3],
+      core: ['ranger_quick_shot', 'ranger_dodge_roll', 'ranger_aimed_shot'],
+      signatures: [
+        { id: 'ranger_snare_trap', variant: 'Trapper' },
+        { id: 'ranger_poison_arrow', variant: 'Venom Archer' }
+      ]
+    },
+    necromancer: {
+      flavor: 'Borrows life from the dying and lends it to the living. At interest.',
+      positions: [3, 4],
+      core: ['necromancer_life_drain', 'necromancer_shadow_bolt', 'necromancer_bone_shield'],
+      signatures: [
+        { id: 'necromancer_hex', variant: 'Cursebinder' },
+        { id: 'necromancer_blight', variant: 'Plaguebringer' }
+      ]
+    },
+    paladin: {
+      flavor: 'Faith with a shield rim. Stands where the hurt is and gives it back.',
+      positions: [1, 2],
+      core: ['paladin_holy_strike', 'paladin_shield_of_faith', 'paladin_lay_on_hands'],
+      signatures: [
+        { id: 'paladin_righteous_blow', variant: 'Crusader' },
+        { id: 'paladin_retribution', variant: 'Sentinel' }
+      ]
+    }
+  },
+
+  // Roll a base kit for a class: core cards + one rolled signature.
+  // Returns an array of card baseIds (deck builder makes 2 copies of each).
+  rollKit: function(heroClass) {
+    var spec = DS.Meta.CLASS_KITS[heroClass];
+    if (!spec) {
+      // Unknown class: fall back to the classic 4 starters
+      var cards = DS.Cards[heroClass] || [];
+      return cards.slice(0, 4).map(function(c) { return c.id; });
+    }
+    var sig = spec.signatures[Math.floor(Math.random() * spec.signatures.length)];
+    return spec.core.concat([sig.id]);
+  },
+
+  // Generate a fresh level-1 recruit with a rolled kit. Does NOT push to the
+  // roster or save — callers (campfire, caravan) decide what to do with it.
+  // Arg forms: undefined -> any unlocked class; string -> that class;
+  // array -> any unlocked class NOT in the list (the campfire's exclude form).
+  rollRecruit: function(heroClass) {
+    var cls = heroClass;
+    if (!cls || Object.prototype.toString.call(cls) === '[object Array]') {
+      var exclude = cls || [];
+      var pool = DS.Meta.getUnlockedClasses().filter(function(c) {
+        return exclude.indexOf(c) === -1;
+      });
+      if (!pool.length) return null;
+      cls = pool[Math.floor(Math.random() * pool.length)];
+    }
+    return {
+      heroClass: cls,
+      alive: true,
+      runsSurvived: 0,
+      level: 1,
+      xp: 0,
+      injury: null,
+      kit: DS.Meta.rollKit(cls),
+      upgradedCards: [],
+      gear: DS.Meta._emptyGearSlots()
+    };
+  },
+
+  // Variant label for a roster entry's rolled signature (for UI display).
+  getKitVariant: function(rosterHero) {
+    if (!rosterHero || !rosterHero.kit) return null;
+    var spec = DS.Meta.CLASS_KITS[rosterHero.heroClass];
+    if (!spec) return null;
+    for (var i = 0; i < spec.signatures.length; i++) {
+      if (rosterHero.kit.indexOf(spec.signatures[i].id) !== -1) {
+        return spec.signatures[i].variant;
+      }
+    }
+    return null;
+  },
+
+  // Backfill character-system fields on a roster entry (older saves).
+  // Legacy heroes get the classic 4-starter kit — exactly the deck they
+  // already had — so nothing changes out from under an existing save.
+  _backfillRosterEntry: function(h) {
+    if (h.alive === undefined) h.alive = true;
+    if (!h.upgradedCards) h.upgradedCards = [];
+    if (typeof h.runsSurvived !== 'number') h.runsSurvived = 0;
+    if (typeof h.level !== 'number') h.level = 1;
+    if (typeof h.xp !== 'number') h.xp = 0;
+    if (h.injury === undefined) h.injury = null;
+    if (!h.kit || !h.kit.length) {
+      var cards = DS.Cards[h.heroClass] || [];
+      h.kit = cards.slice(0, 4).map(function(c) { return c.id; });
+    }
+  },
+
   // ===== SAVE / LOAD =====
+
+  // Empty per-hero gear slot map (weapon / armor / 2 trinkets — see data/gear.js)
+  _emptyGearSlots: function() {
+    return (DS.Gear && DS.Gear._emptySlots)
+      ? DS.Gear._emptySlots()
+      : { weapon: null, armor: null, trinket: null, trinket2: null };
+  },
 
   newGame: function() {
     DS.Meta.gold = 60;
     DS.Meta.runCount = 0;
     DS.Meta.heroRoster = [
-      { heroClass: 'fighter', alive: true, runsSurvived: 0, upgradedCards: [] },
-      { heroClass: 'cleric', alive: true, runsSurvived: 0, upgradedCards: [] }
+      DS.Meta.rollRecruit('fighter'),
+      DS.Meta.rollRecruit('cleric')
     ];
     DS.Meta.victories = 0;
     DS.Meta.buildings = {
@@ -36,6 +199,8 @@ DS.Meta = {
     DS.Meta.graveyard = [];
     DS.Meta.unlocks = [];
     DS.Meta.ownedGear = [];
+    DS.Meta.merchantLevel = 0;
+    DS.Meta.lostGear = [];
     DS.Meta.save();
   },
 
@@ -49,7 +214,9 @@ DS.Meta = {
         buildings: DS.Meta.buildings,
         graveyard: DS.Meta.graveyard,
         unlocks: DS.Meta.unlocks,
-        ownedGear: DS.Meta.ownedGear
+        ownedGear: DS.Meta.ownedGear,
+        merchantLevel: DS.Meta.merchantLevel,
+        lostGear: DS.Meta.lostGear
       };
       localStorage.setItem('darkspire_meta', JSON.stringify(data));
     } catch (e) {
@@ -73,7 +240,18 @@ DS.Meta = {
       DS.Meta.buildings = data.buildings || { chapel: { level: 0 }, tavern: { level: 0 }, graveyard: { level: 0 } };
       DS.Meta.graveyard = data.graveyard || [];
       DS.Meta.unlocks = data.unlocks || [];
-      DS.Meta.ownedGear = data.ownedGear || [];   // backfills old saves with no gear
+      DS.Meta.ownedGear = data.ownedGear || [];        // backfills old saves with no gear
+      DS.Meta.merchantLevel = data.merchantLevel || 0; // backfills pre-Phase-5 saves
+      DS.Meta.lostGear = data.lostGear || [];          // backfills pre-Phase-5 saves
+
+      // Backfill per-hero gear slots on pre-Phase-5 saves; prune dead gear ids
+      DS.Meta.heroRoster.forEach(function(h) {
+        if (!h.gear) h.gear = DS.Meta._emptyGearSlots();
+      });
+      if (DS.Gear && DS.Gear.migrateOwned) DS.Gear.migrateOwned();
+
+      // Backfill character-system fields (level/xp/kit/injury) on old saves
+      DS.Meta.heroRoster.forEach(DS.Meta._backfillRosterEntry);
 
       // Ensure building shape
       if (!DS.Meta.buildings.chapel) DS.Meta.buildings.chapel = { level: 0 };
@@ -97,20 +275,43 @@ DS.Meta = {
 
   // ===== HERO ROSTER =====
 
-  addHeroToRoster: function(heroClass) {
-    var entry = { heroClass: heroClass, alive: true, runsSurvived: 0, upgradedCards: [] };
+  // Add a hero to the roster. Accepts either a class string (a fresh recruit
+  // is rolled) or a pre-rolled recruit object from rollRecruit().
+  addHeroToRoster: function(heroClassOrEntry) {
+    var entry = (typeof heroClassOrEntry === 'string' || !heroClassOrEntry)
+      ? DS.Meta.rollRecruit(heroClassOrEntry)
+      : heroClassOrEntry;
     DS.Meta.heroRoster.push(entry);
     DS.Meta.save();
     return DS.Meta.heroRoster.length - 1;
   },
 
+  // Append to the lost-gear ledger (no buyback in v1 — future softener hook)
+  recordLostGear: function(itemId, heroName, cause) {
+    DS.Meta.lostGear = DS.Meta.lostGear || [];
+    DS.Meta.lostGear.push({
+      itemId: itemId,
+      heroName: heroName,
+      cause: cause,
+      runNumber: DS.Meta.runCount
+    });
+  },
+
   killHero: function(rosterIndex) {
     var hero = DS.Meta.heroRoster[rosterIndex];
     if (!hero) return;
+    // Phase 4/5: a dead hero's EQUIPPED gear is lost with them (DESIGN.md).
+    // Unequipped gear in the bank is safe. onHeroDeathMeta strips ownership.
+    var gearLost = (DS.Gear && DS.Gear.onHeroDeathMeta) ? DS.Gear.onHeroDeathMeta(hero) : [];
+    gearLost.forEach(function(id) {
+      DS.Meta.recordLostGear(id, hero.heroClass, 'death');
+    });
     DS.Meta.graveyard.push({
       heroClass: hero.heroClass,
       runsSurvived: hero.runsSurvived,
-      runNumber: DS.Meta.runCount
+      level: hero.level || 1,
+      runNumber: DS.Meta.runCount,
+      gearLost: gearLost
     });
     DS.Meta.heroRoster.splice(rosterIndex, 1);
     DS.Meta.save();
@@ -134,6 +335,183 @@ DS.Meta = {
 
   getAliveRoster: function() {
     return DS.Meta.heroRoster.filter(function(h) { return h.alive; });
+  },
+
+  // ===== XP & LEVELS (DD-style — progress dies with the character) =====
+  // Earning rule (v1): every survivor of a run earns 1 XP per floor cleared,
+  // +3 bonus if the boss fell. Dead heroes earn nothing (they're dead).
+  // Each level-up auto-upgrades one base-kit card (signature first, then
+  // cores in kit order) using DS.Cards.UPGRADE_DEFS. Upgrades are stored on
+  // the roster entry (upgradedCards) and applied only when that character's
+  // deck is built — they never touch the shared collection, and they go to
+  // the graveyard with the character.
+  // TODO(Joel): open balance params — XP_CURVE / XP_PER_FLOOR /
+  //   XP_VICTORY_BONUS / XP_LEVEL_CAP are first guesses, tune from play.
+  //   Alternative v2: level-up grants an upgrade POINT the player spends at
+  //   the campfire (DS.Meta.upgradeHeroCard already supports choosing).
+  XP_LEVEL_CAP: 6,
+  XP_PER_FLOOR: 1,
+  XP_VICTORY_BONUS: 3,
+  // XP needed to go FROM level N to N+1 (index by current level, 1-based).
+  XP_CURVE: [0, 8, 12, 16, 20, 24],
+
+  xpToNext: function(level) {
+    if (level >= DS.Meta.XP_LEVEL_CAP) return null;   // capped
+    return DS.Meta.XP_CURVE[level];
+  },
+
+  // Grant XP to one roster hero; handles multi-level-ups. Returns an array of
+  // { level, upgradedCardId } for each level gained (for UI toasts later).
+  addXp: function(rosterIndex, amount) {
+    var hero = DS.Meta.heroRoster[rosterIndex];
+    if (!hero || !(amount > 0)) return [];
+    DS.Meta._backfillRosterEntry(hero);
+    var gains = [];
+    hero.xp += amount;
+    var need = DS.Meta.xpToNext(hero.level);
+    while (need !== null && hero.xp >= need) {
+      hero.xp -= need;
+      hero.level++;
+      var upgradedId = DS.Meta._autoUpgradeKitCard(hero);
+      gains.push({ level: hero.level, upgradedCardId: upgradedId });
+      need = DS.Meta.xpToNext(hero.level);
+    }
+    if (DS.Meta.xpToNext(hero.level) === null) hero.xp = 0;  // capped: no banking
+    DS.Meta.save();
+    return gains;
+  },
+
+  // Pick the next un-upgraded kit card and mark it upgraded.
+  // Order: signature (last kit slot) first — a level-up hones what makes this
+  // character THIS character — then core cards in kit order.
+  _autoUpgradeKitCard: function(hero) {
+    var kit = hero.kit || [];
+    var order = kit.slice(-1).concat(kit.slice(0, -1));
+    for (var i = 0; i < order.length; i++) {
+      if (hero.upgradedCards.indexOf(order[i]) === -1) {
+        hero.upgradedCards.push(order[i]);
+        return order[i];
+      }
+    }
+    return null;   // whole kit already upgraded (blacksmith and/or max level)
+  },
+
+  // XP earned by each survivor of the run that just ended.
+  _runXpEarned: function(victory) {
+    var stats = DS.State && DS.State.stats;
+    var floors = stats ? (stats.floorsCleared || 0) : 0;
+    return floors * DS.Meta.XP_PER_FLOOR + (victory ? DS.Meta.XP_VICTORY_BONUS : 0);
+  },
+
+  // ===== INJURIES (lightweight — DD-inspired, deliberately cheap) =====
+  // NO stress system, by design. One injury type (Wounded: -20% max HP on the
+  // next expedition), two triggers:
+  //   PRIMARY — fleeing a fight: each survivor of a mid-combat FLEE rolls a
+  //     high injury chance (applyFleeInjuries, called by the flee handler).
+  //   SECONDARY — limping home: a survivor who ends a run at/below 25% max HP
+  //     (incl. the first-run "miraculous escape" at 0) comes home Wounded.
+  // Healing: free by sitting out one run, or instantly for a small gold fee
+  // (campfire/town UI calls healInjury).
+  // TODO(Joel): open params — flee chance, threshold, penalty, heal cost.
+  FLEE_INJURY_CHANCE: 0.75,
+  INJURY_HP_THRESHOLD: 0.25,
+  INJURY_MAXHP_PENALTY: 0.2,
+  INJURY_HEAL_COST: 15,
+
+  isInjured: function(rosterIndex) {
+    var hero = DS.Meta.heroRoster[rosterIndex];
+    return !!(hero && hero.injury);
+  },
+
+  // Flat max-HP penalty for an injured hero (from the class's BASE maxHp,
+  // so veteran/chapel bonuses aren't compounded into the wound).
+  getInjuryPenalty: function(rosterHero) {
+    if (!rosterHero || !rosterHero.injury) return 0;
+    var def = null;
+    for (var i = 0; i < DS.Heroes.length; i++) {
+      if (DS.Heroes[i].cls === rosterHero.heroClass) { def = DS.Heroes[i]; break; }
+    }
+    if (!def) return 0;
+    return Math.floor(def.maxHp * DS.Meta.INJURY_MAXHP_PENALTY);
+  },
+
+  // Pay gold to patch a hero up immediately. Returns true on success.
+  healInjury: function(rosterIndex) {
+    var hero = DS.Meta.heroRoster[rosterIndex];
+    if (!hero || !hero.injury) return false;
+    if (!DS.Meta.spendGold(DS.Meta.INJURY_HEAL_COST)) return false;
+    hero.injury = null;
+    DS.Meta.save();
+    return true;
+  },
+
+  // Set the Wounded tag on a roster hero (idempotent — injuries don't stack).
+  _injure: function(rosterIndex) {
+    var hero = DS.Meta.heroRoster[rosterIndex];
+    if (!hero) return;
+    hero.injury = {
+      id: 'wounded',
+      name: 'Wounded',
+      desc: '-' + Math.round(DS.Meta.INJURY_MAXHP_PENALTY * 100) +
+        '% Max HP. Heals by sitting out one run, or pay ' +
+        DS.Meta.INJURY_HEAL_COST + 'g.'
+    };
+  },
+
+  // Tag a survivor as Wounded if they limped home. runHero is the run-state
+  // hero (has hp/maxHp at run end).
+  _maybeInjure: function(rosterIndex, runHero) {
+    if (!runHero) return;
+    if (runHero.hp <= runHero.maxHp * DS.Meta.INJURY_HP_THRESHOLD) {
+      DS.Meta._injure(rosterIndex);
+    }
+  },
+
+  // PRIMARY injury trigger — call from the combat FLEE handler after a
+  // mid-fight escape (one line: DS.Meta.applyFleeInjuries()).
+  // survivors: array of run-state heroes who fled; defaults to all living
+  // heroes in the current run. Each rolls FLEE_INJURY_CHANCE to be Wounded.
+  // Returns the names of newly injured heroes (for the flee log/toast).
+  applyFleeInjuries: function(survivors) {
+    var runHeroes = (DS.State && DS.State.run) ? DS.State.run.heroes : [];
+    var fleeing = survivors || runHeroes.filter(function(h) { return h.hp > 0; });
+    var injuredNames = [];
+    fleeing.forEach(function(runHero) {
+      var idx = DS.Meta._rosterIndexForRunHero(runHero);
+      if (idx === -1) return;
+      var already = DS.Meta.heroRoster[idx] && DS.Meta.heroRoster[idx].injury;
+      if (Math.random() < DS.Meta.FLEE_INJURY_CHANCE) {
+        DS.Meta._injure(idx);
+        if (!already) injuredNames.push(runHero.name);
+      }
+    });
+    DS.Meta.save();
+    return injuredNames;
+  },
+
+  // Map a run-state hero back to its roster index.
+  // Preferred: DS.State._runRosterMap (run hero index -> roster index),
+  // fallback: first roster entry of the same class (caravan forbids
+  // duplicate classes, so class match is unambiguous).
+  _rosterIndexForRunHero: function(runHero) {
+    var runHeroes = (DS.State && DS.State.run) ? DS.State.run.heroes : [];
+    var runIdx = runHeroes.indexOf(runHero);
+    var map = DS.State && DS.State._runRosterMap;
+    if (map && runIdx !== -1 && map[runIdx] !== undefined && map[runIdx] !== null) {
+      return map[runIdx];
+    }
+    for (var r = 0; r < DS.Meta.heroRoster.length; r++) {
+      if (DS.Meta.heroRoster[r].heroClass === runHero.cls) return r;
+    }
+    return -1;
+  },
+
+  // Everyone who stayed home this run rests off their injuries for free.
+  // MUST run before killHero splices shift roster indices.
+  _restInjuredAtHome: function(runRosterIndices) {
+    DS.Meta.heroRoster.forEach(function(h, i) {
+      if (runRosterIndices.indexOf(i) === -1 && h.injury) h.injury = null;
+    });
   },
 
   // ===== GOLD =====
@@ -226,12 +604,19 @@ DS.Meta = {
   applyRetreatOutcome: function(goldBanked, runHeroRosterIndices, aliveFlags) {
     DS.Meta.addGold(goldBanked);
 
+    // Home-front recovery + character progression (before any splicing)
+    DS.Meta._restInjuredAtHome(runHeroRosterIndices);
+    var xpEarned = DS.Meta._runXpEarned(false);
+    var runHeroes = (DS.State && DS.State.run) ? DS.State.run.heroes : null;
+
     var kills = [];
     for (var i = 0; i < runHeroRosterIndices.length; i++) {
       var idx = runHeroRosterIndices[i];
       if (idx === -1) continue;
       if (aliveFlags[i]) {
         DS.Meta.heroSurvivedRun(idx);
+        DS.Meta.addXp(idx, xpEarned);
+        if (runHeroes && runHeroes[i]) DS.Meta._maybeInjure(idx, runHeroes[i]);
       } else {
         kills.push(idx);
       }
@@ -247,6 +632,9 @@ DS.Meta = {
   },
 
   applyDefeatPenalty: function(runHeroRosterIndices) {
+    // Heroes who stayed home still rest off injuries
+    DS.Meta._restInjuredAtHome(runHeroRosterIndices);
+
     // Kill all heroes that were in the run (defeat = total party kill)
     // Sort descending so splice doesn't shift indices
     var sorted = runHeroRosterIndices.slice().sort(function(a, b) { return b - a; });
@@ -264,12 +652,20 @@ DS.Meta = {
   applyVictoryRewards: function(goldEarned, runHeroRosterIndices, aliveFlags) {
     DS.Meta.addGold(goldEarned);
 
+    // Home-front recovery + character progression (before any splicing)
+    DS.Meta._restInjuredAtHome(runHeroRosterIndices);
+    var xpEarned = DS.Meta._runXpEarned(true);
+    var runHeroes = (DS.State && DS.State.run) ? DS.State.run.heroes : null;
+
     // Process heroes from the run — sort descending for safe splicing of dead
     var kills = [];
     for (var i = 0; i < runHeroRosterIndices.length; i++) {
       var idx = runHeroRosterIndices[i];
+      if (idx === -1) continue;
       if (aliveFlags[i]) {
         DS.Meta.heroSurvivedRun(idx);
+        DS.Meta.addXp(idx, xpEarned);
+        if (runHeroes && runHeroes[i]) DS.Meta._maybeInjure(idx, runHeroes[i]);
       } else {
         kills.push(idx);
       }
@@ -338,34 +734,7 @@ DS.Meta = {
   }
 };
 
-// ===== GEAR CATALOGUE (PLACEHOLDER) =====
-// The town merchant sells GEAR / artifacts only (no cards, no card-removal) — that
-// service lives on-run. This is a small PLACEHOLDER set so the merchant flow is
-// playable now; the real catalogue + effects land with Phase 5 (loadout/equipment).
-//
-// TODO(Phase 5): give each item a real effect (passive / triggered / deck-injecting),
-//   wire ownership into the run-start loadout, and add salvage/take-home.
-// TODO(balance): prices are rough placeholders. Replace from the reference-data DB
-//   (D&D flavor · Darkest Dungeon tactics · Slay the Spire numbers) once it exists.
-DS.Gear = {
-  catalog: [
-    // --- Common ---
-    { id: 'gear_iron_dagger',   name: 'Iron Dagger',     icon: '🗡️', rarity: 'common',   price: 30,  desc: 'A plain but reliable blade. (Effect TBD — Phase 5)' },
-    { id: 'gear_oak_buckler',   name: 'Oak Buckler',     icon: '🛡️', rarity: 'common',   price: 35,  desc: 'A light wooden shield. (Effect TBD — Phase 5)' },
-    { id: 'gear_leather_jerkin',name: 'Leather Jerkin',  icon: '🦺',       rarity: 'common',   price: 30,  desc: 'Basic hide armor. (Effect TBD — Phase 5)' },
-    // --- Uncommon ---
-    { id: 'gear_whetstone',     name: 'Whetstone Charm', icon: '⚙️',       rarity: 'uncommon', price: 60,  desc: 'Keeps an edge keen. (Effect TBD — Phase 5)' },
-    { id: 'gear_shadow_cloak',  name: 'Shadow Cloak',    icon: '🧥',       rarity: 'uncommon', price: 65,  desc: 'Woven from dusk. (Effect TBD — Phase 5)' },
-    { id: 'gear_vigor_ring',    name: 'Ring of Vigor',   icon: '💍',       rarity: 'uncommon', price: 70,  desc: 'Pulses with vitality. (Effect TBD — Phase 5)' },
-    // --- Rare ---
-    { id: 'gear_dragonscale',   name: 'Dragonscale Plate', icon: '🐲',     rarity: 'rare',     price: 130, desc: 'Forged from a wyrm\'s hide. (Effect TBD — Phase 5)' },
-    { id: 'gear_ember_staff',   name: 'Staff of Embers',   icon: '🔥',     rarity: 'rare',     price: 140, desc: 'Smolders with old fire. (Effect TBD — Phase 5)' }
-  ],
-
-  getById: function(gearId) {
-    for (var i = 0; i < DS.Gear.catalog.length; i++) {
-      if (DS.Gear.catalog[i].id === gearId) return DS.Gear.catalog[i];
-    }
-    return null;
-  }
-};
+// ===== GEAR CATALOGUE =====
+// Phase 5: the real catalogue + economy logic lives in data/gear.js (DS.Gear).
+// The Phase-3 placeholder that sat here has been replaced — all 8 placeholder
+// gear ids were kept in the new catalog, so old ownedGear saves stay valid.

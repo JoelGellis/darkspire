@@ -1,0 +1,157 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>IMPROVEMENTS-100.md</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+         max-width: 980px; margin: 24px auto; padding: 0 24px; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1, h2, h3, h4 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; margin-top: 28px; }
+  h1 { font-size: 1.9em; }
+  h2 { font-size: 1.45em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding: 0 16px; margin-left: 0; }
+  .doc-sep { border: none; border-top: 3px double #d0d7de; margin: 48px 0 24px; }
+  .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
+</style>
+</head>
+<body><p class="source-label">Source: docs\IMPROVEMENTS-100.md</p><h1>Darkspire ? 100 major improvements</h1>
+<p>Round 1. Status is planned unless explicitly changed after implementation and verification. Existing partial implementations do not count as finished. No stress system; preserve the eight classes, positional combat, permanent gold purchases and vanilla browser runtime.</p>
+<h2>Persistent party and equipment</h2>
+<ol>
+<li><strong>Rolled veteran kits</strong> ? Make recruit variants change the actual starting deck; character selection must alter tactics. <strong>Status: verified.</strong></li>
+<li><strong>Character-bound mastery</strong> ? Apply earned kit upgrades through the canonical upgrade definitions so survival changes available plays. <strong>Status: verified.</strong></li>
+<li><strong>Consequential wounds</strong> ? Apply injury HP penalties consistently in campfire previews and expeditions so resting veterans is a real choice. <strong>Status: verified.</strong></li>
+<li><strong>Pre-expedition equipment assembly</strong> ? Equip owned items to selected heroes before descent, creating deliberate builds. <strong>Status: verified.</strong></li>
+<li><strong>Lean embark limits</strong> ? Enforce a partial equipment budget at departure so dungeon finds retain value. <strong>Status: verified.</strong></li>
+<li><strong>Equipment-granted actions</strong> ? Inject and restore item cards correctly, giving weapons tactical identity. <strong>Status: verified.</strong></li>
+<li><strong>Party artifact selection</strong> ? Choose at most two shared artifacts with visible effects, trading individual and party strength. <strong>Status: verified.</strong></li>
+<li><strong>Dungeon equipment fitting</strong> ? Fit purchased gear to living heroes during an expedition, allowing builds to evolve. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Survivor gear recovery</strong> ? Resolve ownership and wearer death once, making expedition losses dependable. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Gear salvage decisions</strong> ? Sell equipped or spare finds with correct stat/card removal, turning weak loot into permanent value. <strong>Status: implemented awaiting verification.</strong></li>
+</ol>
+<h2>Expedition stakes</h2>
+<ol start="11">
+<li><strong>Mid-combat flee</strong> ? Escape at the cost of rewards and possible wounds, giving losing battles a meaningful decision. <strong>Status: planned.</strong></li>
+<li><strong>Exit settlement ledger</strong> ? Show exact retained gold, lost equipment and fallen heroes for every outcome. <strong>Status: planned.</strong></li>
+<li><strong>Earned potion belt</strong> ? Add limited consumable slots from encounters; scarce emergency power changes risk appetite. <strong>Status: planned.</strong></li>
+<li><strong>Targeted potion use</strong> ? Support healing, antidote and protection with living-target validation and combat timing. <strong>Status: planned.</strong></li>
+<li><strong>Offensive consumables</strong> ? Add fire, poison and disruption flasks that open alternative solutions to bad draws. <strong>Status: planned.</strong></li>
+<li><strong>Run blessing choices</strong> ? Offer mutually exclusive temporary auras earned through danger rather than purchased with gold. <strong>Status: planned.</strong></li>
+<li><strong>Camp preparation choices</strong> ? Choose healing, training or next-battle preparation with one action per camp. <strong>Status: planned.</strong></li>
+<li><strong>Expedition objectives</strong> ? Select optional dangerous objectives with permanent rewards and explicit completion conditions. <strong>Status: planned.</strong></li>
+<li><strong>Escalating expedition contracts</strong> ? Unlock harder contracts through victory, sustaining challenge despite veteran growth. <strong>Status: planned.</strong></li>
+<li><strong>Loss-safe campaign settlement</strong> ? Make reloads and repeated buttons unable to duplicate rewards or deaths. <strong>Status: planned.</strong></li>
+</ol>
+<h2>Positional combat</h2>
+<ol start="21">
+<li><strong>Attack reach rules</strong> ? Give melee, ranged and magic attacks distinct valid enemy ranks. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Committed enemy targets</strong> ? Reveal each intended victim and preserve targeting rules through the player turn. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Damage forecasts</strong> ? Calculate incoming damage using block and statuses so defensive planning is informed. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Enemy displacement</strong> ? Add pushes and pulls that alter which threats can attack or be reached. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Formation-breaking enemies</strong> ? Use enemies that disrupt ranks with telegraphed attacks, forcing recovery decisions. <strong>Status: planned.</strong></li>
+<li><strong>Guard interception</strong> ? Let protectors intercept attacks on a chosen ally with a finite duration. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Mark and exploit</strong> ? Create cross-hero marked-target synergies that reward coordinated ordering. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Riposte stance</strong> ? Make defensive retaliation a limited tactical resource with visible charges. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Armor-breaking attacks</strong> ? Introduce attacks that defeat heavy block without making ordinary damage obsolete. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Enemy formation collapse</strong> ? Close dead enemy rank gaps consistently so melee never loses legal targets unfairly. <strong>Status: implemented awaiting verification.</strong></li>
+</ol>
+<h2>Deck strategy</h2>
+<ol start="31">
+<li><strong>Opening-hand innate cards</strong> ? Guarantee selected setup cards without exceeding hand limits. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Retained-card planning</strong> ? Allow designated cards to survive turn boundaries for later combinations. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Ethereal decisions</strong> ? Exhaust unused temporary cards, creating immediate play-or-lose pressure. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Exhaust-payoff builds</strong> ? Reward deliberate card exhaustion through bounded damage, defense or draw. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Discard-payoff builds</strong> ? Make intentional discards fuel effects while distinguishing end-turn cleanup. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Temporary cost manipulation</strong> ? Change costs for a turn or combat without corrupting permanent card data. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>X-cost finishers</strong> ? Spend remaining energy on scalable attacks or protection with clear previews. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Generated tactical cards</strong> ? Create temporary cards with correct ownership, expiry and save restoration. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Curse burden system</strong> ? Add removable curse cards with real draw or play consequences. <strong>Status: planned.</strong></li>
+<li><strong>Status-card enemies</strong> ? Let enemies contaminate decks with temporary wounds or burns, creating urgency. <strong>Status: implemented awaiting verification.</strong></li>
+</ol>
+<h2>Class build identities</h2>
+<ol start="41">
+<li><strong>Fighter counterattack build</strong> ? Connect guard, block and retaliation into a coherent defensive offense. <strong>Status: planned.</strong></li>
+<li><strong>Fighter formation commander</strong> ? Trade personal attacks for ally movement and protection. <strong>Status: planned.</strong></li>
+<li><strong>Rogue poison engine</strong> ? Link application, acceleration and payoff rather than only stacking flat damage. <strong>Status: planned.</strong></li>
+<li><strong>Rogue ambush engine</strong> ? Reward rank transitions and marked targets with burst windows. <strong>Status: planned.</strong></li>
+<li><strong>Cleric triage engine</strong> ? Reward saving threatened allies through limited healing and preventive shields. <strong>Status: planned.</strong></li>
+<li><strong>Wizard spell sequencing</strong> ? Build spell chains with resource setup and costly finishers. <strong>Status: planned.</strong></li>
+<li><strong>Barbarian blood-price engine</strong> ? Trade actual health for bounded offensive power with clear danger. <strong>Status: planned.</strong></li>
+<li><strong>Ranger quarry engine</strong> ? Track a chosen enemy and reward sustained focus or a clean kill. <strong>Status: planned.</strong></li>
+<li><strong>Necromancer sacrifice engine</strong> ? Convert exhausted cards or defeated enemies into temporary resources. <strong>Status: planned.</strong></li>
+<li><strong>Paladin oath engine</strong> ? Build power through guarding allies and cash it out through frontline attacks. <strong>Status: planned.</strong></li>
+</ol>
+<h2>Enemies and bosses</h2>
+<ol start="51">
+<li><strong>Shield phalanx encounter</strong> ? Combine a guarding frontliner with vulnerable support for target-priority puzzles. <strong>Status: planned.</strong></li>
+<li><strong>Rear-rank executioner encounter</strong> ? Threaten injured backliners on a visible timer to force protection. <strong>Status: planned.</strong></li>
+<li><strong>Cult ritual encounter</strong> ? Introduce a disruptible ritual whose completion changes battle stakes. <strong>Status: planned.</strong></li>
+<li><strong>Swarm brood encounter</strong> ? Make limited summoning compete with direct damage under the four-enemy cap. <strong>Status: planned.</strong></li>
+<li><strong>Attrition healer encounter</strong> ? Use support healing with counterplay through reach and disruption. <strong>Status: planned.</strong></li>
+<li><strong>Elite rage cycle</strong> ? Alternate vulnerable and dangerous phases so attack timing matters. <strong>Status: planned.</strong></li>
+<li><strong>Elite formation hunter</strong> ? Punish static positioning with readable rank-specific strikes. <strong>Status: planned.</strong></li>
+<li><strong>Boss phase transitions</strong> ? Give bosses HP-triggered move-set changes that preserve clear intent. <strong>Status: planned.</strong></li>
+<li><strong>Boss summon economy</strong> ? Make adds fuel a boss mechanic, presenting meaningful kill-order choices. <strong>Status: planned.</strong></li>
+<li><strong>Boss desperation finale</strong> ? Add a telegraphed final phase that tests saved resources instead of random spikes. <strong>Status: planned.</strong></li>
+</ol>
+<h2>Run structure</h2>
+<ol start="61">
+<li><strong>Three-act expedition progression</strong> ? Carry deck and damage across distinct acts for a sustained build arc. <strong>Status: planned.</strong></li>
+<li><strong>Act-specific encounter ecosystems</strong> ? Use separate enemy pools with complementary tactical pressures. <strong>Status: planned.</strong></li>
+<li><strong>Act-specific route identities</strong> ? Vary branch structure and encounter distribution to change navigation decisions. <strong>Status: planned.</strong></li>
+<li><strong>Visible destination boss</strong> ? Reveal the act boss before route selection so players can build against it. <strong>Status: planned.</strong></li>
+<li><strong>Elite reward escalation</strong> ? Guarantee rewards worth the added danger and distinguish elites from normal fights. <strong>Status: planned.</strong></li>
+<li><strong>Route history restrictions</strong> ? Prevent repetitive encounter chains while preserving seeded variety. <strong>Status: planned.</strong></li>
+<li><strong>Optional treasure detours</strong> ? Offer risky side paths competing with recovery and commerce. <strong>Status: planned.</strong></li>
+<li><strong>Final camp commitment</strong> ? Offer a meaningful last preparation before entering the boss. <strong>Status: planned.</strong></li>
+<li><strong>Act-transition rewards</strong> ? Choose a powerful build-changing reward with a concrete drawback. <strong>Status: planned.</strong></li>
+<li><strong>Ascension modifiers</strong> ? Add individually explained difficulty layers unlocked through completed expeditions. <strong>Status: planned.</strong></li>
+</ol>
+<h2>Events and economy</h2>
+<ol start="71">
+<li><strong>Bargain with a curse</strong> ? Trade a persistent deck burden for a strong reward with explicit consequences. <strong>Status: planned.</strong></li>
+<li><strong>Formation trial event</strong> ? Test the chosen party arrangement with several viable outcomes. <strong>Status: planned.</strong></li>
+<li><strong>Veteran-specific event choices</strong> ? Let class and experience unlock options that justify roster variety. <strong>Status: planned.</strong></li>
+<li><strong>Equipment sacrifice shrine</strong> ? Trade an actual owned item for a different permanent opportunity. <strong>Status: planned.</strong></li>
+<li><strong>Wounded traveler dilemma</strong> ? Spend expedition health or supplies to earn a delayed reward. <strong>Status: planned.</strong></li>
+<li><strong>Risky excavation event</strong> ? Allow escalating attempts with increasing danger and a voluntary stop. <strong>Status: planned.</strong></li>
+<li><strong>Card transformation service</strong> ? Replace a chosen eligible card with a class-valid alternative. <strong>Status: planned.</strong></li>
+<li><strong>Persistent training purchases</strong> ? Make gold-funded training survive with its hero, matching the permanent-value doctrine. <strong>Status: planned.</strong></li>
+<li><strong>Distinct merchant inventories</strong> ? Separate safe town stock from scarce high-ceiling dungeon finds. <strong>Status: planned.</strong></li>
+<li><strong>Reward draft quality</strong> ? Offer class-valid build choices, allow skipping and avoid impossible or duplicate-only rewards. <strong>Status: planned.</strong></li>
+</ol>
+<h2>Tactical interface and feedback</h2>
+<ol start="81">
+<li><strong>Target inspection panel</strong> ? Explain enemy patterns, statuses and reach at the moment of decision. <strong>Status: planned.</strong></li>
+<li><strong>Playable-card explanations</strong> ? Explain energy, rank, ownership and target restrictions accurately. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Card outcome preview</strong> ? Preview damage, healing and block against the selected target using engine calculations. <strong>Status: planned.</strong></li>
+<li><strong>Formation planning interface</strong> ? Compare chosen heroes, kits and reachable ranks before embarking. <strong>Status: planned.</strong></li>
+<li><strong>Deck composition analysis</strong> ? Show costs, owner balance and key synergies to support deliberate drafting. <strong>Status: planned.</strong></li>
+<li><strong>Combat action history</strong> ? Record targets, status changes and damage sources for reconstructing defeats. <strong>Status: implemented awaiting verification.</strong></li>
+<li><strong>Accessible tactical targeting</strong> ? Support keyboard card selection and legal target navigation across entire battles. <strong>Status: planned.</strong></li>
+<li><strong>Mobile battle workspace</strong> ? Keep intents, legal targets and hand actions usable on narrow screens. <strong>Status: planned.</strong></li>
+<li><strong>Combat audiovisual language</strong> ? Give damage, blocked hits, death and powerful actions distinct synchronized feedback. <strong>Status: planned.</strong></li>
+<li><strong>Interactive first-expedition tutorial</strong> ? Teach actual card, movement, targeting and retreat decisions through playable steps. <strong>Status: planned.</strong></li>
+</ol>
+<h2>Replayability and trustworthy progression</h2>
+<ol start="91">
+<li><strong>Seeded complete expeditions</strong> ? Use isolated seeded randomness for maps, encounters, shops and rewards. <strong>Status: planned.</strong></li>
+<li><strong>Complete combat save restoration</strong> ? Restore hands, effects, targets and consumables without reroll advantages. <strong>Status: verified.</strong></li>
+<li><strong>Campaign migration and recovery</strong> ? Validate old saves and recover safely without silently erasing veterans. <strong>Status: planned.</strong></li>
+<li><strong>Run chronicle</strong> ? Persist route, build, losses and final outcome for meaningful comparison. <strong>Status: planned.</strong></li>
+<li><strong>Class mastery challenges</strong> ? Reward distinct class accomplishments with tactical sidegrades. <strong>Status: planned.</strong></li>
+<li><strong>Bestiary progression</strong> ? Reveal encountered enemy knowledge across runs to support learning. <strong>Status: planned.</strong></li>
+<li><strong>Build-aware self-play</strong> ? Simulate drafting, equipment and recovery rather than only starter-deck combat. <strong>Status: planned.</strong></li>
+<li><strong>Multi-seed balance analysis</strong> ? Measure survival, damage and boss variance across real progressed parties. <strong>Status: planned.</strong></li>
+<li><strong>Full-run integration verification</strong> ? Exercise victory, retreat, flee, wipe and reload through the actual game systems. <strong>Status: planned.</strong></li>
+<li><strong>Versioned playable releases</strong> ? Publish verified complete game snapshots with visible version and change history. <strong>Status: planned.</strong></li>
+</ol>
+<h2>Evidence checkpoint — 2026-09-09</h2>
+<p>Eight IDs currently verified; the full round is incomplete. IDs 1–7 have canonical engine regression and actual campfire/embark/browser evidence in <code>docs/party-equipment-verification.md</code> and <code>tests/party-equipment.js</code>. IDs 8–10 await independent merchant interaction and loss/salvage UI verification. ID 92 has exact uninterrupted-versus-restored enemy-round equality for HP, targets, intents, drawn card IDs and combat RNG in <code>tests/combat-depth.js</code>; this does not claim that maps or rewards are seeded.</p>
+<p>Combat engine additions marked implemented still need broad gameplay/browser verification and balance assessment; engine mechanics alone do not prove the class-build identities or enemy ecosystems complete. Planned IDs may have partial supporting work. In particular, 91 has a combat-only RNG stream; 94 has an exportable local archive and analysis, but no full run-chronicle experience; 97–99 have bounded legal-observation combat probes, not full expedition verification; 100 has an allowlisted versioned release builder, but publication remains pending.</p>
+<p>Additional explicit user requirements: mandatory human/AI/scripted player identity, full local run archive with immutable actor attribution, and repeatable cheap playtests are tracked in <code>docs/RUN-ARCHIVE.md</code>. Scripted testers are labeled scripted, with policy/version and effort not applicable. They do not use LLM tokens.</p></body></html>

@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const {loadGame}=require('./game-harness');
+const {observe,choose}=require('../sims/scripted-batch');
+const {DS}=loadGame();DS.UI.render=()=>{};
+DS.PlayerIdentity.set({type:'scripted',policy:'observation-regression',policyVersion:'1'});DS.Meta.newGame();DS.State.newRun();DS.Combat.initCombat(DS.Enemies.pickEncounter('normal'));
+const first=observe(DS);const action=choose(first,'tactician',0);
+DS.State.combat.drawPile.reverse();DS.State.run._combatRng=123;
+const second=observe(DS);
+assert.deepEqual(first,second,'hidden order and future RNG cannot alter legal observation');
+assert.deepEqual(action,choose(second,'tactician',0));
+assert.equal(JSON.stringify(first).includes('drawPile'),false);
+assert.equal(JSON.stringify(first).includes('_combatRng'),false);
+assert.ok(action.reason);
+console.log('PASS: scripted policy receives visible state only; hidden pile order and RNG do not change its decision');

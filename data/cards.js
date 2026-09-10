@@ -1,5 +1,11 @@
 window.DS = window.DS || {};
 
+// prefPos convention (2026-08 gate softening):
+//   prefPos: [1,2]  -> HARD position gate: card only playable while its hero's live
+//                      pos is in the list (Darkest-Dungeon rank lock).
+//   prefPos: []     -> UNGATED: playable from any position. Used for bread-and-butter
+//                      cards so a starter deck functions (not thrives) from any
+//                      formation; power spikes / position-mechanic cards keep the gate.
 DS.Cards = {
   fighter: [
     // --- Starting cards (indices 0-3) ---
@@ -9,7 +15,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
-      prefPos: [1, 2, 3],
+      prefPos: [],
       desc: 'Deal 7 damage.',
       value: 7,
       effect: function(state, hero, target, card) {
@@ -22,7 +28,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
-      prefPos: [1, 2],
+      prefPos: [],
       desc: 'Gain 8 Block.',
       value: 8,
       effect: function(state, hero, target, card) {
@@ -48,7 +54,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'all_allies',
-      prefPos: [1, 2],
+      prefPos: [],
       desc: '4 Block to ALL allies.',
       value: 4,
       effect: function(state, hero, target, card) {
@@ -95,7 +101,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
-      prefPos: [1, 2, 3],
+      prefPos: [],
       desc: 'Gain Block = half current Block (min 3).',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -109,7 +115,7 @@ DS.Cards = {
       cost: 1,
       type: 'heal',
       target: 'self',
-      prefPos: [1, 2],
+      prefPos: [],
       desc: 'Heal 6 HP. Exhaust.',
       value: 6,
       effect: function(state, hero, target, card) {
@@ -124,7 +130,7 @@ DS.Cards = {
       cost: 1,
       type: 'utility',
       target: 'none',
-      prefPos: [1, 2],
+      prefPos: [],
       desc: 'Gain 2 Strength this combat. Exhaust.',
       value: 2,
       effect: function(state, hero, target, card) {
@@ -187,7 +193,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
-      prefPos: [1, 2, 3],
+      prefPos: [],
       desc: 'Deal 8 damage.',
       value: 8,
       effect: function(state, hero, target, card) {
@@ -200,7 +206,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
-      prefPos: [2, 3, 4],
+      prefPos: [],
       desc: 'Gain 6 Block.',
       value: 6,
       effect: function(state, hero, target, card) {
@@ -213,7 +219,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy_any',
-      prefPos: [2, 3, 4],
+      prefPos: [],
       desc: 'Deal 5 damage. Hits any enemy.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -270,7 +276,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
-      prefPos: [2, 3],
+      prefPos: [],
       desc: 'Deal 4 damage + 3 Poison.',
       value: 4,
       effect: function(state, hero, target, card) {
@@ -300,7 +306,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
-      prefPos: [2, 3],
+      prefPos: [],
       desc: 'Deal 3 damage. Apply 2 Weak.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -315,7 +321,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
-      prefPos: [1, 2, 3],
+      prefPos: [],
       desc: 'Deal 5 damage. Apply 3 Bleed.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -363,7 +369,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy',
-      prefPos: [2, 3, 4],
+      prefPos: [],
       desc: 'Deal 5 damage.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -376,7 +382,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'ally',
-      prefPos: [3, 4],
+      prefPos: [],
       desc: 'Give ally 7 Block.',
       value: 7,
       effect: function(state, hero, target, card) {
@@ -389,7 +395,7 @@ DS.Cards = {
       cost: 1,
       type: 'heal',
       target: 'ally',
-      prefPos: [3, 4],
+      prefPos: [],
       desc: 'Heal ally 8 HP.',
       value: 8,
       effect: function(state, hero, target, card) {
@@ -419,7 +425,7 @@ DS.Cards = {
       cost: 2,
       type: 'attack',
       target: 'enemy',
-      prefPos: [2, 3, 4],
+      prefPos: [],
       desc: 'Deal 9 damage.',
       value: 9,
       effect: function(state, hero, target, card) {
@@ -448,7 +454,7 @@ DS.Cards = {
       cost: 0,
       type: 'heal',
       target: 'ally',
-      prefPos: [3, 4],
+      prefPos: [],
       desc: 'Remove all Poison from an ally.',
       value: 0,
       effect: function(state, hero, target, card) {
@@ -551,7 +557,7 @@ DS.Cards = {
       cost: 1,
       type: 'attack',
       target: 'enemy_any',
-      prefPos: [3, 4],
+      prefPos: [],
       desc: 'Deal 6 damage. Hits any enemy.',
       value: 6,
       effect: function(state, hero, target, card) {
@@ -564,7 +570,7 @@ DS.Cards = {
       cost: 1,
       type: 'block',
       target: 'self',
-      prefPos: [3, 4],
+      prefPos: [],
       desc: 'Gain 5 Block.',
       value: 5,
       effect: function(state, hero, target, card) {
@@ -613,7 +619,7 @@ DS.Cards = {
         for (var i = 0; i < 4; i++) {
           var alive = DS.State.combat.enemies.filter(function(e) { return e.hp > 0; });
           if (alive.length === 0) break;
-          var pick = alive[Math.floor(Math.random() * alive.length)];
+          var pick = alive[Math.floor(DS.Combat.random() * alive.length)];
           DS.Combat.dealDamage(pick, card.value);
         }
       }
@@ -630,7 +636,7 @@ DS.Cards = {
       effect: function(state, hero, target, card) {
         DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
           DS.Combat.dealDamage(e, card.value);
-          if (Math.random() < 0.25) {
+          if (DS.Combat.random() < 0.25) {
             e.stunned = true;
             DS.Combat.logMsg(e.name + ' is stunned!', 'stun-log');
           }
@@ -643,7 +649,7 @@ DS.Cards = {
       cost: 0,
       type: 'block',
       target: 'self',
-      prefPos: [3, 4],
+      prefPos: [],
       desc: 'Convert energy to Block (4 per 1 energy).',
       value: 4,
       effect: function(state, hero, target, card) {
@@ -701,7 +707,7 @@ DS.Cards = {
       cost: 1,
       type: 'utility',
       target: 'ally',
-      prefPos: [3, 4],
+      prefPos: [],
       desc: 'Give an ally 3 Strength. Exhaust.',
       value: 3,
       effect: function(state, hero, target, card) {
@@ -745,8 +751,15 @@ DS.Cards = {
   ]
 };
 
-// Helper: build full starting deck (2 copies of each STARTER card per hero, indices 0-3 only)
-// heroList: optional array of { cls: string, heroIdx: number } for this run's heroes
+// Helper: build full starting deck (2 copies of each base-kit card per hero).
+// heroList: optional array of { cls, heroIdx, kit?, upgradedCards? }.
+//   kit: array of card baseIds (this character's ROLLED base kit — see
+//        DS.Meta.CLASS_KITS / rollRecruit). Falls back to the classic 4
+//        starters (indices 0-3) when absent, so sims and legacy callers
+//        behave exactly as before.
+//   upgradedCards: baseIds this CHARACTER has upgraded (level-ups /
+//        blacksmith) — applied here via DS.Cards.applyUpgrade, so bound
+//        upgrades never leak into the shared pools.
 DS.Cards.buildStartingDeck = function(heroList) {
   var deck = [];
   var entries = heroList || DS.Heroes.map(function(h, i) { return { cls: h.cls, heroIdx: i }; });
@@ -755,11 +768,21 @@ DS.Cards.buildStartingDeck = function(heroList) {
     if (!cards) return;
     var heroDef = DS.Heroes.find(function(h) { return h.cls === entry.cls; });
     var heroName = heroDef ? heroDef.name : entry.cls;
-    // Only starter cards: indices 0 through 3
-    for (var idx = 0; idx < 4; idx++) {
-      var cardDef = cards[idx];
+
+    // Resolve kit card definitions (rolled kit ids, or classic starters 0-3)
+    var kitDefs = [];
+    if (entry.kit && entry.kit.length) {
+      entry.kit.forEach(function(baseId) {
+        for (var i = 0; i < cards.length; i++) {
+          if (cards[i].id === baseId) { kitDefs.push(cards[i]); return; }
+        }
+      });
+    }
+    if (!kitDefs.length) kitDefs = cards.slice(0, 4);
+
+    kitDefs.forEach(function(cardDef) {
       for (var c = 0; c < 2; c++) {
-        deck.push({
+        var card = {
           id: cardDef.id + '_' + c,
           baseId: cardDef.id,
           name: cardDef.name,
@@ -774,11 +797,36 @@ DS.Cards.buildStartingDeck = function(heroList) {
           heroCls: entry.cls,
           heroName: heroName,
           upgraded: false
-        });
+        };
+        // Character-bound upgrades (level-ups / blacksmith)
+        if (entry.upgradedCards && entry.upgradedCards.indexOf(cardDef.id) !== -1) {
+          DS.Cards.applyUpgrade(card);
+        }
+        deck.push(card);
       }
-    }
+    });
   });
   return deck;
+};
+
+// Is this card part of ANY class's base kit (core or signature)?
+// Base-kit cards are what make a character the character — they are NEVER
+// offered as rewards or sold in shops. Derived from DS.Meta.CLASS_KITS so
+// the kit definition is the single source of truth. (In headless sims
+// DS.Meta isn't loaded — returns false, which matches sim behavior.)
+DS.Cards.isBaseKitCard = function(cardId) {
+  var kits = DS.Meta && DS.Meta.CLASS_KITS;
+  if (!kits) return false;
+  for (var cls in kits) {
+    var spec = kits[cls];
+    if (spec.core && spec.core.indexOf(cardId) !== -1) return true;
+    if (spec.signatures) {
+      for (var i = 0; i < spec.signatures.length; i++) {
+        if (spec.signatures[i].id === cardId) return true;
+      }
+    }
+  }
+  return false;
 };
 
 // Helper: get a random card reward pool (cards from active classes, including reward-only cards)
@@ -802,9 +850,11 @@ DS.Cards.getRewardPool = function(count, activeClasses) {
     var heroDef = DS.Heroes.find(function(h) { return h.cls === cls; });
     var heroIdx = DS.Heroes.indexOf(heroDef);
     var heroName = heroDef ? heroDef.name : cls;
-    // Reward pool: indices 4+ (skip starters 0-3)
+    // Reward pool: indices 4+ (skip starters 0-3), minus base-kit cards
+    // (kit signatures live at index 4+ but are character-bound — unattainable)
     for (var idx = 4; idx < cards.length; idx++) {
       var cardDef = cards[idx];
+      if (DS.Cards.isBaseKitCard(cardDef.id)) continue;
       allCards.push({
         id: cardDef.id,
         baseId: cardDef.id,
@@ -839,6 +889,7 @@ DS.Cards.getRewardPool = function(count, activeClasses) {
       var heroName = heroDef ? heroDef.name : cls;
       for (var idx = 4; idx < cards.length; idx++) {
         var cardDef = cards[idx];
+        if (DS.Cards.isBaseKitCard(cardDef.id)) continue;
         if (!allCards.some(function(c) { return c.baseId === cardDef.id; })) {
           allCards.push({
             id: cardDef.id, baseId: cardDef.id, name: cardDef.name,
@@ -974,7 +1025,7 @@ DS.Cards.UPGRADE_DEFS = {
       for (var i = 0; i < 5; i++) {
         var alive = DS.State.combat.enemies.filter(function(e) { return e.hp > 0; });
         if (alive.length === 0) break;
-        var pick = alive[Math.floor(Math.random() * alive.length)];
+        var pick = alive[Math.floor(DS.Combat.random() * alive.length)];
         DS.Combat.dealDamage(pick, card.value);
       }
     }
@@ -984,7 +1035,7 @@ DS.Cards.UPGRADE_DEFS = {
     effect: function(state, hero, target, card) {
       DS.State.combat.enemies.filter(function(e) { return e.hp > 0; }).forEach(function(e) {
         DS.Combat.dealDamage(e, card.value);
-        if (Math.random() < 0.4) {
+        if (DS.Combat.random() < 0.4) {
           DS.Combat.applyStatus(e, 'stunned', 1);
         }
       });
@@ -1086,7 +1137,7 @@ DS.Cards.UPGRADE_DEFS = {
     name: 'Headbutt+', desc: 'Deal 10 damage. 40% stun. Pos 1 only.', value: 10,
     effect: function(state, hero, target, card) {
       DS.Combat.dealDamage(target, card.value);
-      if (target.hp > 0 && Math.random() < 0.40) {
+      if (target.hp > 0 && DS.Combat.random() < 0.40) {
         target.stunned = true;
         DS.Combat.logMsg(target.name + ' is stunned!', 'stun-log');
       }
@@ -1150,7 +1201,7 @@ DS.Cards.UPGRADE_DEFS = {
       for (var i = 0; i < 4; i++) {
         var alive = DS.State.combat.enemies.filter(function(e) { return e.hp > 0; });
         if (alive.length === 0) break;
-        var pick = alive[Math.floor(Math.random() * alive.length)];
+        var pick = alive[Math.floor(DS.Combat.random() * alive.length)];
         DS.Combat.dealDamage(pick, card.value);
       }
     }
@@ -1342,3 +1393,28 @@ DS.Cards.applyUpgrade = function(card) {
   card.upgraded = true;
   return card;
 };
+// New reward cards use the same canonical definitions for draft, play and reload.
+(function() {
+  function add(cls, id, name, cost, type, target, desc, effect, extra) {
+    DS.Cards[cls].push(Object.assign({id:cls+'_'+id,name:name,cost:cost,type:type,target:target,prefPos:[],desc:desc,value:0,effect:effect},extra || {}));
+  }
+  add('fighter','intercept','Intercept',1,'block','ally','Gain 7 Block. Guard an ally until next turn.',function(s,h,t) { DS.Combat.gainBlock(h,7); DS.Combat.guardAlly(h,t); });
+  add('fighter','riposte','Riposte',1,'block','self','Gain 5 Block. Retaliate for 5 damage against the next 2 attacks this round.',function(s,h) { DS.Combat.gainBlock(h,5); h.riposte=2; h.riposteDamage=5; });
+  add('fighter','hook','Grappling Hook',1,'attack','enemy_any','Deal 4 damage. Pull target forward 2 ranks.',function(s,h,t,c) { DS.Combat.dealDamage(t,c.value); DS.Combat.displace(t,-2); },{value:4});
+  add('fighter','sunder','Sunder Armor',2,'attack','enemy','Destroy up to 12 Block, then deal 9 damage.',function(s,h,t,c) { t.block=Math.max(0,t.block-12); DS.Combat.dealDamage(t,c.value); },{value:9});
+  add('rogue','reserve_blade','Reserve Blade',1,'attack','enemy','Retain. Deal 9 damage when the moment is right.',function(s,h,t,c) { DS.Combat.dealDamage(t,c.value); },{retain:true,value:9});
+  add('rogue','improvise','Improvise',0,'skill','none','Discard your leftmost other card. Draw 2. Exhaust.',function(s,h,t,c) { var i=s.combat.hand.findIndex(function(x) { return x!==c; }); if(i>=0) DS.Combat.discardCard(i); DS.Combat.drawCard(); DS.Combat.drawCard(); },{exhaust:true});
+  add('rogue','escape_plan','Escape Plan',1,'skill','self','Innate. Gain 4 Block whenever you deliberately discard a card this combat. Exhaust.',function(s,h) { h.discardPayoff=(h.discardPayoff || 0)+4; },{innate:true,exhaust:true});
+  add('wizard','overcharge','Overcharge',0,'skill','none','The leftmost other card costs 0 this turn. Exhaust.',function(s,h,t,c) { var card=s.combat.hand.find(function(x) { return x!==c && !x.unplayable && !x.curse && !x.xCost; }); if(card) card._turnCost=0; },{exhaust:true});
+  add('wizard','arcane_barrage','Arcane Barrage',0,'attack','enemy_any','Spend all energy. Deal 6 damage per energy spent.',function(s,h,t,c) { for(var i=0;i<c._energySpent && t.hp>0;i++) DS.Combat.dealDamage(t,c.value); },{xCost:true,value:6});
+  add('wizard','conjure','Conjure Shards',1,'skill','none','Create two free Arcane Shards. Unused shards fade at turn end. Exhaust.',function(s,h,t,c) { DS.Combat.generateCard('tactical_shard',c.heroIdx); DS.Combat.generateCard('tactical_shard',c.heroIdx); },{exhaust:true});
+  DS.Cards.tactical=[{id:'tactical_shard',name:'Arcane Shard',cost:0,type:'attack',target:'enemy_any',prefPos:[],value:4,desc:'Deal 4 damage. Ethereal. Exhaust.',ethereal:true,exhaust:true,effect:function(s,h,t,c) { DS.Combat.dealDamage(t,c.value); }}, {id:'tactical_wound',name:'Wound',cost:0,type:'status',target:'none',prefPos:[],value:0,unplayable:true,desc:'Unplayable. Occupies a draw this combat.',effect:function() {}}];
+  // Starting-kit construction preserves keyword metadata as well as ordinary values.
+  var build=DS.Cards.buildStartingDeck;
+  DS.Cards.buildStartingDeck=function(entries) { return build(entries).map(function(card) { var def=DS.Cards[card.heroCls].find(function(c) { return c.id===card.baseId; }); ['reach','retain','innate','ethereal','exhaust','xCost','unplayable'].forEach(function(key) { if(def[key]!==undefined) card[key]=def[key]; }); return card; }); };
+})();
+
+(function() {
+  var reward=DS.Cards.getRewardPool;
+  DS.Cards.getRewardPool=function(count,classes) { return reward(count,classes).map(function(card) { var def=DS.Cards[card.heroCls].find(function(c) { return c.id===card.baseId; }); ['reach','retain','innate','ethereal','exhaust','xCost','unplayable'].forEach(function(key) { if(def[key]!==undefined) card[key]=def[key]; }); return card; }); };
+})();

@@ -391,7 +391,7 @@ DS.Relics = [
       } else if (enemies.length > 0) {
         // Single target — apply to a random enemy as proxy (engine doesn't pass target to relic hooks)
         // Best effort: the last attacked enemy is a decent guess
-        var victim = enemies[Math.floor(Math.random() * enemies.length)];
+        var victim = enemies[Math.floor(DS.Combat.random() * enemies.length)];
         DS.Combat.applyPoison(victim, 1);
       }
     }
@@ -492,7 +492,7 @@ DS.Relics = [
       state.run._bleedStoneUsed = true;
       var enemies = state.combat.enemies.filter(function(e) { return e.hp > 0; });
       if (enemies.length > 0) {
-        var victim = enemies[Math.floor(Math.random() * enemies.length)];
+        var victim = enemies[Math.floor(DS.Combat.random() * enemies.length)];
         DS.Combat.applyBleed(victim, 2);
       }
     }

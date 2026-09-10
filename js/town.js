@@ -61,7 +61,7 @@ DS.UI.renderTown = function(root) {
   // Empty roster message
   var aliveCount = meta.heroRoster.filter(function(h) { return h.alive; }).length;
   if (aliveCount === 0) {
-    rosterHtml += '<div class="town-empty">No heroes remain. Visit the caravan.</div>';
+    rosterHtml += '<div class="town-empty">No heroes remain. Return to the campfire — new wanderers gather there.</div>';
   }
 
   rosterHtml += '</div>';
@@ -148,13 +148,15 @@ DS.UI.renderTown = function(root) {
   // Merchant — the same merchant met on runs, but in town he deals in GEAR / artifacts
   // only (no cards, no card-removal — those stay on-run). Opens the gear shop sub-view.
   var ownedGearCount = (meta.ownedGear || []).length;
-  var gearTotal = (DS.Gear && DS.Gear.catalog) ? DS.Gear.catalog.length : 0;
+  var merchantLvl = (DS.Gear && DS.Gear.getMerchantLevel) ? DS.Gear.getMerchantLevel() : 0;
+  var merchantMax = (DS.Gear && DS.Gear.MERCHANT_MAX_LEVEL) || 3;
   buildingsHtml +=
     '<div class="town-building town-building-merchant" id="town-building-merchant">' +
       '<div class="town-building-icon">&#x1F9D9;</div>' +
       '<div class="town-building-name">Merchant</div>' +
       '<div class="town-building-desc">The wandering trader has set up a stall. Buy gear &amp; artifacts with your banked gold.</div>' +
-      '<div class="town-building-bonus">Gear owned: ' + ownedGearCount + '/' + gearTotal + '</div>' +
+      '<div class="town-building-level">Level ' + merchantLvl + '/' + merchantMax + '</div>' +
+      '<div class="town-building-bonus">Gear owned: ' + ownedGearCount + '</div>' +
       '<div class="town-building-cost">Browse wares &rarr;</div>' +
     '</div>';
 
@@ -247,8 +249,8 @@ DS.UI.renderTown = function(root) {
   // ===== WIRE UP ACTION BUTTONS =====
 
   document.getElementById('btn-enter-spire').onclick = function() {
-    DS.State.screen = 'caravan';
-    DS.UI.render();
+    // Expeditions muster at the campfire (replaces the old caravan screen)
+    DS.Campfire.enter();
   };
 
   document.getElementById('btn-new-game').onclick = function() {
@@ -476,13 +478,21 @@ DS.UI._townShowMerchant = function(root) {
   screen.className = 'screen screen-town';
 
   var meta = DS.Meta;
-  var catalog = (DS.Gear && DS.Gear.catalog) ? DS.Gear.catalog : [];
+  // Stock = tiered roll gated by merchant level (data/gear.js); the run
+  // merchant is the volatile face of the same trader.
+  var catalog = (DS.Gear && DS.Gear.getTownStock) ? DS.Gear.getTownStock() : [];
+  var merchantLvl = (DS.Gear && DS.Gear.getMerchantLevel) ? DS.Gear.getMerchantLevel() : 0;
+  var upgradeCost = (DS.Gear && DS.Gear.getMerchantUpgradeCost) ? DS.Gear.getMerchantUpgradeCost() : null;
 
   var html =
     '<div class="town-subview">' +
-      '<h2 class="town-section-title">MERCHANT &mdash; Gear &amp; Artifacts</h2>' +
-      '<div class="town-sub-desc">The wandering trader deals only in gear here &mdash; cards and card-removal are for the road. Equipping comes later (Phase 5); for now your purchases are banked.</div>' +
+      '<h2 class="town-section-title">MERCHANT &mdash; Gear &amp; Artifacts (Level ' + merchantLvl + ')</h2>' +
+      '<div class="town-sub-desc">The wandering trader deals only in gear here &mdash; cards and card-removal are for the road. Better stock rides on better patronage: upgrade him to unlock rarer wares.</div>' +
       '<div class="town-gold-display">&#x1F4B0; ' + meta.gold + ' Gold</div>' +
+      (upgradeCost !== null
+        ? '<button class="btn town-btn-confirm" id="btn-merchant-upgrade" style="margin-bottom:14px;"' +
+            (meta.gold < upgradeCost ? ' disabled' : '') + '>UPGRADE MERCHANT &mdash; ' + upgradeCost + 'g</button>'
+        : '<div class="town-sub-desc" style="color:var(--gold);">The merchant\'s stall is fully stocked (max level).</div>') +
       '<div class="town-gear-picker">';
 
   if (catalog.length === 0) {
@@ -530,6 +540,20 @@ DS.UI._townShowMerchant = function(root) {
       }
     };
   });
+
+  // Merchant upgrade (DD-hamlet-style track — logic in DS.Gear.upgradeMerchant)
+  var upgradeBtn = document.getElementById('btn-merchant-upgrade');
+  if (upgradeBtn) {
+    upgradeBtn.onclick = function() {
+      var result = DS.Gear.upgradeMerchant();
+      if (result.ok) {
+        DS.UI._townFlash(root, 'Merchant upgraded to level ' + DS.Gear.getMerchantLevel() + '! New stock available.');
+        DS.UI._townShowMerchant(root);
+      } else {
+        DS.UI._townFlash(root, result.reason === 'gold' ? 'Not enough gold!' : 'The merchant is at max level.');
+      }
+    };
+  }
 
   document.getElementById('btn-merchant-back').onclick = function() {
     DS.UI.renderTown(root);
@@ -695,6 +719,7 @@ DS.UI._injectTownStyles = function() {
     '.town-gear-rarity-common { color: var(--text-dim); }' +
     '.town-gear-rarity-uncommon { color: var(--blue); }' +
     '.town-gear-rarity-rare { color: var(--gold); }' +
+    '.town-gear-rarity-legendary { color: #e06060; text-shadow: 0 0 6px rgba(224,96,96,0.35); }' +
     '.town-gear-desc { font-size: 0.78em; color: var(--text-dim); line-height: 1.35; flex: 1; }' +
     '.town-gear-price { font-size: 0.9em; color: var(--gold); font-weight: 700; margin-top: 4px; }' +
     '.town-gear-price-red { color: var(--crimson); }' +

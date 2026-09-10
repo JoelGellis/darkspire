@@ -125,6 +125,7 @@
     }
     html += '</section><footer class="cf-footer">THE FIRE KEEPS NO PROMISES.</footer></div></main>';
     root.innerHTML = html;
+    if (DS.EquipmentView) DS.EquipmentView.campfire(root);
     if (!announcement) {
       announcement = document.createElement('div');
       announcement.id = 'cf-announcement';

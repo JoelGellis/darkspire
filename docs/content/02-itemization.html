@@ -1,0 +1,304 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>02-itemization.md</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+         max-width: 980px; margin: 24px auto; padding: 0 24px; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1, h2, h3, h4 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; margin-top: 28px; }
+  h1 { font-size: 1.9em; }
+  h2 { font-size: 1.45em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding: 0 16px; margin-left: 0; }
+  .doc-sep { border: none; border-top: 3px double #d0d7de; margin: 48px 0 24px; }
+  .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
+</style>
+</head>
+<body><p class="source-label">Source: docs\content\02-itemization.md</p><p>﻿# Itemization — specialist plan 2</p>
+<p>Status: implementation proposal grounded in the September 9 working tree, not shipped content. Companion: <a href="01-character-stacks.md">character stacks</a>. Numbers below are original balance hypotheses; they are not claims about reference-game statistics. This plan owns content definitions only, preserving current runtime and other agents' work.</p>
+<h2>Equipment contract</h2>
+<p>Keep weapon, armor, trinket, trinket2 on each hero; two party artifacts outside those slots. Embark permits at most two equipped items per hero; the expedition permits all four. These existing limits produce eight empty personal slots across a full party. No head/gloves/belt expansion: four slots already create sixteen individual equipment decisions and the shared deck cannot absorb an action from each slot without losing its character identity.</p>
+<p>One definition is one uniquely owned item in v1. <code>Meta.ownedGear</code> currently stores IDs, not instance objects, and <code>buyGear</code> rejects duplicates. Keep this model while shipping the roster. Duplicate drops award the item's stated salvage gold through a single logged transaction; they never silently vanish and never make a second wearable copy. Two different trinkets may be worn; the same item cannot occupy both slots. Random affixes, durability, socket currencies and set completion bonuses are deferred. They multiply balance states before the base weapons are interesting.</p>
+<p>All surviving purchased rarities remain permanent. <code>CONSUME_ON_RUN_END=false</code> already implements the intended direction; old common-item comments about temporary/burnable equipment and rarity-only take-home language are stale. Common equipment remains useful as an affordable alternative, not a rental. Permanent means persistent ownership subject to the explicit death/flee rules, not immunity from loss. No gold-bought temporary buffs or potions. Earned potions/blessings stay separate systems.</p>
+<p>Swapping is free in town and between encounters, never during combat. Equipping maximum-HP gear changes capacity without granting healing; reducing capacity clamps current HP. Restore the prior maximum on unequip, never subtract an accumulated delta twice. Start-of-combat blocks, strength and other triggers cannot fire by repeatedly opening the armory.</p>
+<h2>Actual integration boundary</h2>
+<p>Existing <code>DS.Gear</code> surfaces: <code>classAllowed</code>, <code>slotsForItem</code>, <code>getModifier</code>, <code>getGrantedCards</code>, <code>_makeGearCard</code>, <code>_rehydrateGearCard</code>, <code>applyLoadout</code>, <code>buyOnRun</code>, <code>reassignOnRun</code>, <code>salvage</code>, <code>resolveRunEnd</code>. Current 17 items are enumerated in <a href="01-current-inventory.md">inventory</a>. Five inject actions; other items use <code>mods</code> or <code>flags</code>. Live modifier vocabulary: <code>startBlock</code>, <code>strength</code>, <code>damageBonus</code>, <code>maxHp</code>, <code>endCombatHeal</code>, <code>firstTurnDraw</code>; flags include party-scoped <code>freeMove</code> and <code>energyBonus</code>.</p>
+<p>Do not put novel keys in <code>mods</code> and assume they work. New trigger items require explicit event processing. The existing gear hook wrapper handles combat start, card play and combat end; it does not constitute a generic, owner-safe event bus. <code>guardAlly</code> and <code>displace</code> exist, as do Mark/riposte/exhaust mechanics, but the payloads required for conditional item procs are not all exposed.</p>
+<p>Critical prerequisite: <code>_makeGearCard</code>/rehydration currently copy a fixed field list omitting explicit reach and proposed keywords such as exhaust/retain. Add canonical metadata preservation before adding the cards below. The current <code>fromGear</code> source field must survive every pile, export and restoration. Source identity is the item definition ID under unique ownership, plus stable owner ID and unique card-instance ID. Do not derive ownership solely from class: two Fighters can join one party.</p>
+<h2>Shared-deck cost</h2>
+<p>Live start: four owners × eight cards = 32, draw five. Adding eight item actions yields 40 cards. A particular one-copy payoff appears in the opening five with probability 5/32 = 15.625% before equipment and 5/40 = 12.5% afterward. Expected draws to cycle rise from 6.4 to 8 turns, before extra draw and retain. With eight owner cards, chance of seeing none of that owner in five draws is C(24,5)/C(32,5), about 21%; giving only the other heroes eight injected actions raises it to C(32,5)/C(40,5), about 30.6%. A stronger sword can therefore make the Cleric less reliable.</p>
+<p>Adopt a proposed two-active-item-action cap per owner, independent of slots: all four items can supply passives, but at most two contribute actions. The armory lets the player sheathe an item's action while retaining explicitly listed passives. This is new behavior and must ship with its save/UI contract; until then, use the existing one-card-per-item behavior and show actual deck size rather than pretending the cap exists. Display total deck size, owner share, injected cards and opening draw probability when comparing items. No automatic owner draw guarantee in this wave.</p>
+<p>Planner 1 proposes testing a leaner 24-card base. At 24+8=32, a one-copy action has 15.625% opening visibility; that is a separate controlled balance experiment with saved-kit migration. Do not silently reduce veteran stacks to compensate for excessive loot. Prefer distinctive one-action items and passive alternatives over stuffing two or three new cards into each weapon.</p>
+<h2>Concrete additions: 32 personal items</h2>
+<p>IDs are <code>gear_</code> + the lowercase underscore name below. C/U/R/L = common/uncommon/rare/legendary. Price in gold. W/A/T = weapon/armor/trinket. Class listed is the exact compatibility restriction; these specialist tools supplement unrestricted existing basics. E = energy; launch ranks L; target reach R; “any” means 1–4. Every action is one injected card. Exhaust means once per combat unless explicitly recovered by a legal effect. Conditional triggers affect only the wearer unless stated. All caps reset at combat start; per-turn caps reset at player-turn start. No proc retriggers itself.</p>
+<table>
+<thead>
+<tr>
+<th>Item / class</th>
+<th>Slot, rarity, price</th>
+<th>Exact proposed effect</th>
+<th>Choice it creates / prerequisite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Notched Longsword / Fighter</td>
+<td>W C 35</td>
+<td><strong>Lever Cut</strong>, 1E L1/2 R1/2: 5 damage, push target one rank.</td>
+<td>Trades raw hit for exposure of rear support; declare reach metadata.</td>
+</tr>
+<tr>
+<td>Warden Harness / Fighter</td>
+<td>A U 70</td>
+<td><strong>Take the Blow</strong>, 1E L1/2 ally: guard ally this round and gain 5 block. Exhaust.</td>
+<td>Finite rescue competes with damage; use <code>guardAlly</code>.</td>
+</tr>
+<tr>
+<td>Reprisal Nail / Fighter</td>
+<td>T R 130</td>
+<td>First actual intercepted attack each turn grants one riposte charge, damage 4, lasting this round. No trigger on zero incoming damage.</td>
+<td>Rewards taking a real threat, not taunt spam; needs interception event.</td>
+</tr>
+<tr>
+<td>Marshal Blade / Fighter</td>
+<td>W L 280</td>
+<td><strong>Advance the Line</strong>, 2E L1/2 ally: swap ranks with ally; each gains 7 block; next ally attack this turn gains 4 damage once. Exhaust.</td>
+<td>Consumes most energy to arrange another owner's strike; needs owner-specific one-shot bonus.</td>
+</tr>
+<tr>
+<td>Hook Knife / Rogue</td>
+<td>W C 35</td>
+<td><strong>Slip Inside</strong>, 1E L2/3 R1/2: 5 damage then move wearer forward one rank if possible.</td>
+<td>Builds the approach to ambush rather than free damage.</td>
+</tr>
+<tr>
+<td>Viper Sheath / Rogue</td>
+<td>T U 65</td>
+<td><strong>Fresh Venom</strong>, 1E L2/3 self: next two Rogue attack cards each apply 2 Poison to their first successfully hit enemy. Exhaust.</td>
+<td>Setup competes with immediate attacks; requires bounded card-level hit trigger.</td>
+</tr>
+<tr>
+<td>Mourning Veil / Rogue</td>
+<td>A R 130</td>
+<td><strong>Disappear</strong>, 0E L1/2 self: move back one rank, deliberately discard one other chosen hand card. Exhaust. If no other card, action illegal.</td>
+<td>Tempo costs another owner's possible action; chosen discard UI required.</td>
+</tr>
+<tr>
+<td>Seam Ripper / Rogue</td>
+<td>W L 285</td>
+<td><strong>Open the Seam</strong>, 1E L1/2/3 R1/2: 8 damage, +6 if wearer voluntarily moved this turn; consumes this movement benefit.</td>
+<td>Once-per-turn positional burst; voluntary movement history required.</td>
+</tr>
+<tr>
+<td>Pilgrim Bell / Cleric</td>
+<td>T C 30</td>
+<td><strong>Quiet Ward</strong>, 1E L2/3 ally: 5 block and remove 1 Poison.</td>
+<td>Small dual-purpose prevention; no endless healing.</td>
+</tr>
+<tr>
+<td>Mercy Vestment / Cleric</td>
+<td>A U 70</td>
+<td><strong>Shelter</strong>, 1E L2/3 ally: 8 block; if ally below 30% maximum HP, add 4 block. Exhaust.</td>
+<td>Supports emergencies without rewarding repeated heal farming.</td>
+</tr>
+<tr>
+<td>Triage Rosary / Cleric</td>
+<td>T R 135</td>
+<td>First time wearer heals another hero below 30% HP each combat, add 4 actual healing and 4 block after normal heal. Check threshold before heal.</td>
+<td>Single rescue; actual-heal/threshold event needed.</td>
+</tr>
+<tr>
+<td>Dawn Censer / Cleric</td>
+<td>W L 280</td>
+<td><strong>Hold the Dawn</strong>, 2E L2/3 all allies: each living ally gains 7 block and clears Poison. Exhaust.</td>
+<td>Party stabilization spends offensive turn; cannot revive.</td>
+</tr>
+<tr>
+<td>Frost Wand / Wizard</td>
+<td>W C 35</td>
+<td><strong>Rime Needle</strong>, 1E L3/4 Rany: 4 damage and 1 Weak.</td>
+<td>Defense through reducing a telegraphed attacker, not rear melee.</td>
+</tr>
+<tr>
+<td>Scribe Cuff / Wizard</td>
+<td>T U 65</td>
+<td><strong>Prepare Formula</strong>, 1E L3/4 self: next different Wizard card this turn costs 1 less, minimum 0; draw 1. Exhaust.</td>
+<td>Shared energy sequencing; discount cannot target itself.</td>
+</tr>
+<tr>
+<td>Prism Robe / Wizard</td>
+<td>A R 145</td>
+<td><strong>Hold a Spark</strong>, 0E L3/4 own generated Shard: retain that Shard this turn; gain 3 block. Exhaust.</td>
+<td>Preserves one payload; generated-card selection and metadata required.</td>
+</tr>
+<tr>
+<td>Convergence Staff / Wizard</td>
+<td>W L 295</td>
+<td><strong>Convergence</strong>, 2E L4 Rany: 12 damage +3 per other Wizard card played this turn, maximum +9. Exhaust.</td>
+<td>Needs setup and exact owner count; no party-wide spell inflation.</td>
+</tr>
+<tr>
+<td>Scar Axe / Barbarian</td>
+<td>W C 35</td>
+<td><strong>Blood Notch</strong>, 1E L1/2 R1/2: pay 2 HP, deal 9 damage; illegal at 2HP or below.</td>
+<td>Reliable damage has actual survivability cost; payment bypasses block.</td>
+</tr>
+<tr>
+<td>Defiant Hide / Barbarian</td>
+<td>A U 65</td>
+<td><strong>Grit</strong>, 1E L1/2 self: 6 block, +5 below half maximum HP. Exhaust.</td>
+<td>Enables risky threshold play without healing away its price.</td>
+</tr>
+<tr>
+<td>Red Cord / Barbarian</td>
+<td>T R 125</td>
+<td>First explicit HP payment each turn grants 3 block after payment. Damage from enemies/status is not payment.</td>
+<td>Mitigates next threat, cannot refund or prevent cost; payment event required.</td>
+</tr>
+<tr>
+<td>Gallows Cleaver / Barbarian</td>
+<td>W L 285</td>
+<td><strong>Last Reserve</strong>, 2E L1 R1: 17 damage; if wearer started below quarter HP and survives, heal 4 afterward. Exhaust.</td>
+<td>High-risk finisher with finite recovery.</td>
+</tr>
+<tr>
+<td>Barbed Bow / Ranger</td>
+<td>W C 35</td>
+<td><strong>Pin Quarry</strong>, 1E L2/3/4 Rany: 4 damage and apply Mark 3.</td>
+<td>Cross-owner setup trades immediate output.</td>
+</tr>
+<tr>
+<td>Trail Mantle / Ranger</td>
+<td>A U 70</td>
+<td><strong>Relocate</strong>, 0E Lany self: move one rank in chosen direction, gain 3 block. Exhaust.</td>
+<td>One preparation reposition, no infinite free movement.</td>
+</tr>
+<tr>
+<td>Hunter Lens / Ranger</td>
+<td>T R 135</td>
+<td>First own attack against a marked enemy each turn gets +4 damage on its first hit; normal Mark consumption still occurs once.</td>
+<td>Focus-fire payoff; damage source/mark snapshot needed.</td>
+</tr>
+<tr>
+<td>Ironwood Longbow / Ranger</td>
+<td>W L 290</td>
+<td><strong>Drive the Hunt</strong>, 2E L3/4 Rany: 12 damage, push target two ranks and apply 1 Weak. Exhaust.</td>
+<td>Disrupts formation; immovable enemies take base hit/Weak.</td>
+</tr>
+<tr>
+<td>Grave Needle / Necromancer</td>
+<td>W C 35</td>
+<td><strong>Ash Prick</strong>, 1E L3/4 Rany: 3 damage and 2 Poison.</td>
+<td>Small durable attrition line; no heal attached.</td>
+</tr>
+<tr>
+<td>Ossuary Wrap / Necromancer</td>
+<td>A U 70</td>
+<td><strong>Bone Offering</strong>, 1E L3/4 own other hand card: exhaust chosen card; gain 9 block. Exhaust itself.</td>
+<td>Sacrifices a party action for defense; chosen-card targeting required.</td>
+</tr>
+<tr>
+<td>Cinder Urn / Necromancer</td>
+<td>T R 140</td>
+<td>First deliberate other-card sacrifice by wearer each turn grants 4 block to lowest-HP living ally; ties use rank then stable ID.</td>
+<td>Exhaust payoff separated from normal cleanup/self-exhaust.</td>
+</tr>
+<tr>
+<td>Black Reliquary / Necromancer</td>
+<td>W L 295</td>
+<td><strong>Grave Echo</strong>, 2E L4 all enemies: 4 damage +2 per unique enemy death this combat, cap +6. Exhaust.</td>
+<td>Powerful late encounter, weak opener; unique enemy identity required.</td>
+</tr>
+<tr>
+<td>Votive Mace / Paladin</td>
+<td>W C 35</td>
+<td><strong>Shielded Blow</strong>, 1E L1/2 R1/2: 4 damage and 4 block to wearer.</td>
+<td>Conservative tempo alternative to aggressive weapons.</td>
+</tr>
+<tr>
+<td>Wardkeeper Plate / Paladin</td>
+<td>A U 75</td>
+<td><strong>Sworn Ward</strong>, 1E L1/2 ally: both gain 4 block, guard ally this round. Exhaust.</td>
+<td>Protects a chosen person, not unlimited whole-party taunt.</td>
+</tr>
+<tr>
+<td>Oath Seal / Paladin</td>
+<td>T R 140</td>
+<td>First actual interception each turn stores one Oath, maximum 2; next wearer attack spends all for +3 damage each on first hit.</td>
+<td>Protection earns bounded offense; no income from self-guard.</td>
+</tr>
+<tr>
+<td>Last Light / Paladin</td>
+<td>W L 295</td>
+<td><strong>Radiant Verdict</strong>, 1E L1/2 R1/2: 7 damage; consume up to 7 own block for equal extra damage. Exhaust.</td>
+<td>Cashes out protection and exposes wearer to intent.</td>
+</tr>
+</tbody>
+</table>
+<p>Cleric launch ranks deliberately remain 2/3 per DESIGN; planner 1's suggested 3/4 Cleric additions need correction before implementation. Items cannot quietly convert Cleric into a back-row Wizard.</p>
+<h2>Six party artifacts</h2>
+<p>Artifacts add no cards. Each occupies one of two slots, so party-wide effects compete with the existing Bag of Holding and Battle Standard.</p>
+<table>
+<thead>
+<tr>
+<th>ID / name</th>
+<th>Rarity, price</th>
+<th>Exact effect and tradeoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gear_watch_bell / Watch Bell</td>
+<td>U 70</td>
+<td>First combat turn only: party's first movement costs 0 energy. One use, then normal cost. Competes with opening draw.</td>
+</tr>
+<tr>
+<td>gear_field_stretcher / Field Stretcher</td>
+<td>U 75</td>
+<td>At victory heal lowest-HP surviving hero 4, ties rank then ID. No heal after flee/loss; never revives. Less broad than party offense.</td>
+</tr>
+<tr>
+<td>gear_iron_pennant / Iron Pennant</td>
+<td>R 145</td>
+<td>Combat start: rank1 gains 6 block, rank4 gains 3 block. Depends on actual formation; no midcombat reequip retrigger.</td>
+</tr>
+<tr>
+<td>gear_exile_compass / Exile Compass</td>
+<td>R 155</td>
+<td>First voluntary party rank swap each turn gives both involved heroes 2 block, once per turn. Needs swap event, not two move events.</td>
+</tr>
+<tr>
+<td>gear_ash_lantern / Ash Lantern</td>
+<td>L 285</td>
+<td>First deliberate card sacrifice each turn grants party 1 energy; maximum twice per combat. Card must preexist the sacrificing action and not be generated. Bounded enabling power competes with banner damage.</td>
+</tr>
+<tr>
+<td>gear_last_procession / Last Procession</td>
+<td>L 300</td>
+<td>First living ally reduced below quarter HP by an enemy attack each combat grants other living allies 6 block. Applies after the triggering hit; never prevents that death or triggers on HP payment.</td>
+</tr>
+</tbody>
+</table>
+<p>This yields 55 total definitions: 17 existing +32 personal +6 artifacts. Do not ship all at once; functional prerequisites and measured availability matter more than catalog length.</p>
+<h2>Existing-item audit and acquisition</h2>
+<p>Preserve existing IDs for save compatibility. Quarterstaff needs explicit L1/2/3, R1/2 regardless of wearer class. Shadow Cloak's reusable zero-cost 5 damage is an early exploit candidate: test exhaust or one-use-per-turn rather than silently accepting repeated cycling. Holy Symbol's repeatable all-party healing needs a finite combat-use/exhaust experiment before larger sustain roster lands. Boots of Speed is party-scoped today: keep its honest wording until owner-scoped movement exists; never advertise wearer-only behavior backed by party flags. Whetstone strength and dagger damage must be evaluated on multihit/AoE versus single-target actual damage, not description totals. Archmagi's flat modifier must use exact declared attack semantics.</p>
+<p>Keep current baseline prices and salvage formula <code>floor(price * .55)</code> for controlled comparison. New common 30–35, uncommon 65–75, rare 125–155, legendary 280–300. No paid reroll service and no sell/buy profit loop. A legendary should remain a deliberate savings choice, not be required to clear act one. All prices in the roster are starting values pending full-run income evidence.</p>
+<p>Town keeps existing four merchant levels and weights while collecting baselines. Dungeon selection first guarantees one equip-compatible affordable option when such stock exists; the other two remain rarity-weighted, unowned draws. Do not guarantee legendary quality. Class-restricted stock must match at least one living party member. Catalog exhaustion produces an honest empty shelf or upgrades opportunity, never an infinite retry loop. Persist rolled stock on save and log offers, prices, purchases, skips and salvage so availability can be measured rather than inferred.</p>
+<p>Exit: victory keeps survivor worn gear and retained expedition acquisitions; map retreat keeps survivors' gear and halves gained gold under DESIGN. Flee retains pre-run gear on survivors, loses run rewards/acquired gear; wipe loses all equipped gear and run acquisitions, bank untouched. Tutorial escape preserves the exceptional gains/heroes. Unworn pre-run bank items never enter loss scope. Each settlement must enumerate origin, wearer, decision and reason exactly once. Existing runtime behavior must be audited against these rules before claiming it matches.</p>
+<h2>Implementation waves and acceptance</h2>
+<ol>
+<li><strong>Identity and metadata foundation</strong>, backlog 4–10, 21, 32–38, 85, 92–94: canonical gear-card cloning, explicit reach/keywords, action activation save contract, death/salvage provenance, honest permanent rarity language. Tests: equip/unequip twice gives zero healing; save every pile and compare exact effect/owner/source; dead owner actions cannot play; salvage removes only that source; two same-class owners never collide; rejected purchase/fit mutates nothing.</li>
+<li><strong>Eight common tools plus four bounded armor actions</strong>, backlog 8, 24, 26–29, 41–50, 79–80: first introduce Notched Longsword, Hook Knife, Pilgrim Bell, Frost Wand, Scar Axe, Barbed Bow, Grave Needle, Votive Mace and Warden/Mercy/Defiant/Wardkeeper armors. Tests exercise legal launch/target combinations, movement caps, immovable boss, insufficient HP payment, finite rescue and no resurrection. Browser checks actual comparisons and fit-to-card path.</li>
+<li><strong>Event contracts and remaining uncommon/rare content</strong>, backlog 27–28, 34–36, 41–50, 86, 97–99: add source/owner/reason-rich damage, movement, payment, sacrifice and interception events. Unit cases prove caps, zero damage, blocked damage, two heroes, multihit and reload midproc; integration records actual per-item effect contribution. No item activates on merely reading a preview.</li>
+<li><strong>Legendary build pivots and artifacts</strong>, backlog 49, 65, 69, 74, 79, 95, 98: introduce after matching engine tests and one viable lower-rarity build per class. No generated-card/sacrifice/energy cycle can fund itself indefinitely. Run adversarial 0-cost/discard/exhaust probes, three-act owner starvation tests and merchant affordability comparisons.</li>
+<li><strong>Balance release</strong>, backlog 94, 97–100: identical seeded parties with none/basic/specialized gear; vary classes, ranks, deck size and policy. Record offers versus purchases versus equips versus plays, actual bonus/blocked/healed HP, unused action counts, owner no-play turns, spend and lost permanent value. Separate scripted policy/version from human and exact AI identity. Compare confidence intervals rather than declaring a five-run winner optimal. Retain all raw run records; public demo includes no private archive files.</li>
+</ol>
+<p>Acceptance is a meaningful choice: each item must either change legal actions, timing, target selection, formation, resource payment or risk allocation. A different icon plus flat damage does not qualify as a new build. Numeric tuning may retain simple existing basics; the expanded catalog must earn its complexity in logged decisions. The equipment screen should feel like opening an armory chest: figure, physical slots, item silhouette and readable action preview within one screen, with internal paged inventory rather than document scrolling. Art must follow existing source/export rules and use Darkspire assets; this content plan supplies no unreviewed runtime art.</p>
+<h3>Income opportunity-cost checkpoint</h3>
+<p>Actual <code>js/state.js</code> victory gold is <code>10 + floor(random*10) + 2*floor</code>: 10–19 plus floor bonus, mean 14.5+2f before relic multipliers. At floor 3 this is 16–25, mean 20.5. Thus a 35g common costs about 1.7 such victories; 70g uncommon 3.4; 140g rare 6.8; 290g legendary 14.1. These are fight-equivalents, not forecasts of full-run earnings: rest/event/shop nodes do not all pay combat gold, starting bank is separate, and later acts may alter floors. A common sold for 19g has a 16g net cost, roughly 0.8 floor-3 victories; an uncommon sold for 38g costs 32g net, about 1.6. Keeping that common instead preserves the whole physical tool for future loadouts. Four 35g tools compete directly with one 140g specialist item and the 80g first merchant upgrade plus a 60g existing charm. A 290g weapon is a multi-run saving objective under this baseline, not a routine first-act purchase. Do not inflate income to make every shelf instantly affordable; log unaffordable offers and their later purchase/bank paths before adjusting prices.</p>
+<p>Current town rarity weights are L0 65/35/0/0, L1 50/35/15/0, L2 35/40/20/5, L3 25/35/28/12 (C/U/R/L); dungeon 25/35/28/12. Because item eligibility/ownership filters shrink pools, these are selection weights, not guaranteed observed proportions. Catalog extension must test seeded offer frequencies per merchant level and owned-library saturation. Report both requested rarity and final offered rarity to expose fallback bias. Keep these existing values for first comparison; only then consider lowering early dungeon legendary offer frequency if costly unreachable stock crowds out run-saving common gear.</p></body></html>

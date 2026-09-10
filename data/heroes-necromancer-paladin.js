@@ -12,7 +12,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    prefPos: [3, 4],
+    prefPos: [],
     desc: 'Deal 4 damage. Heal self 3.',
     value: 4,
     effect: function(state, hero, target, card) {
@@ -26,7 +26,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'attack',
     target: 'enemy_any',
-    prefPos: [3, 4],
+    prefPos: [],
     desc: 'Deal 6 damage. Hits any enemy.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -39,7 +39,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'block',
     target: 'self',
-    prefPos: [3, 4],
+    prefPos: [],
     desc: 'Gain 5 Block.',
     value: 5,
     effect: function(state, hero, target, card) {
@@ -52,7 +52,7 @@ DS.Cards.necromancer = [
     cost: 1,
     type: 'utility',
     target: 'enemy',
-    prefPos: [3, 4],
+    prefPos: [],
     desc: 'Apply 2 Weak.',
     value: 2,
     effect: function(state, hero, target, card) {
@@ -209,7 +209,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    prefPos: [1, 2],
+    prefPos: [],
     desc: 'Deal 5 damage. Gain 3 Block.',
     value: 5,
     effect: function(state, hero, target, card) {
@@ -223,7 +223,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'block',
     target: 'ally',
-    prefPos: [1, 2, 3],
+    prefPos: [],
     desc: 'Give ally 7 Block.',
     value: 7,
     effect: function(state, hero, target, card) {
@@ -236,7 +236,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'heal',
     target: 'ally',
-    prefPos: [1, 2, 3],
+    prefPos: [],
     desc: 'Heal ally 6 HP.',
     value: 6,
     effect: function(state, hero, target, card) {
@@ -249,7 +249,7 @@ DS.Cards.paladin = [
     cost: 1,
     type: 'attack',
     target: 'enemy',
-    prefPos: [1, 2],
+    prefPos: [],
     desc: 'Deal 8 damage.',
     value: 8,
     effect: function(state, hero, target, card) {
@@ -422,3 +422,5 @@ DS.Heroes.push({
     accentColor: '#ffee88'
   }
 });
+
+DS.Cards.necromancer.push({id:'necromancer_ash_covenant',name:'Ash Covenant',cost:1,type:'skill',target:'self',prefPos:[],value:3,innate:true,exhaust:true,desc:'Innate. Gain 3 Block whenever any card exhausts this combat. Exhaust.',effect:function(s,h,t,c) { h.exhaustPayoff=(h.exhaustPayoff || 0)+c.value; }});

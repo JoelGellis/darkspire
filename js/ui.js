@@ -26,6 +26,8 @@ DS.UI = {
       DS.UI.renderTown(root);
     } else if (screen === 'caravan') {
       DS.UI.renderCaravan(root);
+    } else if (screen === 'campfire') {
+      DS.UI.renderCampfire(root);
     } else if (screen === 'summary') {
       DS.UI.renderSummary(root);
     }
@@ -579,10 +581,11 @@ DS.UI = {
       // when the hero is out of position (the reason it's locked), so the fix is obvious.
       var posHero = DS.State.run.heroes[card.heroIdx];
       var posLocked = check.reason === 'position';
-      var posBadge = '<div class="card-pos-badge' + (posLocked ? ' locked' : '') + '" title="' +
+      var posBadge = (card.prefPos && card.prefPos.length) ?
+        '<div class="card-pos-badge' + (posLocked ? ' locked' : '') + '" title="' +
         (posLocked ? 'Locked: ' : '') + card.heroName + ' must be at position ' +
         card.prefPos.join('/') + (posHero ? ' (currently ' + posHero.pos + ')' : '') + '">' +
-        (posLocked ? '⚠' : '❖') + ' ' + card.prefPos.join('/') + '</div>';
+        (posLocked ? '⚠' : '❖') + ' ' + card.prefPos.join('/') + '</div>' : '';
 
       var artClass = 'card-art-' + card.type;
 
@@ -628,7 +631,7 @@ DS.UI = {
     screen.className = 'screen screen-reward';
 
     var run = DS.State.run;
-    var rewardCards = DS.Cards.getRewardPool(3);
+    var rewardCards = DS.Cards.getRewardPool(3, run.heroes.filter(function(h) { return h.hp > 0; }).map(function(h) { return h.cls; }));
     var goldReward = run._lastGoldReward || 0;
 
     // Show beggar message if any
@@ -668,27 +671,22 @@ DS.UI = {
 
     root.appendChild(screen);
 
+    var rewardTaken = false;
     // Wire up card clicks
     rewardCards.forEach(function(card, i) {
       var el = root.querySelector('[data-reward-idx="' + i + '"]');
       if (el) {
         el.onclick = function() {
-          // Add card to deck
-          var deckCard = {
+          if (rewardTaken) return;
+          var ownerIdx = run.heroes.findIndex(function(h) { return h.cls === card.heroCls && h.hp > 0; });
+          if (ownerIdx < 0) return;
+          rewardTaken = true;
+          var deckCard = Object.assign({}, card, {
             id: card.id + '_reward_' + Date.now(),
-            baseId: card.baseId,
-            name: card.name,
-            cost: card.cost,
-            type: card.type,
-            target: card.target,
-            desc: card.desc,
-            value: card.value,
-            effect: card.effect,
-            heroIdx: card.heroIdx,
-            heroCls: card.heroCls,
-            heroName: card.heroName,
-            upgraded: false
-          };
+            prefPos: (card.prefPos || []).slice(),
+            heroIdx: ownerIdx,
+            heroName: run.heroes[ownerIdx].name
+          });
           run.deck.push(deckCard);
           DS.State.stats.cardsCollected++;
           el.classList.add('selected');
@@ -700,6 +698,8 @@ DS.UI = {
     });
 
     document.getElementById('btn-skip-reward').onclick = function() {
+      if (rewardTaken) return;
+      rewardTaken = true;
       DS.Game.afterReward();
     };
   },

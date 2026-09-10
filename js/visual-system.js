@@ -61,6 +61,12 @@
     var helpButton = document.createElement('button');
     helpButton.className = 'cf-text-button ds-help'; helpButton.textContent = 'How to play'; helpButton.onclick = help;
     root.querySelector('.cf-actions').appendChild(helpButton);
+    var recruits=root.querySelector('.cf-roster-recruit');
+    if(recruits){
+      var coach=document.createElement('button');coach.className='ds-world-coach';coach.type='button';coach.innerHTML='<img src="assets/exported/ui/stagecoach.svg" alt=""><span>Stagecoach</span><small>'+recruits.querySelectorAll('.cf-hero').length+' waiting</small>';scene.appendChild(coach);
+      var coachDialog=document.createElement('dialog');coachDialog.className='ds-dialog ds-coach-dialog';coachDialog.setAttribute('aria-label','The stagecoach');
+      var back=document.createElement('button');back.textContent='Return to the fire';back.className='btn';back.onclick=function(){coachDialog.close();};coachDialog.appendChild(back);coachDialog.appendChild(recruits);root.appendChild(coachDialog);coach.onclick=function(){coachDialog.showModal();};
+    }
     var memorial = root.querySelector('.cf-memorial');
     var details = document.createElement('details'); details.className = 'ds-memorial';
     var summary = document.createElement('summary'); summary.textContent = 'Graveyard · ' + (DS.Meta.graveyard || []).length + ' remembered';
@@ -120,6 +126,7 @@
       screen.querySelector('.town-roster').appendChild(d);
     }
     screen.querySelector('#btn-enter-spire').textContent = 'Assemble party';
+    var coach=document.createElement('button');coach.type='button';coach.className='ds-world-coach ds-town-coach';coach.innerHTML='<img src="assets/exported/ui/stagecoach.svg" alt=""><span>Stagecoach</span><small>Gather the company</small>';coach.onclick=function(){DS.Campfire.enter();};buildings.appendChild(coach);
     var newGame = screen.querySelector('#btn-new-game'); if (newGame) newGame.textContent = 'Reset campaign';
   }
   ['renderTown','_townShowBlacksmithHeroPicker','_townShowBlacksmithCards','_townShowBlacksmithConfirm','_townShowMerchant'].forEach(function(name) { wrap(name, townSkin); });
@@ -228,4 +235,26 @@
     });
   });
   ['showDeckViewer','showPileViewer'].forEach(function(method) { wrap(method, function() { addCardArt(document); }); });
+  // Page long inventories inside the game stage; every item stays reachable.
+  function pages(container, selector, size) {
+    if(!container || container.querySelector(':scope > .ds-pages'))return;
+    var items=Array.from(container.querySelectorAll(selector));if(items.length<=size)return;
+    var page=0,nav=document.createElement('nav');nav.className='ds-pages';nav.setAttribute('aria-label','Inventory pages');
+    var previous=document.createElement('button'),label=document.createElement('span'),next=document.createElement('button');
+    previous.textContent='Previous';next.textContent='Next';previous.className=next.className='btn';
+    nav.append(previous,label,next);container.prepend(nav);
+    function show(){items.forEach(function(item,i){item.hidden=i<page*size||i>=(page+1)*size;item.style.display=item.hidden?'none':'';});label.textContent=' '+(page+1)+' / '+Math.ceil(items.length/size)+' ';previous.disabled=page===0;next.disabled=(page+1)*size>=items.length;}
+    previous.onclick=function(){page--;show();};next.onclick=function(){page++;show();};show();
+  }
+  wrap('renderTown',function(root){var roster=root.querySelector('.town-roster-list');pages(roster,'.town-hero-card',4);});
+  wrap('_townShowMerchant',function(root){pages(root.querySelector('.town-subview'),'.town-gear-card',4);});
+  wrap('_townShowBlacksmithCards',function(root){pages(root.querySelector('.town-subview'),'.town-card-available',6);});
+  wrap('renderShop',function(root){
+    var panel=root.querySelector('.shop-panel');if(!panel)return;
+    var sections=Array.from(panel.querySelectorAll(':scope > .shop-section'));if(sections.length<2)return;
+    var nav=document.createElement('nav');nav.className='ds-pages';panel.prepend(nav);
+    sections.forEach(function(section,i){var b=document.createElement('button'),title=section.querySelector('h3');b.className='btn';b.textContent=title?title.textContent:'Services';b.onclick=function(){sections.forEach(function(s){s.style.display=s===section?'':'none';});};nav.appendChild(b);section.style.display=i===0?'':'none';});
+  });
+  ['showDeckViewer','showPileViewer'].forEach(function(method){wrap(method,function(){var root=document.querySelector('.deck-viewer-cards')||document.querySelector('.deck-viewer');if(root)pages(root,'.card',8);});});
+
 })();
