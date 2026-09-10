@@ -150,7 +150,8 @@ DS.Meta = {
       injury: null,
       kit: DS.Meta.rollKit(cls),
       skillTree: DS.Meta.rollSkillTree(cls),
-      progressionVersion: 2,
+      progressionVersion: 3,
+      legacySkills: [],
       skillPoints: 0,
       maxHpBonus: 0,
       power: 0,
@@ -163,8 +164,9 @@ DS.Meta = {
   },
 
   // Starting kits vary mechanically; recruits retain only their base class.
-  getKitVariant: function(rosterHero) {
-    return null;
+  getKitVariant: function(hero) {
+    var branch = hero && DS.Skills.selected(hero);
+    return branch ? branch.name : null;
   },
 
   // Backfill character-system fields on a roster entry (older saves).
@@ -188,24 +190,25 @@ DS.Meta = {
     h.kit = h.kit.filter(validCard);
     if (!h.kit.length) h.kit = DS.Meta.rollKit(h.heroClass);
     h.upgradedCards = h.upgradedCards.filter(validCard);
-    if (DS.Skills.migrate) DS.Skills.migrate(h);
-    else {
-      if (!DS.Skills.valid(h.skillTree, h.heroClass)) h.skillTree = DS.Meta.rollSkillTree(h.heroClass);
-      DS.Skills.repair(h.skillTree, h.heroClass);
-    }
-    // Recompute only progression-owned stats. Gear, wounds, gold and mastery survive.
-    // Also fixes pre-schema leveled heroes and the partially implemented skill saves.
+    var migrated = h.progressionVersion !== 3 || !DS.Skills.valid(h.skillTree,h.heroClass);
+    DS.Skills.migrate(h);
+    if (!DS.Skills.selected(h)) h.subclass = null;
     var spent = 0, hp = (h.level - 1) * 2, power = h.level - 1, block = 0, cards = [];
-    h.skillTree.branches.forEach(function(branch) { branch.nodes.forEach(function(node) {
+    function apply(node) {
       if (!node.unlocked) return;
-      spent++;
       if (node.kind === 'maxHp') hp += node.amount;
       if (node.kind === 'power') power += node.amount;
       if (node.kind === 'block') block += node.amount;
       if (node.kind === 'card' && validCard(node.cardId) && cards.indexOf(node.cardId) < 0) cards.push(node.cardId);
+      if (node.kind === 'upgrade' && validCard(node.cardId) && h.upgradedCards.indexOf(node.cardId) < 0) h.upgradedCards.push(node.cardId);
+    }
+    (h.legacySkills || []).forEach(apply);
+    h.skillTree.branches.forEach(function(branch) { branch.nodes.forEach(function(node) {
+      if (node.unlocked) spent++;
+      apply(node);
     }); });
-    if (h.progressionVersion !== 2) DS.Meta.progressionNotice = 'Hero progression updated. Compatible kits and learned skills were kept; level stats and points were recalculated.';
-    h.progressionVersion = 2;
+    if (migrated) DS.Meta.progressionNotice = 'Subclass paths updated. Compatible learned effects are retained as legacy training; old skill points are available again. Choose a subclass with your first new investment. Starter kits do not choose it.';
+    h.progressionVersion = 3;
     h.skillPoints = Math.max(0, h.level - 1 - spent);
     h.maxHpBonus = hp; h.power = power; h.blockBonus = block; h.skillCards = cards;
   },
@@ -453,22 +456,15 @@ DS.Meta = {
     DS.Meta._backfillRosterEntry(hero);
     if (hero.skillPoints < 1) return false;
     var found = null;
-    var foundBranch = null;
-    for (var b = 0; b < hero.skillTree.branches.length; b++) {
-      var nodes = hero.skillTree.branches[b].nodes;
-      for (var n = 0; n < nodes.length; n++) if (nodes[n].id === nodeId) { found = { node: nodes[n], nodes: nodes, index: n }; foundBranch = hero.skillTree.branches[b]; }
-    }
-    if (!found || found.node.unlocked) return false;
-    if (hero.subclass && foundBranch.id !== hero.subclass) return false;
-    if (found.node.requires && (!found.nodes[found.index - 1] || !found.nodes[found.index - 1].unlocked)) return false;
-    if (!hero.subclass) hero.subclass = foundBranch.id;
+    hero.skillTree.branches.forEach(function(branch) { branch.nodes.forEach(function(node,index) {
+      if (node.id === nodeId) found = {branch:branch,node:node,index:index};
+    }); });
+    if (!found || !DS.Skills.canLearn(hero,found.branch,found.node,found.index)) return false;
+    // Explicit player investment is the only way to choose a new subclass.
+    if (!hero.subclass) hero.subclass = found.branch.id;
     found.node.unlocked = true;
     if (hero.firstLevelGains && DS.Meta.progressionTutorial) DS.Meta.progressionTutorial = { completed: true };
-    hero.skillPoints--;
-    if (found.node.kind === 'maxHp') hero.maxHpBonus = (hero.maxHpBonus || 0) + found.node.amount;
-    if (found.node.kind === 'power') hero.power = (hero.power || 0) + found.node.amount;
-    if (found.node.kind === 'block') hero.blockBonus = (hero.blockBonus || 0) + found.node.amount;
-    if (found.node.kind === 'card' && found.node.cardId && hero.skillCards.indexOf(found.node.cardId) === -1) hero.skillCards.push(found.node.cardId);
+    DS.Meta._backfillRosterEntry(hero);
     DS.Meta.save();
     return true;
   },

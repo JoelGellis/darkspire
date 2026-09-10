@@ -16,7 +16,7 @@ DS.Skills = (function () {
       ['venomist','Venomist','Spread Poison and wear down weakened enemies.','caltrops',['weaken','lacerate'],'poison_blade']
     ],
     cleric: [
-      ['lifekeeper','Lifekeeper','Restore the party and rescue a fallen ally.','cleansing_light',['martyrdom','sanctuary'],'resurrect'],
+      ['lifekeeper','Lifekeeper','Restore the party and rescue a fallen ally.','cleansing_light',['holy_nova','sanctuary'],'resurrect'],
       ['warden','Warden','Shield the group and cleanse harmful effects.','sanctuary',['purify','cleansing_light'],'bless'],
       ['inquisitor','Inquisitor','Expose enemy ranks to holy damage.','divine_wrath',['holy_nova','purify'],'holy_fire']
     ],
@@ -116,5 +116,5 @@ DS.Skills = (function () {
     var found = subclasses(cls).find(function(s) { return s.id === id; });
     return found ? found.name : null;
   }
-  return {generate:generate,valid:valid,repair:repair,migrate:migrate,selected:selected,canLearn:canLearn,subclasses:subclasses,nameFor:nameFor,specs:specs};
+  return {subclasses:subclasses,nameFor:nameFor,generate:generate,valid:valid,repair:repair,migrate:migrate,selected:selected,canLearn:canLearn,specs:specs};
 }());

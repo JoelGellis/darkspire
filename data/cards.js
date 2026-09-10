@@ -812,7 +812,7 @@ DS.Cards.buildStartingDeck = function(heroList) {
     (entry.skillCards || []).forEach(function(baseId) {
       var skillDef = cards.find(function(c) { return c.id === baseId; });
       if (!skillDef) return;
-      deck.push({
+      var card = {
         id: skillDef.id + '_skill_' + runIdx,
         baseId: skillDef.id,
         name: skillDef.name,
@@ -828,7 +828,9 @@ DS.Cards.buildStartingDeck = function(heroList) {
         heroCls: entry.cls,
         heroName: heroName,
         upgraded: false
-      });
+      };
+      if ((entry.upgradedCards || []).indexOf(baseId) !== -1) DS.Cards.applyUpgrade(card);
+      deck.push(card);
     });
   });
   return deck;

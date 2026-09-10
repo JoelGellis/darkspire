@@ -55,7 +55,7 @@ DS.Campfire = {
         heroDef: def,
         runsSurvived: rh.runsSurvived || 0,
         name: rh.name || def.name,
-        variant: null,
+        variant: DS.Meta.getKitVariant(rh),
         level: rh.level || 1,        // RPG layer fields — default when absent
         xp: rh.xp || 0,
         injury: rh.injury || null    // display-only slot; injury logic comes later
@@ -89,7 +89,7 @@ DS.Campfire = {
         heroDef: def2,
         runsSurvived: 0,
         name: rolled.name || def2.name,
-        variant: null,
+        variant: DS.Meta.getKitVariant(rolled),
         level: rolled.level || 1,
         xp: rolled.xp || 0,
         injury: null
@@ -272,7 +272,7 @@ DS.UI.renderCampfire = function(root) {
       badge +
       '<div class="campfire-hero-sprite"></div>' +
       '<div class="campfire-hero-name" style="color:' + color + '">' + (entry.name || def.name) + '</div>' +
-      '<div class="campfire-hero-class">' + entry.heroClass + ' · base class</div>' +
+      '<div class="campfire-hero-class">' + entry.heroClass + (entry.variant ? ' / ' + entry.variant : '') + '</div>' +
       '<div class="campfire-hero-hp">' + lvlLine + ' · ❤ ' + DS.Campfire._effectiveMaxHp(entry) + ' HP</div>' +
       tag +
       injuryHtml +

@@ -66,3 +66,6 @@ The command must finish with all suites green before Mendel publishes. The gener
 - GitHub Actions deployment `34513682807` completed successfully. Live manifest, headless browser DOM, identity gate, four-hero copy, skill runtime, bug-report launcher, version label, and no runtime syntax/reference errors verified.
 - DONE: four-person expeditions and separate roster capacity; base-class recruits with variable starter kits; three progression-selected subclasses per class with randomized class/subclass skill options.
 - DEFERRED: larger recruit rolling pools beyond the fixed three progression paths.
+
+## Final subclass integration handoff (supersedes earlier completion report)
+Progression finished and browser-verified the final mastery/migration/identity/UI fixes AFTER the earlier1820 release. All12 release suites pass; final held artifact incremental-e9ee051fe2a5ca4d (63 files). tests/subclasses.js covers24 paths/72 actual technique plays and meaningful mastery behavior. Desktop and390px native Chrome fixture PASS, chosen class visible, focus returns correctly. See .agent/PROGRESSION.md and docs/SUBCLASSES.md. Ownership released to Mendel. Rebuild/commit/publish same URL with actual HHMM; earlier c1669fcf84a18cb1 must not be claimed to contain these newer local changes. No publication by Progression.
