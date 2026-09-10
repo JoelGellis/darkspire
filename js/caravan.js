@@ -1,6 +1,7 @@
 window.DS = window.DS || {};
 
 DS.Caravan = {
+  PARTY_SIZE: 4,
   // Transient state for the caravan screen
   _selected: [],       // indices into _pool
   _pool: [],           // { source: 'roster'|'recruit', rosterIdx: N|null, heroDef: {}, cost: N, heroClass: str }
@@ -86,7 +87,7 @@ DS.Caravan = {
       DS.Caravan._selected.splice(idx, 1);
     } else {
       // Select (max 4)
-      if (DS.Caravan._selected.length >= 4) return;
+      if (DS.Caravan._selected.length >= DS.Caravan.PARTY_SIZE) return;
       // Can't select paid recruit you can't afford
       if (entry.cost > 0 && DS.Meta.gold < DS.Caravan._projectedCost(poolIdx)) return;
       DS.Caravan._selected.push(poolIdx);
@@ -118,7 +119,7 @@ DS.Caravan = {
 
   // ===== EMBARK =====
   embark: function() {
-    if (DS.Caravan._selected.length !== 4) return;
+    if (DS.Caravan._selected.length !== DS.Caravan.PARTY_SIZE) return;
     if (!DS.Caravan.canAfford()) return;
 
     // a. Deduct gold for paid recruits
@@ -252,7 +253,7 @@ DS.UI.renderCaravan = function(root) {
   var partyHtml = DS.UI._buildCaravanPartyBar(pool, selected);
 
   // === BUTTONS ===
-  var canEmbark = selected.length === 5 && DS.Caravan.canAfford();
+  var canEmbark = selected.length === DS.Caravan.PARTY_SIZE && DS.Caravan.canAfford();
   var totalCost = DS.Caravan.getSelectionCost();
   var buttonsHtml =
     '<div class="caravan-buttons">' +
@@ -280,7 +281,7 @@ DS.UI.renderCaravan = function(root) {
   var embarkBtn = document.getElementById('caravan-embark');
   if (embarkBtn) {
     embarkBtn.onclick = function() {
-      if (selected.length !== 5 || !DS.Caravan.canAfford()) return;
+      if (selected.length !== DS.Caravan.PARTY_SIZE || !DS.Caravan.canAfford()) return;
       DS.Caravan.embark();
     };
   }
@@ -346,7 +347,7 @@ DS.UI._buildCaravanPartyBar = function(pool, selected) {
   var totalCost = DS.Caravan.getSelectionCost();
   var html = '<div class="caravan-party-bar">' +
     '<div class="caravan-party-header">' +
-      '<h3 class="caravan-party-title">Selected Party (' + selected.length + '/5)</h3>' +
+      '<h3 class="caravan-party-title">Selected Party (' + selected.length + '/' + DS.Caravan.PARTY_SIZE + ')</h3>' +
       (totalCost > 0 ? '<span class="caravan-party-cost">Total: \uD83D\uDCB0 ' + totalCost + 'g</span>' : '') +
     '</div>' +
     '<div class="caravan-party-slots">';

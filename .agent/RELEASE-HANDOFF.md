@@ -36,3 +36,12 @@ The command must finish with all suites green before Mendel publishes. The gener
 - Full `scripts/build-release.js` passes all 15 suites and produced `.release/8b1e93ea415bf21e/` (`incremental-8b1e93ea415bf21e`, 63 runtime files) from source commit `af354efa373ad7a1206965b0764c7b8e313fb03d`.
 - The reporter also restores the accepted local clipboard-copy action with success/fallback feedback; the DOM lookup is guarded for minimal harnesses.
 - No commit, publication, or external transmission was made. Mendel should use the newest build artifact for any later release decision.
+
+## Four-hero correction checkpoint — 2026-09-10 1814
+
+- Party size is now hard four across campfire, caravan, run creation, selection UI, tutorial copy, town wording, and responsive campfire layout. Roster capacity is separate: a new campaign starts with four original heroes and capacity four; the first resolved run grants one roster berth, and tavern upgrades expand the roster only.
+- Existing active five-hero saves are detected before run rehydration. The exact raw save is retained in `darkspire_recovery_checkpoint`; the active run is cleared and the player returns to campfire with the full meta roster, gear, build, and town progress untouched. A migration notice explains the repair. This avoids resuming an illegal party while keeping recovery evidence.
+- Focused checks pass: `tests/campfire-smoke.js`, `tests/progression.js`, and `tests/persistence-migration.js`. The full `scripts/build-release.js` run passes all 15 suites.
+- New release artifact: `.release/4d19090c47245ca5`, version `incremental-4d19090c47245ca5`, 63 runtime files, publication label generated at build time as `2026-09-10 1414` (the release timestamp is `2026-09-10T18:14:20.129Z`; the label uses local HHMM).
+- The local source server is `C:\Users\joel\darkspire`, PID 29444, at `http://127.0.0.1:4173/`; `curl` byte comparison confirms served `index.html` matches source and the served `state.js` contains the five-hero migration gate. Refreshing this origin preserves its localStorage.
+- Mendel publication input and command: publish only `.release/4d19090c47245ca5` after integrated checks; rebuild with `$env:RELEASE_PUBLISHED_AT=(Get-Date).ToString('o'); & C:\Users\joel\tools\node-portable\node.exe scripts\build-release.js`. No external deployment was executed by this workstream.

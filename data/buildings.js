@@ -59,14 +59,14 @@ DS.Buildings = {
   tavern: {
     id: 'tavern',
     name: 'Tavern',
-    desc: 'Expand the company. Your first town upgrade opens a fifth expedition slot.',
+    desc: 'Expand the home roster by four spaces per upgrade. Expeditions always use four heroes.',
     icon: '\uD83C\uDF7A',
     type: 'upgrade',
-    maxLevel: 2,
-    costs: [60, 120],
-    slotsPerLevel: 1,
+    maxLevel: 5,
+    costs: [60, 120, 180, 240, 300],
+    slotsPerLevel: 4,
 
-    // Base 4 caravan slots + level bonus
+    // Roster capacity only; expedition party size remains four.
     getSlotsAtLevel: function(level) {
       return 4 + (level * this.slotsPerLevel);
     },

@@ -213,6 +213,7 @@ DS.UI._summaryApplyResults = function(outcome, run, goldAwarded) {
     // applyDefeatPenalty halves existing meta gold; add run salvage separately
     DS.Meta.addGold(goldAwarded);
     DS.Meta.runCount++;
+    DS.Meta.grantFirstRunRosterExpansion();
     DS.Meta.save();
   }
 

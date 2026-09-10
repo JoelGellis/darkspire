@@ -28,13 +28,13 @@ DS.Meta.save();const saved=JSON.stringify(DS.Meta.heroRoster);const fresh=loadGa
 const legacy={heroClass:'fighter',level:4,xp:7,kit:['removed_card','fighter_strike'],upgradedCards:['removed_card','fighter_strike'],alive:true};DS.Meta._backfillRosterEntry(legacy);
 assert.equal(legacy.skillPoints,3);assert.equal(legacy.maxHpBonus,6);assert.equal(legacy.power,3);assert.deepEqual(Array.from(legacy.kit),['fighter_strike']);assert.deepEqual(Array.from(legacy.upgradedCards),['fighter_strike']);
 DS.Meta.heroRoster=[legacy];DS.Meta.save();const tree=JSON.stringify(legacy.skillTree);DS.Meta.load();assert.equal(JSON.stringify(DS.Meta.heroRoster[0].skillTree),tree);
-DS.Campfire._buildOffer();const hp=DS.Campfire._effectiveMaxHp(DS.Campfire._offer[0]);DS.State.newRun([{heroClass:'fighter',rosterIndex:0}]);assert.equal(DS.State.run.heroes[0].maxHp,hp);assert.equal(DS.State.run.heroes[0].power,3);
+DS.Campfire._buildOffer();const hp=DS.Campfire._effectiveMaxHp(DS.Campfire._offer[0]);DS.State.newRun([{heroClass:'fighter',rosterIndex:0},{heroClass:'rogue'},{heroClass:'cleric'},{heroClass:'wizard'}]);assert.equal(DS.State.run.heroes[0].maxHp,hp);assert.equal(DS.State.run.heroes[0].power,3);
 DS.Meta.addXp(0,1000);assert.equal(DS.Meta.heroRoster[0].level,6);assert.equal(DS.Meta.heroRoster[0].xp,0);assert.equal(DS.Meta.addXp(0,Infinity).length,0);
 console.log('progression: eight classes, varied kits/trees, stat growth, prerequisites, skill deck injection, migration/refresh, HP preview, tutorial and cap passed');
 
 // Actual combat consumes level power and learned Block, not just displayed fields.
 DS.Meta.heroRoster=[DS.Meta.rollRecruit('fighter')];DS.Meta.addXp(0,8);
-DS.State.newRun([{heroClass:'fighter',rosterIndex:0}]);
+DS.State.newRun([{heroClass:'fighter',rosterIndex:0},{heroClass:'rogue'},{heroClass:'cleric'},{heroClass:'wizard'}]);
 DS.Combat.initCombat([{name:'Dummy',maxHp:100,intents:[{type:'attack',dmg:1,targeting:'front'}]}]);
 let battle=DS.State.combat, fighter=DS.State.run.heroes[0], enemy=battle.enemies[0];
 let strike=DS.State.run.deck.find(c=>c.baseId==='fighter_strike');
@@ -54,3 +54,22 @@ for(const h of DS.Heroes) {
   }
 }
 console.log('progression: starter reach and upgrade metadata passed');
+
+// Four in the expedition; roster spaces grow separately after settlement and town upgrades.
+DS.Meta.newGame();
+assert.deepEqual(Array.from(DS.Meta.heroRoster,h=>h.heroClass),['fighter','rogue','cleric','wizard']);
+assert.equal(DS.Meta.getRosterCapacity(),4);assert.equal(DS.Campfire.PARTY_SIZE,4);
+DS.Campfire._buildOffer();assert.equal(DS.Campfire._offer.length,4,'no surplus recruits before first run');
+DS.Campfire._selected=[];[0,1,2,3].forEach(i=>DS.Campfire.toggleSelect(i));
+assert.equal(DS.Campfire._selected.length,4);
+DS.Meta.applyRetreatOutcome(0,[0,1,2,3],[true,true,true,true]);
+assert.equal(DS.Meta.runCount,1);assert.equal(DS.Meta.getRosterCapacity(),5);
+DS.Campfire._buildOffer();assert.equal(DS.Campfire._offer.filter(e=>e.source==='recruit').length,1,'one extra recruit if four survive');
+DS.Campfire._selected=[0,1,2,3];DS.Campfire.toggleSelect(4);assert.equal(DS.Campfire._selected.length,4,'fifth hero cannot join expedition');
+DS.Meta.gold=10000;for(let i=0;i<5;i++)assert.ok(DS.Meta.upgradeBuilding('tavern'));
+assert.equal(DS.Meta.getRosterCapacity(),25);assert.equal(DS.Campfire.PARTY_SIZE,4);
+DS.Meta.heroRoster=DS.Heroes.map(h=>DS.Meta.rollRecruit(h.cls));DS.Meta.save();
+const old=JSON.parse(memory.get('darkspire_meta'));delete old.rosterCapacityVersion;delete old.tutorialPerks.rosterExpansion;old.runCount=0;old.buildings.tavern.level=1;memory.set('darkspire_meta',JSON.stringify(old));
+assert.ok(DS.Meta.load());assert.equal(DS.Meta.heroRoster.length,8,'migration never deletes surplus roster heroes');assert.equal(DS.Meta.getRosterCapacity(),4);
+DS.Campfire._buildOffer();assert.equal(DS.Campfire._offer.filter(e=>e.source==='recruit').length,0,'overcapacity roster is preserved without adding recruits');
+console.log('progression: fixed four-person expeditions; initial four, first-run fifth roster slot, roster upgrades and surplus legacy heroes passed');

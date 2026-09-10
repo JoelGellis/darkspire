@@ -11,6 +11,8 @@ DS.Meta = {
   unlocks: [],
   ownedGear: [],      // gear/artifact ids the PLAYER owns (see data/gear.js)
   merchantLevel: 0,   // town merchant upgrade tier (0-3) — gates stock quality
+  PARTY_SIZE: 4,
+  BASE_ROSTER_CAP: 4,
   lostGear: [],       // ledger of gear lost to death/wipes: {itemId, heroName, cause, runNumber}
   tutorialPerks: { freeBlacksmith: true, merchantDiscount: 0.20 },
                       // v1: lost stays lost — the ledger enables a future
@@ -19,7 +21,7 @@ DS.Meta = {
   // Building config (not persisted — reference only)
   _buildingConfig: {
     chapel: { maxLevel: 3, costs: [50, 100, 150] },
-    tavern: { maxLevel: 2, costs: [60, 120] },
+    tavern: { maxLevel: 5, costs: [60, 120, 180, 240, 300] },
     graveyard: { maxLevel: 3, costs: [40, 80, 120] }
   },
 
@@ -134,9 +136,7 @@ DS.Meta = {
       var pool = DS.Meta.getUnlockedClasses().filter(function(c) {
         return exclude.indexOf(c) === -1;
       });
-      // The first tutorial expansion adds a fifth slot before five distinct
-      // classes are unlocked. Allow a duplicate base class as the extra body
-      // rather than silently producing too few people at the fire.
+      // Recruits fill roster capacity; party size remains four.
       if (!pool.length) pool = DS.Meta.getUnlockedClasses();
       if (!pool.length) return null;
       cls = pool[Math.floor(Math.random() * pool.length)];
@@ -225,14 +225,17 @@ DS.Meta = {
   newGame: function() {
     DS.Meta.gold = 60;
     DS.Meta.runCount = 0;
+    DS.Meta.rosterCapacityVersion = 1;
     DS.Meta.heroRoster = [
       DS.Meta.rollRecruit('fighter'),
-      DS.Meta.rollRecruit('cleric')
+      DS.Meta.rollRecruit('rogue'),
+      DS.Meta.rollRecruit('cleric'),
+      DS.Meta.rollRecruit('wizard')
     ];
     DS.Meta.victories = 0;
     DS.Meta.buildings = {
       chapel: { level: 0 },
-      tavern: { level: 1 },
+      tavern: { level: 0 },
       graveyard: { level: 0 }
     };
     DS.Meta.graveyard = [];
@@ -240,7 +243,7 @@ DS.Meta = {
     DS.Meta.ownedGear = [];
     DS.Meta.merchantLevel = 0;
     DS.Meta.lostGear = [];
-    DS.Meta.tutorialPerks = { freeBlacksmith: true, merchantDiscount: 0.20 };
+    DS.Meta.tutorialPerks = { freeBlacksmith: true, merchantDiscount: 0.20, rosterExpansion: false };
     DS.Meta.progressionTutorial = { completed: false };
     DS.Meta.save();
   },
@@ -250,6 +253,7 @@ DS.Meta = {
       var data = {
         gold: DS.Meta.gold,
         runCount: DS.Meta.runCount,
+        rosterCapacityVersion: 1,
         victories: DS.Meta.victories,
         heroRoster: DS.Meta.heroRoster,
         buildings: DS.Meta.buildings,
@@ -287,7 +291,17 @@ DS.Meta = {
       DS.Meta.merchantLevel = data.merchantLevel || 0; // backfills pre-Phase-5 saves
       DS.Meta.lostGear = data.lostGear || [];          // backfills pre-Phase-5 saves
       DS.Meta.progressionTutorial = data.progressionTutorial || { completed: false };
-      DS.Meta.tutorialPerks = data.tutorialPerks || { freeBlacksmith: true, merchantDiscount: 0.20 };
+      DS.Meta.tutorialPerks = data.tutorialPerks || { freeBlacksmith: true, merchantDiscount: 0.20, rosterExpansion: false };
+      if (DS.Meta.tutorialPerks.rosterExpansion === undefined) {
+        // Older saves treated the initial tavern level as a fifth party slot.
+        // Reinterpret that level as the tutorial roster expansion only after
+        // a run has resolved, while preserving later tavern upgrades.
+        DS.Meta.tutorialPerks.rosterExpansion = DS.Meta.runCount > 0;
+        if (DS.Meta.buildings.tavern && DS.Meta.buildings.tavern.level > 0) {
+          DS.Meta.buildings.tavern.level = Math.max(0, DS.Meta.buildings.tavern.level - 1);
+        }
+      }
+      if (DS.Meta.runCount > 0) DS.Meta.tutorialPerks.rosterExpansion = true;
 
       // Backfill per-hero gear slots on pre-Phase-5 saves; prune dead gear ids
       DS.Meta.heroRoster.forEach(function(h) {
@@ -300,8 +314,8 @@ DS.Meta = {
 
       // Ensure building shape
       if (!DS.Meta.buildings.chapel) DS.Meta.buildings.chapel = { level: 0 };
-      if (!DS.Meta.buildings.tavern) DS.Meta.buildings.tavern = { level: 1 };
-      if (DS.Meta.buildings.tavern.level < 1) DS.Meta.buildings.tavern.level = 1;
+      if (!DS.Meta.buildings.tavern) DS.Meta.buildings.tavern = { level: 0 };
+      if (DS.Meta.buildings.tavern.level < 0) DS.Meta.buildings.tavern.level = 0;
       if (!DS.Meta.buildings.graveyard) DS.Meta.buildings.graveyard = { level: 0 };
 
       DS.Meta.save(); // Persist rolled migration trees before another refresh.
@@ -634,7 +648,19 @@ DS.Meta = {
   },
 
   getCaravanSlots: function() {
-    return 4 + DS.Meta.buildings.tavern.level;
+    return DS.Meta.getRosterCapacity();
+  },
+
+  getRosterCapacity: function() {
+    var perks = DS.Meta.tutorialPerks || {};
+    var tutorial = perks.rosterExpansion || DS.Meta.runCount > 0 ? 1 : 0;
+    var tavern = DS.Meta.buildings && DS.Meta.buildings.tavern ? (DS.Meta.buildings.tavern.level || 0) : 0;
+    return DS.Meta.BASE_ROSTER_CAP + tutorial + tavern * DS.Buildings.tavern.slotsPerLevel;
+  },
+
+  grantFirstRunRosterExpansion: function() {
+    if (!DS.Meta.tutorialPerks) DS.Meta.tutorialPerks = {};
+    DS.Meta.tutorialPerks.rosterExpansion = true;
   },
 
   getGraveyardBonus: function() {
@@ -705,6 +731,7 @@ DS.Meta = {
     });
 
     DS.Meta.runCount++;
+    DS.Meta.grantFirstRunRosterExpansion();
     DS.Meta.welfareCheck();
     DS.Meta.save();
   },
@@ -756,6 +783,7 @@ DS.Meta = {
     });
 
     DS.Meta.runCount++;
+    DS.Meta.grantFirstRunRosterExpansion();
     DS.Meta.victories++;
     DS.Meta.save();
   },

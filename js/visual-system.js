@@ -30,7 +30,7 @@
     dialog.querySelector('.ds-cancel').focus();
   }
   function help() {
-    modal('Welcome to Darkspire', '<p>' + (DS.Lore ? DS.Lore.premise : 'Five heroes. One shared deck. A road that may not bring everyone home.') + '</p><ol><li><b>Gather your company.</b> Choose five heroes at the fire. Your first choice takes rank I, at the front.</li><li><b>Prepare in town.</b> Your first Blacksmith upgrade is free, and the first Merchant item is discounted.</li><li><b>Choose a path.</b> Follow the marked routes through battles, merchants, mysteries and rest sites.</li><li><b>Fight with cards.</b> Spend energy, choose a valid target, then end your turn. Enemy symbols show their next action. Rank badges tell you where a card can be used.</li><li><b>Find the necklace.</b> Reach the top of the Dark Spire and take back what Tyrhung stole.</li></ol>', null);
+    modal('Welcome to Darkspire', '<p>' + (DS.Lore ? DS.Lore.premise : 'Four heroes. One shared deck. A road that may not bring everyone home.') + '</p><ol><li><b>Gather your company.</b> Choose four heroes at the fire. Your first choice takes rank I, at the front. The home roster can grow after your first expedition.</li><li><b>Prepare in town.</b> Your first Blacksmith upgrade is free, and your first Merchant item is discounted.</li><li><b>Choose a path.</b> Follow the marked routes through battles, merchants, mysteries and rest sites.</li><li><b>Fight with cards.</b> Spend energy, choose a valid target, then end your turn. Enemy symbols show their next action. Rank badges tell you where a card can be used.</li><li><b>Find the necklace.</b> Reach the top of the Dark Spire and take back what Tyrhung stole.</li></ol>', null);
   }
   // Intercept only the existing synchronous retreat confirmation, retaining its
   // actual text and all original effects. Never replace window.confirm globally.
@@ -56,7 +56,7 @@
     gathering.remove();
     scene.appendChild(root.querySelector('.cf-rosters'));
     root.querySelector('#cf-scene-title').textContent = 'Choose your company';
-    root.querySelector('.cf-scene-copy > p:last-child').textContent = 'Choose five heroes in marching order. The first stands at the front.';
+    root.querySelector('.cf-scene-copy > p:last-child').textContent = 'Choose four heroes in marching order. The first stands at the front.';
     root.querySelector('.cf-scene-caption').remove();
     var helpButton = document.createElement('button');
     helpButton.className = 'cf-text-button ds-help'; helpButton.textContent = 'How to play'; helpButton.onclick = help;

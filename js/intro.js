@@ -16,10 +16,10 @@ window.DS = window.DS || {};
 DS.Campfire = {
   // --- Open balance params — TODO(Joel): tune these ---
   RECRUIT_MIN: 2,     // fresh recruits offered per campfire visit (min)
-  RECRUIT_MAX: 4,     // ...and max (the first tutorial upgrade fields five)
+  RECRUIT_MAX: 4,     // maximum arrivals, bounded by roster capacity
   RECRUIT_COST: 0,    // recruits are FREE (DD stagecoach). Raise if joining should cost gold.
-  ROSTER_CAP: 8,      // max living heroes on the persistent roster
-  PARTY_SIZE: 5,      // the first tavern upgrade is granted immediately
+  get ROSTER_CAP() { return DS.Meta.getRosterCapacity(); },
+  PARTY_SIZE: 4,      // expeditions always field exactly four heroes
 
   // Transient (per-visit) state — NOT persisted. The roster itself
   // lives in DS.Meta.heroRoster (already saved/loaded by meta.js).
@@ -215,7 +215,7 @@ DS.UI.renderCampfire = function(root) {
       '<div class="fire-log fire-log-r"></div>' +
     '</div>' +
 
-    '<div class="campfire-hint">Choose five — in the order they will stand. The first chosen holds the front.</div>' +
+    '<div class="campfire-hint">Choose four — in the order they will stand. The first chosen holds the front.</div>' +
 
     '<div class="campfire-party" id="campfire-party"></div>' +
 
@@ -318,12 +318,12 @@ DS.UI.renderCampfire = function(root) {
 
   // --- Buttons ---
   var btns = screen.querySelector('#campfire-buttons');
-  var ready = selected.length === 5;
+  var ready = selected.length === 4;
   var updateNotice = DS.State.migrationNotice || DS.Meta.progressionNotice;
   var btnHtml =
     (updateNotice ? '<div class="ds-update-notice" role="status"><strong>UPDATED</strong><span>' + updateNotice + '</span><button class="btn ds-update-dismiss" id="btn-dismiss-update">DISMISS</button></div>' : '') +
     '<button class="btn campfire-btn-descend' + (ready ? '' : ' campfire-btn-disabled') + '" id="btn-descend">' +
-      'BEGIN THE DESCENT' + (ready ? '' : ' (' + selected.length + '/5)') +
+      'BEGIN THE DESCENT' + (ready ? '' : ' (' + selected.length + '/4)') +
     '</button>' +
     '<button class="btn campfire-btn-town" id="btn-visit-town">VISIT THE TOWN</button>';
   if (DS.State.hasRunSave && DS.State.hasRunSave()) {

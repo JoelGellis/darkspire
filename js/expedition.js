@@ -94,7 +94,7 @@
   };
   // A single campaign write carries both mutations and the settlement receipt.
   // No nested XP/death/save method may publish a half-settled campaign.
-  var campaignFields=['gold','runCount','victories','heroRoster','buildings','graveyard','unlocks','ownedGear','merchantLevel','lostGear'];
+  var campaignFields=['gold','runCount','rosterCapacityVersion','victories','heroRoster','buildings','graveyard','unlocks','ownedGear','merchantLevel','lostGear','tutorialPerks','progressionTutorial'];
   var receipts={};
   try{receipts=(JSON.parse(localStorage.getItem('darkspire_meta'))||{}).settledExpeditions||{};}catch(e){}
   var originalMetaSave=DS.Meta.save;
@@ -112,7 +112,7 @@
       var alive=run.heroes.map(function(h){return outcome==='autoRetreat'||h.hp>0;});
       if(outcome==='victory'){DS.Meta.applyVictoryRewards(ledger.banked,indices,alive);DS.State._pendingUnlocks=DS.Meta.checkUnlocks();}
       else if(outcome==='defeat'){
-        DS.Meta._restInjuredAtHome(indices);indices.filter(function(i){return i>=0;}).sort(function(a,b){return b-a;}).forEach(function(i){DS.Meta.killHero(i);});DS.Meta.runCount++;
+        DS.Meta._restInjuredAtHome(indices);indices.filter(function(i){return i>=0;}).sort(function(a,b){return b-a;}).forEach(function(i){DS.Meta.killHero(i);});DS.Meta.runCount++;DS.Meta.grantFirstRunRosterExpansion();
       }else DS.Meta.applyRetreatOutcome(ledger.banked,indices,alive);
       ledger.treasuryAfter=DS.Meta.gold;receipts[id]=ledger;
       DS.Meta.save=save;DS.Meta.save();

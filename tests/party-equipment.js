@@ -38,7 +38,7 @@ assert.ok(DS.Gear.equip(0,armor.id).ok);
 const extra = allowed.find(i=>i.slot==='trinket');
 assert.equal(DS.Gear.equip(0,extra.id).ok,false,'lean departure refuses third item');
 DS.Campfire._buildOffer();
-DS.Campfire._selected=[0,1,2,3,4];
+DS.Campfire._selected=[0,1,2,3];
 const artifacts = DS.Gear.getOwnedArtifacts().slice(0,2).map(i=>i.id);
 DS.Campfire._artifacts = artifacts;
 const hp = DS.Campfire._effectiveMaxHp(DS.Campfire._offer[0]);

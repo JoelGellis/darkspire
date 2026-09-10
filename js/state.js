@@ -33,9 +33,9 @@ DS.State = {
     };
 
     // Build hero entries — from caravan party or default first 4
-    var entries = party || DS.Heroes.slice(0, 4).map(function(def) {
+    var entries = (party || DS.Heroes.slice(0, 4).map(function(def) {
       return { heroClass: def.cls, runsSurvived: 0 };
-    });
+    })).slice(0, 4);
 
     entries.forEach(function(entry, runIdx) {
       // Find full hero definition by class
@@ -267,6 +267,23 @@ DS.State = {
         if (!loadedFromRecovery) localStorage.setItem('darkspire_recovery_checkpoint', JSON.stringify({
           savedAt: Date.now(), sourceVersion: sourceVersion, raw: raw
         }));
+
+      // A pre-correction save may contain a five-hero active expedition. Do
+      // not silently discard its campaign, gear or build: the exact raw save
+      // is already in the recovery checkpoint. Return the player to the
+      // campfire so they can form a legal four-hero party; Meta remains
+      // untouched and preserves the full roster.
+      if ((data.run && Array.isArray(data.run.heroes) && data.run.heroes.length > 4) ||
+          (Array.isArray(data.selectedHeroes) && data.selectedHeroes.length > 4)) {
+        DS.State.screen = 'campfire';
+        DS.State.run = null;
+        DS.State.combat = null;
+        DS.State.selectedHeroes = null;
+        DS.State._selectedParty = null;
+        DS.State.migrationNotice = 'Campaign updated: the saved five-hero expedition was checkpointed; assemble four heroes to continue. Your roster, gear and town progress remain intact.';
+        DS.State.deleteRunSave();
+        return true;
+      }
 
       // Validate shape
       if (!data.run || !data.run.heroes || !data.run.deck) return false;

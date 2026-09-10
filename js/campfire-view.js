@@ -36,7 +36,7 @@
     var selected = camp._selected;
     var dead = DS.Meta.graveyard || [];
     var canResume = DS.State.hasRunSave && DS.State.hasRunSave();
-    var partySize = 5;
+    var partySize = 4;
     var ready = selected.length === partySize;
     var active = document.activeElement;
     var focusId = active && root.contains(active) ? active.id : '';
@@ -97,7 +97,9 @@
 
     html += '</div><section class="cf-muster" aria-labelledby="cf-muster-title"><div class="cf-section-heading">' +
       '<h2 id="cf-muster-title">The expedition</h2><span id="cf-count">' + selected.length + ' / ' + partySize + ' chosen</span></div>' +
-      '<p class="cf-instruction">Choose five in marching order. Rank I holds the front. Remove a hero to change the order.</p>' +
+      '<p class="cf-instruction">Roster: ' + DS.Meta.heroRoster.filter(function(h) { return h.alive !== false; }).length + ' / ' + DS.Meta.getRosterCapacity() + '. Expeditions always use four heroes.</p>' +
+      (DS.Meta.runCount === 1 ? '<p class="cf-instruction">First expedition complete: one extra roster slot is now available. The stagecoach can bring one extra hero; choose four to descend.</p>' : '') +
+      '<p class="cf-instruction">Choose four in marching order. Rank I holds the front. Remove a hero to change the order.</p>' +
       '<div class="cf-departure"><ol class="cf-ranks" aria-label="Party ranks, front to rear">';
     for (var slot = 0; slot < partySize; slot++) {
       var chosen = offer[selected[slot]];

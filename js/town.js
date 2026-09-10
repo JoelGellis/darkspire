@@ -121,7 +121,7 @@ DS.UI.renderTown = function(root) {
       '<div class="town-building-name">' + tv.name + '</div>' +
       '<div class="town-building-desc">' + tv.desc + '</div>' +
       '<div class="town-building-level">Level ' + tavernLvl + '/' + tavernMax + '</div>' +
-      '<div class="town-building-bonus">Expedition size: ' + Math.min(5, tavernLvl + 4) + ' · offers ' + tavernSlots + ' heroes</div>' +
+      '<div class="town-building-bonus">Roster capacity: ' + DS.Meta.getRosterCapacity() + ' &middot; four heroes per expedition</div>' +
       (tavernCost !== null
         ? '<div class="town-building-cost">Upgrade: ' + tavernCost + 'g</div>'
         : '<div class="town-building-cost">MAX LEVEL</div>') +
@@ -186,7 +186,7 @@ DS.UI.renderTown = function(root) {
     '</div>';
 
   var tutorialHtml = (meta.tutorialPerks && (meta.tutorialPerks.freeBlacksmith || meta.tutorialPerks.merchantDiscount))
-    ? '<div class="tutorial-panel"><strong>YOUR FIRST LESSONS</strong><span>Choose a fifth hero at the fire. Your first Blacksmith card upgrade is free, and your first Merchant item is 20% off.</span></div>' : '';
+    ? '<div class="tutorial-panel"><strong>YOUR FIRST LESSONS</strong><span>Begin with four heroes. After your first expedition resolves, the home roster gains one extra place. Your first Blacksmith card upgrade is free, and your first Merchant item is 20% off.</span></div>' : '';
   screen.innerHTML = headerHtml + tutorialHtml + rosterHtml + buildingsHtml + unlocksHtml + actionsHtml;
   root.appendChild(screen);
 
@@ -219,7 +219,7 @@ DS.UI.renderTown = function(root) {
       return;
     }
     if (DS.Meta.upgradeBuilding('tavern')) {
-      DS.UI._townFlash(root, 'Tavern upgraded! Caravan now offers ' + tv.getSlotsAtLevel(meta.buildings.tavern.level) + ' heroes.');
+      DS.UI._townFlash(root, 'Tavern upgraded! Roster capacity is now ' + DS.Meta.getRosterCapacity() + '. Expeditions remain four heroes.');
       DS.UI.renderTown(root);
     }
   };
