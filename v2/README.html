@@ -19,12 +19,13 @@
   .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
 </style>
 </head>
-<body><p class="source-label">Source: README.md</p><h1>Darkspire II - The Hollow Cathedral</h1>
+<body><p class="source-label">Source: v2\README.md</p><h1>Darkspire II - The Hollow Cathedral</h1>
 <p><strong>Version 0.2.0.</strong> A persistent-party tactical deckbuilder built with TypeScript and Phaser. Assemble four heroes, choose a seeded expedition, build their equipment and cards along the road, and bring the survivors home. Darkspire II has its own application and saves; Darkspire 1.0 remains separate.</p>
 <p>The current release includes eight classes, 72 card definitions with explicit upgrades, 44 equipment/relic definitions, 24 subclasses with 96 skill nodes, and seven-stage expeditions drawn from 11 encounters including three bosses. The Last Light provides seven buildings and three camp landmarks with working services. This is one expanded cathedral campaign, not every planned act or the complete original game's content.</p>
 <h2>Play</h2>
+<p><a href="https://joelgellis.github.io/darkspire/v2/">Play Darkspire II in your browser</a>. Version 0.2.0 published and live-verified September 19, 2026.</p>
 <p>Use Node.js 24 or newer. Run <code>npm ci</code>, then <code>npm run dev</code>, and open <a href="http://127.0.0.1:5174/">the local game</a>. <code>npm run build</code> creates <code>dist</code>; <code>npm run preview</code> serves the production build.</p>
-<p>For a portable production package, run <code>npm run release</code>. Extract the generated ZIP and open <code>PLAY.cmd</code> on Windows, or run <code>node serve.mjs</code> on Mac/Linux. The launcher serves the game at <code>http://127.0.0.1:5190/</code>; keep the server window open. It will not take over an occupied port. See <a href="RELEASE.html">release and hosting instructions</a> (<a href="RELEASE.html">readable HTML</a>). A local build or release package does not publish the game.</p>
+<p>For a portable production package, run <code>npm run release</code>. Extract the generated ZIP and open <code>PLAY.cmd</code> on Windows, or run <code>node serve.mjs</code> on Mac/Linux. The launcher serves the game at <code>http://127.0.0.1:5190/</code>; keep the server window open. It will not take over an occupied port. See <a href="RELEASE.md">release and hosting instructions</a> (<a href="RELEASE.html">readable HTML</a>). A local build or release package does not publish the game.</p>
 <ol>
 <li>Enter a keeper name and open <strong>PARTY</strong> or <strong>CAMPFIRE</strong>.</li>
 <li>Use the <strong>STAGECOACH</strong> to recruit or change the active party. Arrange ranks at camp.</li>
@@ -180,7 +181,7 @@
 <p>The 44-item catalog includes universal equipment, eight class sets and seven party relics. Weapons, armor and trinkets grant real stats or class cards; relics apply party auras. Some legendary relics combine two existing auras. Duplicate aura types do not stack.</p>
 <p>Embark with <strong>one item per hero and one party relic</strong>. During a run, fill each hero's weapon, armor and trinket slots and carry additional distinct relics. Extra equipment brought home must be stored or salvaged before the next lean loadout. Item comparisons show the replacement, net stat changes and cards added or removed. Equipping HP gear increases capacity without repeatedly healing the hero.</p>
 <p>Gold is the only currency. Camp purchases use banked gold; expedition shops use run gold. Common gear costs 12-18 gold. Run merchants have seven limited offers including affordable basics, a relic and rare stock; class-specific offers fit living active heroes. Merchant stock survives reloads. Salvage returns half the purchase price, rounded down.</p>
-<p>Every victory drops an item. Ordinary loot is weighted toward common/uncommon equipment; elites award relics; bosses award rare or legendary gear. Drop rates, prices and the measured economy tradeoffs are documented in <a href="BALANCE.html">balance notes</a>.</p>
+<p>Every victory drops an item. Ordinary loot is weighted toward common/uncommon equipment; elites award relics; bosses award rare or legendary gear. Drop rates, prices and the measured economy tradeoffs are documented in <a href="BALANCE.md">balance notes</a>.</p>
 <table>
 <thead>
 <tr>
@@ -215,7 +216,7 @@
 <h2>Saving and recovery</h2>
 <p>Progress saves in the browser under a V2-only key. No account or server receives campaign saves. Browser origin and profile matter: a local preview, the portable launcher and a public site each have separate storage. Use <strong>Help -&gt; export/import</strong> to move a campaign.</p>
 <p>Autosave validates state and keeps one previous valid checkpoint. If the active save is unreadable, its bytes are preserved; a valid prior checkpoint may load with saving paused until explicitly restored. Help can export live state, stored bytes, the previous checkpoint and recovery bytes separately.</p>
-<p>Explicit restore, import or fresh-start actions preserve the replaced campaign in one recovery slot. This is a bounded recovery copy, not an unlimited archive. Invalid imports or storage failures do not replace the current campaign. A stale tab refuses to overwrite a campaign changed by another tab; because browser storage has no atomic cross-tab transaction, keep one active game tab per origin. See <a href="RELEASE.html">save recovery details</a>.</p>
+<p>Explicit restore, import or fresh-start actions preserve the replaced campaign in one recovery slot. This is a bounded recovery copy, not an unlimited archive. Invalid imports or storage failures do not replace the current campaign. A stale tab refuses to overwrite a campaign changed by another tab; because browser storage has no atomic cross-tab transaction, keep one active game tab per origin. See <a href="RELEASE.md#save-recovery">save recovery details</a>.</p>
 <h2>Validation, release and limits</h2>
 <p>Run <code>npm run check</code> for behavior/asset tests, strict TypeScript and the production build. Tests include real resolution of every skill node and card upgrade, class recruitment and death, item ownership, settlement, save migration/recovery, enemy targeting and route completion. No separate lint task is configured.</p>
 <p>The simulation commands exercise bounded expeditions and save roundtrips:</p>
@@ -225,9 +226,9 @@
 <li><code>npm run simulate:economy</code> - repeated campaigns with several spending policies.</li>
 <li><code>npm run simulate:balance</code> - a 576-expedition matrix across compositions, difficulties and spending policies, written to <code>reports/economy-balance.json</code>.</li>
 </ul>
-<p>These checks establish behavior and expose balance problems; they do not establish perfect difficulty or fun. Current balance evidence shows forgiving Pilgrim runs and a substantial composition gap on Veteran. The balance policy does not yet train skills or make tactical retreats. Read <a href="BALANCE.html">the measurements and next tuning criteria</a> before changing global difficulty or prices.</p>
+<p>These checks establish behavior and expose balance problems; they do not establish perfect difficulty or fun. Current balance evidence shows forgiving Pilgrim runs and a substantial composition gap on Veteran. The balance policy does not yet train skills or make tactical retreats. Read <a href="BALANCE.md">the measurements and next tuning criteria</a> before changing global difficulty or prices.</p>
 <p>The interface targets desktop/laptop landscape. This release is not a fully adapted mobile UI. Card actions have distinct painted panels, but expanded equipment intentionally reuses reviewed prop-art families and some actor animation uses shared pose treatments; 44 items does not mean 44 unique paintings. Procedural sound and existing actor motion remain; composed music, a full skeletal animation system and additional acts are future work. No stress system is included.</p>
-<p>Publication is a separate release step after final production browser QA. The existing V1 root remains separate; the V2 deployment path and packaging checks are described in <a href="RELEASE.html">RELEASE.md</a>. This documentation does not assert that a public deployment has occurred.</p>
+<p>Publication is a separate release step after final production browser QA. The existing V1 root remains separate; the V2 deployment path and packaging checks are described in <a href="RELEASE.md">RELEASE.md</a>. This documentation does not assert that a public deployment has occurred.</p>
 <h2>Source map</h2>
 <ul>
 <li><code>src/engine.ts</code>: deterministic combat, campaign transitions, save validation and journal.</li>

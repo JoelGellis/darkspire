@@ -6,6 +6,8 @@ The current release includes eight classes, 72 card definitions with explicit up
 
 ## Play
 
+[Play Darkspire II in your browser](https://joelgellis.github.io/darkspire/v2/). Version 0.2.0 published and live-verified September 19, 2026.
+
 Use Node.js 24 or newer. Run `npm ci`, then `npm run dev`, and open [the local game](http://127.0.0.1:5174/). `npm run build` creates `dist`; `npm run preview` serves the production build.
 
 For a portable production package, run `npm run release`. Extract the generated ZIP and open `PLAY.cmd` on Windows, or run `node serve.mjs` on Mac/Linux. The launcher serves the game at `http://127.0.0.1:5190/`; keep the server window open. It will not take over an occupied port. See [release and hosting instructions](RELEASE.md) ([readable HTML](RELEASE.html)). A local build or release package does not publish the game.

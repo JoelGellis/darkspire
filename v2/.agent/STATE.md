@@ -1,3 +1,7 @@
+# 2026-09-19 - Production published and verified
+
+Darkspire II 0.2.0 is live at https://joelgellis.github.io/darkspire/v2/. Source/art checkpoint `02cbe6d` pushed. Pages run `35425224652` completed successfully, including clean Linux install, all tests, strict TypeScript, build and original V1 release checks. Live V2 manifest matches locally reviewed build `5d8b4b0ad13eb924`; V1 root remains `e9ee051fe2a5ca4d`. Live town screenshot and armory/catalog interaction verified in Chrome with no warnings/errors. Public campaign remains at its starting town; local QA campaigns are separate. Shared knowledge log append saved. Balance limitations below still apply; this release is not a declaration of perfection.
+
 # 2026-09-19 - Darkspire II 0.2 production candidate
 
 User authorized sustained production work and explicitly expanded scope to more than four classes, a persistent recruitable roster, death/replacement, richer town services, skills and itemization. Work is V2 only. Release frozen and locally verified; public publication is pending the Pages workflow and live verification below.
