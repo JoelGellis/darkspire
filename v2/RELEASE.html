@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>RELEASE.md</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+         max-width: 980px; margin: 24px auto; padding: 0 24px; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1, h2, h3, h4 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; margin-top: 28px; }
+  h1 { font-size: 1.9em; }
+  h2 { font-size: 1.45em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding: 0 16px; margin-left: 0; }
+  .doc-sep { border: none; border-top: 3px double #d0d7de; margin: 48px 0 24px; }
+  .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
+</style>
+</head>
+<body><p class="source-label">Source: RELEASE.md</p><h1>Darkspire II releases</h1>
+<p>Use Node.js 24 or newer. From this folder, run <code>npm ci</code>, then <code>npm run release</code>.
+The command runs behavior tests, strict TypeScript and the production build before
+assembling <code>.release/darkspire-ii-VERSION-HASH/</code> and the matching ZIP.</p>
+<p>The release contains compiled game code, self-hosted fonts, reviewed runtime art,
+a SHA-256 file manifest, and a local launcher. Source masters, tests, dependencies,
+personal saves, QA fixtures and source maps are excluded. Entry asset paths and
+literal runtime image references are checked. The ZIP uses sorted paths and fixed
+timestamps; identical built bytes produce the same archive hash. Source/build
+reproducibility requires the checked-in lockfile and the same Node platform.</p>
+<p>On Windows, extract the ZIP and open <code>PLAY.cmd</code>. It uses installed Node, or Joel's
+portable Node path, and opens <code>http://127.0.0.1:5190/</code>. On Mac/Linux, run
+<code>node serve.mjs</code> from the extracted folder. The server listens on loopback only;
+keep its window open. It refuses to take over an occupied port. A fixed address
+keeps browser saves consistent between updates. Update the extracted folder while
+the server is stopped and retain the same address and browser profile.</p>
+<h2>Publication</h2>
+<p>The parent <code>.github/workflows/pages.yml</code> remains manually dispatched. It verifies
+and builds both games, uses the existing V1 allowlisted artifact unchanged, and
+adds the validated V2 artifact under <code>v2/</code>. The resulting V2 URL is
+<code>https://joelgellis.github.io/darkspire/v2/</code>; publishing replaces neither the root
+V1 entry point nor its save key. Commit only reviewed game changes and dispatch
+the workflow after production browser QA. Building locally never publishes.</p>
+<p>The V1 manifest describes its root files. V2 has its own nested
+<code>v2/release-manifest.json</code> with version, build hash and every V2 artifact checksum.
+Preserve both manifests when deploying. An older V2 artifact can be copied back
+into the <code>v2/</code> subdirectory for an explicit rollback; export saves first, since
+older code may not understand newly added content.</p>
+<h2>Save recovery</h2>
+<p>Browser data is specific to origin and browser profile. Local preview and public
+Pages saves are separate; use Help's export/import when moving between them.
+Only <code>darkspire-2-campaign-v1</code> is accessed, never V1 saves.</p>
+<p>Autosave validates every state and retains one previous valid checkpoint. A
+corrupt active save is preserved and its previous checkpoint can be viewed with
+autosave paused. Explicit restore, import and fresh-start operations keep the
+replaced active bytes in one bounded recovery slot before changing the campaign.
+Imports commit successfully before replacing live state. Any quota or security
+failure leaves the prior active save intact. Help can export live state, stored
+bytes, the previous checkpoint and recovery bytes separately. Recovery keeps the
+most recently replaced campaign, not an unlimited archive; export valuable old
+saves before another explicit replacement.</p>
+<p>A stale tab refuses to overwrite a save changed by another tab after loading.
+This comparison is best effort: Web Storage has no atomic cross-tab transaction.
+Use one active game tab per origin. No cloud account or server receives saves.</p></body></html>

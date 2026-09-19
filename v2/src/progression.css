@@ -1,0 +1,76 @@
+.progression-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.progression-tabs [aria-pressed="true"] {
+  border-color: #d6b77b;
+  background: #372d21;
+}
+.progression-paths {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+.progression-path {
+  padding: 16px;
+  border: 1px solid #65513b;
+  background: #15151b;
+  border-radius: 7px;
+}
+.progression-path.chosen {
+  border-color: #d6b77b;
+  background: linear-gradient(165deg, #30271e, #15151b 40%);
+}
+.progression-path.unchosen {
+  opacity: 0.66;
+}
+.progression-path h2 {
+  margin: 6px 0;
+}
+.progression-path .path-inherent {
+  min-height: 44px;
+  color: #dfcba6;
+}
+.progression-skill {
+  border-top: 1px solid #504537;
+  padding: 15px 0;
+}
+.progression-skill h3 {
+  margin: 6px 0;
+  font-size: 23px;
+}
+.progression-skill p {
+  min-height: 56px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.progression-skill > small {
+  color: #bea985;
+  font-size: 10px;
+  letter-spacing: 0.7px;
+}
+.progression-skill.learned h3 {
+  color: #c8d8af;
+}
+.progression-skill.learned button {
+  opacity: 1;
+  color: #c8d8af;
+}
+.progression-skill .skill-requirement {
+  display: block;
+  margin-top: 8px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: #c1b9ad;
+}
+.progression-skill button {
+  white-space: normal;
+}
+@media (max-width: 700px) {
+  .progression-paths {
+    grid-template-columns: 1fr;
+  }
+}

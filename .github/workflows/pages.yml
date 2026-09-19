@@ -19,9 +19,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Install and verify Darkspire II
+        id: v2release
+        run: |
+          npm ci --prefix v2
+          npm run release --prefix v2
       - name: Check and assemble allowlisted game
         id: build
         run: node scripts/build-release.js
+      - name: Add Darkspire II without changing the original game
+        env:
+          ARTIFACT: ${{ steps.build.outputs.path }}
+          V2_ARTIFACT: ${{ steps.v2release.outputs.path }}
+        run: |
+          test ! -e "$ARTIFACT/v2"
+          mkdir "$ARTIFACT/v2"
+          cp -a "$V2_ARTIFACT/." "$ARTIFACT/v2/"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ steps.build.outputs.path }}

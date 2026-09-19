@@ -1,0 +1,31 @@
+{
+  "name": "darkspire-2",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5174",
+    "test": "tsx --test tests/*.test.ts",
+    "check": "npm run test && npm run build",
+    "release": "npm run check && node scripts/release.mjs",
+    "simulate": "tsx scripts/simulate.ts",
+    "simulate:economy": "tsx scripts/simulate-economy.ts",
+    "simulate:balance": "tsx scripts/simulate-balance.ts",
+    "simulate:discoveries": "tsx scripts/simulate-discoveries.ts",
+    "format": "prettier --write src tests scripts/simulate.ts"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prettier": "^3.9.6",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vite": "8.3.0"
+  }
+}

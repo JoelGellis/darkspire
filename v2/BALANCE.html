@@ -1,0 +1,213 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>BALANCE.md</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+         max-width: 980px; margin: 24px auto; padding: 0 24px; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1, h2, h3, h4 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; margin-top: 28px; }
+  h1 { font-size: 1.9em; }
+  h2 { font-size: 1.45em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding: 0 16px; margin-left: 0; }
+  .doc-sep { border: none; border-top: 3px double #d0d7de; margin: 48px 0 24px; }
+  .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
+</style>
+</head>
+<body><p class="source-label">Source: BALANCE.md</p><h1>Itemization and economy balance</h1>
+<h2>What is implemented</h2>
+<p>Gold is the only currency. The 44-item catalog contains universal equipment,
+eight class sets with a weapon, armor and trinket each, and seven party relics.
+Equipment grants actual attack power, maximum HP, opening Block, or an additional
+owned-class card. There are no descriptive-only proc effects. The three legendary
+relics combine existing party auras; duplicate aura types never stack.</p>
+<table>
+<thead>
+<tr>
+<th>Item family</th>
+<th style="text-align: right;">Cost</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Common blade / mail / charm</td>
+<td style="text-align: right;">18 / 16 / 12</td>
+<td>Affordable damage, lasting HP capacity, or immediate protection</td>
+</tr>
+<tr>
+<td>Unbroken Bell</td>
+<td style="text-align: right;">30</td>
+<td>Trade most initial gold for party-wide opening protection</td>
+</tr>
+<tr>
+<td>Roadworn brigandine / Duelist's token</td>
+<td style="text-align: right;">32 / 34</td>
+<td>Mixed defensive or offensive stats</td>
+</tr>
+<tr>
+<td>Original class-specific items</td>
+<td style="text-align: right;">36–42</td>
+<td>Change the starting deck with a class action</td>
+</tr>
+<tr>
+<td>Eight class weapons</td>
+<td style="text-align: right;">44</td>
+<td>+2 power and another class attack</td>
+</tr>
+<tr>
+<td>Eight class trinkets</td>
+<td style="text-align: right;">54</td>
+<td>+4 maximum HP and a class support action</td>
+</tr>
+<tr>
+<td>Eight class armors</td>
+<td style="text-align: right;">58</td>
+<td>Class-shaped HP / opening Block tradeoffs</td>
+</tr>
+<tr>
+<td>Ironheart / Rune-etched edge / Dusk plate</td>
+<td style="text-align: right;">58 / 62 / 65</td>
+<td>Universal rare alternatives</td>
+</tr>
+<tr>
+<td>Lantern / Coin / Reliquary</td>
+<td style="text-align: right;">60 / 55 / 70</td>
+<td>Opening draw, victory gold, or post-battle recovery</td>
+</tr>
+<tr>
+<td>Oathbreaker</td>
+<td style="text-align: right;">80</td>
+<td>Strong universal pure damage</td>
+</tr>
+<tr>
+<td>Three combined legendary relics</td>
+<td style="text-align: right;">120–130</td>
+<td>Two nonstacking auras in the single camp relic slot</td>
+</tr>
+</tbody>
+</table>
+<p>Class armor mixes: Fighter 8 HP / 7 Block; Rogue 6 / 8; Wizard 12 / 2;
+Cleric 8 / 6; Barbarian 16 / 1; Ranger 8 / 6; Necromancer 12 / 2;
+Paladin 10 / 5. These are maximum HP additions, not free healing when repeatedly
+equipping. Names and card identity differ by class; expanded gear uses reviewed
+prop-art families and does not claim 44 unique paintings.</p>
+<h2>Merchant and ownership rules</h2>
+<p>Camp offers every item unlocked at merchant level 0–3, including equipment for
+future recruits. Each item definition can be bought once per stock cycle. Camp
+stock refreshes on the next expedition or merchant upgrade; loading a save cannot
+reroll it. Merchant restoration costs 80 / 160 / 240 gold. Town investment competes
+with healing, recruitment and permanent gear purchases.</p>
+<p>Run shops offer seven items: the three cheap gap-fillers, rotating alternatives,
+at least one relic and at least one rare-or-better item. Class-restricted run stock
+and loot only target a living active class. Camp can equip three slots for planning,
+but embark enforces one item per hero and one party relic. Equipment found or
+purchased later can fill all slots; distinct relics can be added during the run.</p>
+<p>Salvage returns floor(cost / 2). Buying and reselling always loses gold. Ordinary
+victories drop one equipment item at 75% common / 25% uncommon. Elites drop one
+relic, with rarity probabilities 45% / 40% / 13% / 2%. Bosses drop one rare (90%)
+or legendary (10%) item. Probability is assigned to a rarity band first and shared
+within that band's compatible items; expanding the class catalog cannot silently
+change rarity rates. These distributions are regression-tested across 1,000
+evenly spaced rolls.</p>
+<p>Camp stash is safe. Victory and map retreat preserve carried loot and surviving
+gear. Fleeing loses found gear and run gold; surviving purchased equipment remains.
+Dead heroes lose their equipped gear. A wipe also loses the carried pack/relics.
+Every settlement records item losses, and cannot be applied twice.</p>
+<h2>Measurement</h2>
+<p>Run <code>npm run simulate:balance</code> to refresh <code>reports/economy-balance.json</code>. It runs
+576 expeditions: 8 seeds, 3 repeated runs, 3 compositions covering all 8 classes,
+2 difficulties, and 4 spending policies. Every node and camp return passes a save
+roundtrip. Each cohort starts with 40 gold and a deliberately equal-budget party
+fixture, so the report compares combat compositions without charging one cohort
+for recruiting all four heroes. Actual gameplay still charges roster recruitment.</p>
+<p>The policies save money, buy common survival items, invest in rare stock/gear, or
+restore the estate. All equip finds and salvage duplicate spare copies. The report
+records wins, hero deaths, earned gold, purchase/treatment spending, salvage,
+permanent investment, lost unbanked gold, lost item retail value, final bank and retained item value.
+Each campaign also asserts gold conservation: initial gold plus combat earnings
+and salvage, less purchases, estate investment and losses, equals the final bank.
+Retail value is not spendable cash; salvage realizes only half. The visible-state
+combat policy is bounded and does not know future draws. It does not train skills
+or make tactical retreats, so its loss rates are not forecasts of human play.</p>
+<p>Initial September 19 results: all Pilgrim cohorts won 24/24 expeditions per policy.
+Cheap equipment reduced founder-party deaths from five to one. Veteran results:</p>
+<table>
+<thead>
+<tr>
+<th>Party</th>
+<th style="text-align: right;">Save</th>
+<th style="text-align: right;">Common gear</th>
+<th style="text-align: right;">Rare investment</th>
+<th style="text-align: right;">Estate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fighter / Rogue / Cleric / Wizard</td>
+<td style="text-align: right;">3/24</td>
+<td style="text-align: right;">14/24</td>
+<td style="text-align: right;">8/24</td>
+<td style="text-align: right;">5/24</td>
+</tr>
+<tr>
+<td>Paladin / Barbarian / Ranger / Necromancer</td>
+<td style="text-align: right;">10/24</td>
+<td style="text-align: right;">14/24</td>
+<td style="text-align: right;">17/24</td>
+<td style="text-align: right;">10/24</td>
+</tr>
+<tr>
+<td>Barbarian / Paladin / Cleric / Ranger</td>
+<td style="text-align: right;">17/24</td>
+<td style="text-align: right;">17/24</td>
+<td style="text-align: right;">19/24</td>
+<td style="text-align: right;">17/24</td>
+</tr>
+</tbody>
+</table>
+<p>These establish a real survival/spending tradeoff on Veteran, while exposing a
+large composition gap. They do not establish finished balance. The test also
+found a melee stalemate behind dead front ranks; engine regression work now
+closes living enemy formation gaps after deaths.</p>
+<h2>Next tuning passes and acceptance criteria</h2>
+<ol>
+<li><strong>Validate policies before changing prices.</strong> Add skill selection, healing
+   tonics and informed retreats to separate weak policy decisions from class
+   weaknesses. Run mirrored seeds with fixed routes/loadouts and report first-run
+   results separately from inherited rare gear. Keep the present baseline for
+   comparison.</li>
+<li><strong>Close composition gaps on Veteran.</strong> Investigate founder losses by encounter,
+   rank-lock downtime, incoming damage, healing and defensive-card draw rates.
+   Target less than a 20-point victory-rate spread between plausible formations
+   under the same policy. Adjust a specific card or encounter cause before adding
+   blanket starting HP or reducing every enemy's damage.</li>
+<li><strong>Preserve affordable survival.</strong> Keep initial 40 gold enough for two or three
+   basics or the starter relic. Buying basics should reduce deaths before a
+   player can afford rare stock. Track deaths and equipment loss as well as wins;
+   a won expedition with three permanently dead veterans is expensive.</li>
+<li><strong>Check rare purchases over time.</strong> Run 10-run cohorts after short-run behavior
+   stabilizes. Compare survival, replacement costs, bank, merchant upgrades and
+   realized salvage. Rare investment should trail basic coverage initially, then
+   produce a distinct retained-loadout advantage without becoming mandatory.</li>
+<li><strong>Control the gold supply.</strong> Report combat income and salvage separately.
+   Coin's +8 gold per victory must compete with survival/draw relics. Avoid
+   increasing loot quality to fix class difficulty; it increases salvage income
+   for every class. Test duplicate drops and losses, not only perfect clears.</li>
+<li><strong>Test estate break-even.</strong> Compare Chapel, Smith, Guild and Watchtower with
+   an equal gold budget. Include retreat-heavy and redraw-using policies. Do not
+   infer Guild's value from a policy that never spends its redraws.</li>
+<li><strong>Human play before final difficulty claims.</strong> Observe first-time choices,
+   forgotten rank gates, item comparisons, recovery from death, and willingness
+   to retreat. Pilgrim can remain forgiving; Veteran needs understandable causes
+   of loss and several viable equipment strategies.</li>
+</ol>
+<p>Production gates remain deterministic behavior, valid saves, no impossible
+inventory ownership, no currency duplication, bounded battles, and legible
+merchant/armory controls. Difficulty and price targets above are proposed tuning
+criteria, not claims that they have already been met.</p></body></html>

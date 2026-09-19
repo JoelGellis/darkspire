@@ -1,0 +1,242 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>README.md</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+         max-width: 980px; margin: 24px auto; padding: 0 24px; line-height: 1.55;
+         color: #1f2328; background: #fff; }
+  h1, h2, h3, h4 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; margin-top: 28px; }
+  h1 { font-size: 1.9em; }
+  h2 { font-size: 1.45em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  table { border-collapse: collapse; margin: 16px 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  pre { background: #f6f8fa; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding: 0 16px; margin-left: 0; }
+  .doc-sep { border: none; border-top: 3px double #d0d7de; margin: 48px 0 24px; }
+  .source-label { color: #57606a; font-size: 0.85em; font-style: italic; margin-bottom: 0; }
+</style>
+</head>
+<body><p class="source-label">Source: README.md</p><h1>Darkspire II - The Hollow Cathedral</h1>
+<p><strong>Version 0.2.0.</strong> A persistent-party tactical deckbuilder built with TypeScript and Phaser. Assemble four heroes, choose a seeded expedition, build their equipment and cards along the road, and bring the survivors home. Darkspire II has its own application and saves; Darkspire 1.0 remains separate.</p>
+<p>The current release includes eight classes, 72 card definitions with explicit upgrades, 44 equipment/relic definitions, 24 subclasses with 96 skill nodes, and seven-stage expeditions drawn from 11 encounters including three bosses. The Last Light provides seven buildings and three camp landmarks with working services. This is one expanded cathedral campaign, not every planned act or the complete original game's content.</p>
+<h2>Play</h2>
+<p>Use Node.js 24 or newer. Run <code>npm ci</code>, then <code>npm run dev</code>, and open <a href="http://127.0.0.1:5174/">the local game</a>. <code>npm run build</code> creates <code>dist</code>; <code>npm run preview</code> serves the production build.</p>
+<p>For a portable production package, run <code>npm run release</code>. Extract the generated ZIP and open <code>PLAY.cmd</code> on Windows, or run <code>node serve.mjs</code> on Mac/Linux. The launcher serves the game at <code>http://127.0.0.1:5190/</code>; keep the server window open. It will not take over an occupied port. See <a href="RELEASE.html">release and hosting instructions</a> (<a href="RELEASE.html">readable HTML</a>). A local build or release package does not publish the game.</p>
+<ol>
+<li>Enter a keeper name and open <strong>PARTY</strong> or <strong>CAMPFIRE</strong>.</li>
+<li>Use the <strong>STAGECOACH</strong> to recruit or change the active party. Arrange ranks at camp.</li>
+<li>Open <strong>ITEMS</strong> or <strong>ARMORY</strong> to equip one item per hero and one party relic before descending.</li>
+<li>Choose Pilgrim or Veteran difficulty and a route seed, then descend.</li>
+<li>Select a card, then a highlighted target. Use <strong>E</strong> to end the turn, <strong>1-9</strong> to select hand cards, and <strong>Escape</strong> to cancel targeting or close a panel.</li>
+</ol>
+<p>Rank I is closest to the enemy. Card rank and reach restrictions matter; changing position costs one energy during combat and is free at camp. Upgraded movement cards can offer <strong>MOVEMENT</strong> choices to stay or move before targeting. Enemy intentions show their committed target and damage. Living enemies close formation gaps after a death, so a rear survivor cannot become permanently unreachable to melee attacks.</p>
+<p>Block expires at the next player turn; Poison bypasses it. Healing cannot revive the fallen. Exhausted cards remain out of the draw cycle for that battle. Earned tonics heal 12 HP for no energy and reset at the next expedition. Card previews use the same resolved upgrades, equipment and skills as actual combat.</p>
+<h2>Heroes, recruitment and death</h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Main role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fighter</td>
+<td>Front-line attacks and strong self-defense</td>
+</tr>
+<tr>
+<td>Rogue</td>
+<td>Close-range strikes, Poison and retreating defense</td>
+</tr>
+<tr>
+<td>Cleric</td>
+<td>Targeted healing, ally protection and mid-rank spells</td>
+</tr>
+<tr>
+<td>Wizard</td>
+<td>Long-range magic, sweeping attacks and exhaust-based defense</td>
+</tr>
+<tr>
+<td>Barbarian</td>
+<td>Heavy melee attacks, advancing strikes and strong self-defense</td>
+</tr>
+<tr>
+<td>Ranger</td>
+<td>Long-range arrows, attack disruption and traps</td>
+</tr>
+<tr>
+<td>Necromancer</td>
+<td>Poison, weakening spells and bone wards</td>
+</tr>
+<tr>
+<td>Paladin</td>
+<td>Front-line protection, cleansing heals and holy attacks</td>
+</tr>
+</tbody>
+</table>
+<p>The initial party is Fighter, Rogue, Cleric and Wizard. The Stagecoach offers every class not already represented in your living roster. Four heroes are active; up to four more may wait in reserve. Each class has at most one living hero across the active party and reserves. Duplicate-class parties are not supported.</p>
+<p>Recruiting an additional hero costs <strong>35 banked gold</strong>. Recruitment is <strong>free while your entire living roster has fewer than four heroes</strong>. A reserve counts toward that total: bring that veteran back into the party before buying another recruit. New heroes join an open active slot, otherwise they enter reserve. Exactly four living heroes are required to embark.</p>
+<p>A hero's levels, subclass and learned skills persist across expeditions. Sending a hero to reserve preserves that training and moves all worn equipment safely into the camp stash. Sitting out an expedition clears the reserve hero's wound; the Infirmary can also treat reserves. Healthy heroes embark at full HP; wounded heroes start at 80% until treated.</p>
+<p><strong>Death is permanent.</strong> Returning to camp removes dead heroes from the active party and records them in the Graveyard. Their equipped items are lost. There is no automatic replacement or resurrection. Recruits start at level 1 with no inherited subclass or training. Free replacement recruitment makes it possible to rebuild even after a penniless party wipe.</p>
+<h2>Subclasses, skills and card mastery</h2>
+<p>Each class has three subclasses and each subclass has four skill nodes. Open <strong>SKILLS</strong> on a hero or visit the Guild to inspect all choices, including locked ones. Existing saves keep their selected subclass and receive unspent skill points for levels already earned.</p>
+<table>
+<thead>
+<tr>
+<th>Milestone</th>
+<th>Choice</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Level 2</td>
+<td>Choose a subclass and learn its foundation</td>
+<td>1 skill point for the foundation</td>
+</tr>
+<tr>
+<td>Level 4</td>
+<td>Choose one of two mutually exclusive specialties</td>
+<td>2 skill points</td>
+</tr>
+<tr>
+<td>Level 6</td>
+<td>Learn the subclass mastery after a specialty</td>
+<td>2 skill points</td>
+</tr>
+</tbody>
+</table>
+<p>Heroes earn one point per level from level 2 through 6, for five points total. Prerequisites, point costs and the reason a skill is unavailable appear on the tree. Training is available between expeditions and cannot be reset. A specialty closes its alternative permanently. Existing innate path bonuses remain visible alongside the new class-specific skills.</p>
+<p>Skills affect actual card damage, shields, Poison, healing, cleansing, committed enemy attacks, piercing, drawing or battle/turn preparation. Many depend on a particular card, position, energy cost or Exhaust. Their printed card text and targeting previews resolve those conditions at play time. Reserve heroes can train too.</p>
+<p>Each class starts with four cards drawn from three core definitions and can discover six additional actions. The active classes determine the starter deck and reward pool. Rewards exclude fallen classes and avoid adding a third copy of the same definition. Guild restoration grants limited reward redraws each expedition.</p>
+<p>All 72 card definitions have explicit rest upgrades. Upgrades can alter energy cost, rank/reach, movement choice, Poison, disruption, drawing or secondary protection as well as primary values. The Guild archive switches between base and upgraded definitions; rest choices state exactly what changes. Card discoveries and rest upgrades last for the expedition; hero skills persist.</p>
+<h2>The Last Light: ten services</h2>
+<p>The town has <strong>seven buildings and three camp landmarks</strong>. Restoration uses banked gold, persists between expeditions and stops at level 3. The Graveyard and landmarks are services without restoration tracks.</p>
+<table>
+<thead>
+<tr>
+<th>Building or landmark</th>
+<th>Service</th>
+<th>Restoration prices</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blacksmith</td>
+<td>Equipment access; +1 starting Block per hero per level</td>
+<td>45 / 90 / 135</td>
+</tr>
+<tr>
+<td>Adventurers' Guild</td>
+<td>All class cards, subclasses and skills; +1 reward redraw per run per level</td>
+<td>40 / 80 / 120</td>
+</tr>
+<tr>
+<td>Candle Chapel</td>
+<td>+1 HP restored per surviving hero after each victory per level</td>
+<td>50 / 100 / 150</td>
+</tr>
+<tr>
+<td>Infirmary</td>
+<td>Treat active and reserve wounds; price falls from 15 to 12 / 9 / 6 gold</td>
+<td>30 / 60 / 90</td>
+</tr>
+<tr>
+<td>The Wayfarer</td>
+<td>Permanent items, relics, stash and salvage; unlock higher stock tiers</td>
+<td>80 / 160 / 240</td>
+</tr>
+<tr>
+<td>Watchtower</td>
+<td>Map retreat banks 50%, then 55 / 60 / 65% of expedition gold</td>
+<td>35 / 70 / 105</td>
+</tr>
+<tr>
+<td>Graveyard</td>
+<td>Fallen heroes, their training and equipped-item loss counts</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Campfire / Party</td>
+<td>Arrange four active heroes, configure and start an expedition</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Stagecoach / Recruit</td>
+<td>Recruit, reserve and reactivate heroes</td>
+<td>Recruitment rules above</td>
+</tr>
+<tr>
+<td>Armory / Equipment</td>
+<td>Inspect comparisons and manage the party loadout</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<h2>Equipment, gold and settlement</h2>
+<p>The 44-item catalog includes universal equipment, eight class sets and seven party relics. Weapons, armor and trinkets grant real stats or class cards; relics apply party auras. Some legendary relics combine two existing auras. Duplicate aura types do not stack.</p>
+<p>Embark with <strong>one item per hero and one party relic</strong>. During a run, fill each hero's weapon, armor and trinket slots and carry additional distinct relics. Extra equipment brought home must be stored or salvaged before the next lean loadout. Item comparisons show the replacement, net stat changes and cards added or removed. Equipping HP gear increases capacity without repeatedly healing the hero.</p>
+<p>Gold is the only currency. Camp purchases use banked gold; expedition shops use run gold. Common gear costs 12-18 gold. Run merchants have seven limited offers including affordable basics, a relic and rare stock; class-specific offers fit living active heroes. Merchant stock survives reloads. Salvage returns half the purchase price, rounded down.</p>
+<p>Every victory drops an item. Ordinary loot is weighted toward common/uncommon equipment; elites award relics; bosses award rare or legendary gear. Drop rates, prices and the measured economy tradeoffs are documented in <a href="BALANCE.html">balance notes</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>Gold and items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Victory</td>
+<td>Bank all run gold; keep surviving equipment and loose loot</td>
+</tr>
+<tr>
+<td>Map retreat</td>
+<td>Bank 50-65% of run gold; keep surviving equipment and loose loot</td>
+</tr>
+<tr>
+<td>Flee combat</td>
+<td>Lose run gold and found loot; surviving previously owned/purchased gear remains; survivors are wounded</td>
+</tr>
+<tr>
+<td>Party wipe</td>
+<td>Lose run gold, carried items and relics; the camp stash remains safe</td>
+</tr>
+</tbody>
+</table>
+<p>Dead heroes lose their own equipment under every outcome. Settlement records losses once and cannot be repeated for extra gold or items.</p>
+<h2>Expeditions</h2>
+<p>New expeditions have <strong>seven stages</strong>, seeded route choices, <strong>11 encounters</strong> and <strong>three possible bosses</strong>. Route preparation is separate from combat randomness; the same seed and loadout reproduce the route and draws. Choose the seed before descending. Existing five-stage saves retain their original route through that expedition, then move to the new format.</p>
+<p><strong>Pilgrim</strong> uses standard enemy strength. <strong>Veteran</strong> adds 25% enemy HP and 2 attack, and awards 25% more combat gold. Difficulty is selected at camp and cannot be changed midway. Enemy groups include tactics such as wounded-target pressure and timed attack escalation; the map and combat interface explain them.</p>
+<p>Rest stops offer healing, a card upgrade, deck thinning or preparation for the next battle. Shrine choices include an HP-for-damage trade, healing, opening protection, opening draw and earned tonics. Choices are single-use and their costs are checked before applying an effect. Equipment and town investment persist; expedition blessings and preparation do not.</p>
+<h2>Saving and recovery</h2>
+<p>Progress saves in the browser under a V2-only key. No account or server receives campaign saves. Browser origin and profile matter: a local preview, the portable launcher and a public site each have separate storage. Use <strong>Help -&gt; export/import</strong> to move a campaign.</p>
+<p>Autosave validates state and keeps one previous valid checkpoint. If the active save is unreadable, its bytes are preserved; a valid prior checkpoint may load with saving paused until explicitly restored. Help can export live state, stored bytes, the previous checkpoint and recovery bytes separately.</p>
+<p>Explicit restore, import or fresh-start actions preserve the replaced campaign in one recovery slot. This is a bounded recovery copy, not an unlimited archive. Invalid imports or storage failures do not replace the current campaign. A stale tab refuses to overwrite a campaign changed by another tab; because browser storage has no atomic cross-tab transaction, keep one active game tab per origin. See <a href="RELEASE.html">save recovery details</a>.</p>
+<h2>Validation, release and limits</h2>
+<p>Run <code>npm run check</code> for behavior/asset tests, strict TypeScript and the production build. Tests include real resolution of every skill node and card upgrade, class recruitment and death, item ownership, settlement, save migration/recovery, enemy targeting and route completion. No separate lint task is configured.</p>
+<p>The simulation commands exercise bounded expeditions and save roundtrips:</p>
+<ul>
+<li><code>npm run simulate</code> - baseline expeditions.</li>
+<li><code>npm run simulate:discoveries</code> - discovery rewards, upgrades and town investment.</li>
+<li><code>npm run simulate:economy</code> - repeated campaigns with several spending policies.</li>
+<li><code>npm run simulate:balance</code> - a 576-expedition matrix across compositions, difficulties and spending policies, written to <code>reports/economy-balance.json</code>.</li>
+</ul>
+<p>These checks establish behavior and expose balance problems; they do not establish perfect difficulty or fun. Current balance evidence shows forgiving Pilgrim runs and a substantial composition gap on Veteran. The balance policy does not yet train skills or make tactical retreats. Read <a href="BALANCE.html">the measurements and next tuning criteria</a> before changing global difficulty or prices.</p>
+<p>The interface targets desktop/laptop landscape. This release is not a fully adapted mobile UI. Card actions have distinct painted panels, but expanded equipment intentionally reuses reviewed prop-art families and some actor animation uses shared pose treatments; 44 items does not mean 44 unique paintings. Procedural sound and existing actor motion remain; composed music, a full skeletal animation system and additional acts are future work. No stress system is included.</p>
+<p>Publication is a separate release step after final production browser QA. The existing V1 root remains separate; the V2 deployment path and packaging checks are described in <a href="RELEASE.html">RELEASE.md</a>. This documentation does not assert that a public deployment has occurred.</p>
+<h2>Source map</h2>
+<ul>
+<li><code>src/engine.ts</code>: deterministic combat, campaign transitions, save validation and journal.</li>
+<li><code>src/content.ts</code>, <code>src/class-expansion.ts</code>, <code>src/card-upgrades.ts</code>: eight-class card, encounter and mastery definitions.</li>
+<li><code>src/progression.ts</code>, <code>src/roster.ts</code>: permanent training, recruitment and active/reserve ownership.</li>
+<li><code>src/items.ts</code>, <code>src/economy.ts</code>, <code>src/town.ts</code>: items, merchants, loot, settlement and town restoration.</li>
+<li><code>src/expedition.ts</code>: seeded routes, difficulty and expedition choices.</li>
+<li><code>src/persistence.ts</code>: validated local saves and bounded recovery.</li>
+<li><code>src/main.ts</code>, the <code>*-ui.ts</code> modules, styles and <code>src/stage.ts</code>: interface and Phaser presentation.</li>
+<li><code>assets/source/</code>: source masters and art review records; <code>public/assets/exported/</code>: reviewed runtime art.</li>
+<li><code>scripts/release.mjs</code>, <code>scripts/serve-release.mjs</code>: checked production package and local launcher.</li>
+</ul></body></html>

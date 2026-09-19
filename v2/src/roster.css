@@ -1,0 +1,41 @@
+.roster-tile {
+  position: relative;
+  padding-left: 116px !important;
+  min-height: 184px;
+  overflow: hidden;
+}
+.roster-portrait {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 108px;
+  height: 190px;
+  object-fit: contain;
+  object-position: bottom;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 10px #000);
+}
+.roster-arrival {
+  min-height: 254px;
+}
+.roster-arrival .roster-portrait {
+  height: 230px;
+}
+.roster-tile h3 {
+  position: relative;
+}
+.roster-tile p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.roster-tile button {
+  margin-top: 8px;
+}
+.roster-tile details {
+  margin: 8px 0;
+  font-size: 11px;
+  color: #d2bd96;
+}
+.roster-tile summary {
+  cursor: pointer;
+}
